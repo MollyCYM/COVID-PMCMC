@@ -1,0 +1,54 @@
+---
+title: "RWExample Selftry"
+output: html_notebook
+---
+
+```{r prep}
+## Preparation
+yt<-c(0,1,1,1,2) #observed data
+set.seed(122018)
+#SMC by the Bootstrap filter
+#BF_sim<-function(yt,sig,merror,size){
+  tlen<-length(yt)
+  size=10000
+  xt<-matrix(0,size,tlen)
+  xt_prop<-matrix(0,size,tlen)
+  weights<-matrix(0,size,tlen)
+  avg_wt<-matrix(0,size,tlen)
+  hSIRPF <- vector(length=tlen) 
+  for (i in 1:size) {
+    weights[i,1]=1/size
+    avg_wt[i,1]=weights[i,1]/sum(weights[,1])
+  }
+  for(t in 2:tlen){
+    for(i in 1:size){
+      xt_prop[i,t]<-rnorm(1,xt[i,t-1],sig) #proposal particles
+    weights[i,t]=weights[i,t-1]*(pnorm(yt[t]+0.5,xt_prop[i,t],merror)-pnorm(yt[t]-0.5,xt_prop[i,t],merror)) #weighted by p(yt|xt_prop)
+    if(sum(weights[,t])==0)weights[,t]=weights[,t]+1 
+    avg_wt[i,t]=weights[i,t]/sum(weights[,t])}
+    #if(sum(weights[,t])==0)weights[,t]=weights[,t]+1 #marginal likelihood 0: avoid error in sample() below due to weights=0
+    xt[,t] = sample(xt_prop[,t], size=size, replace=TRUE, prob =avg_wt[,t])
+    hSIRPF[t] = mean(xt[,t])
+    #ind<-sample(size,size,replace=T,prob=weights) #resample
+    #xt[1:t,]=rbind(xt[1:(t-1),ind],xt_prop[t,ind])
+    
+  }
+  plot(hSIRPF, type = "l", main = "SIS Filters vs True log-Volatilities",
+     ylab="alpha", xlab="Time",col = "red",ylim = c(-5,5),xlim=c(0,2000))
+ # return(list(hSIRPF=hSIRPF,xt=t(xt),xt_prop=t(xt_prop),avg_wt=avg_wt))
+#}
+sig=0.5
+merror=0.1
+#xt_prior<-apply(rbind(0,matrix(rnorm(2,0,sig),2,1)),1,cumsum)
+xt_prior<-apply(rbind(0,matrix(rnorm(10000,0,sig),4)),2,cumsum)
+xt_BF<-BF_sim(yt,sig,merror,10000)
+xt_posterior<-xt_BF$xt #posterior samples of x_t
+xt_prop<-xt_BF$xt_prop
+```
+
+```{r plot-traj, fig.width=8,fig.height=4}
+## Figure 1. Trajectories of x_t
+par(mfrow=c(1,2))
+matplot(xt_prior,type="l",lty=1,ylim=c(-3,3),ylab="hidden state",xlab="time")
+matplot(xt_posterior[,1:500],type="l",lty=1,ylim=c(-3,3),main="",ylab="hidden state",xlab="time")
+```

@@ -1,0 +1,209 @@
+fitY$q025
+
+
+
+
+#write.csv(fitY,"fitY.csv")
+
+#  write.csv(x,"x.csv")
+write.csv(bi_lst$,"60weeksresults")
+# 提取 出  1 60 
+
+cul <- function(x) {
+   res = list()
+   # n = length(x) / 60
+   for (i in  1:60) {
+     res[[i]] = as.numeric(x[seq(i,60000,60)])
+   } 
+   return(res)
+  
+}
+
+mymean <- function(alist) {
+   n = length(alist)
+   res = c()
+   for (i in 1:n) {
+      res = c(res,mean(alist[[i]],na.rm = T))
+   }
+   return(res)
+}
+
+myq025 <- function(alist) {
+   n = length(alist)
+   res = c()
+   for (i in 1:n) {
+      res = c(res,quantile(alist[[i]],0.025))
+   }
+   return(res)
+}
+
+
+myq25 <- function(alist) {
+   n = length(alist)
+   res = c()
+   for (i in 1:n) {
+      res = c(res,quantile(alist[[i]],0.25))
+   }
+   return(res)
+}
+
+
+
+
+myq05 <- function(alist) {
+   n = length(alist)
+   res = c()
+   for (i in 1:n) {
+      res = c(res,quantile(alist[[i]],0.5))
+   }
+   return(res)
+}
+
+
+
+myq75 <- function(alist) {
+   n = length(alist)
+   res = c()
+   for (i in 1:n) {
+      res = c(res,quantile(alist[[i]],0.75))
+   }
+   return(res)
+}
+
+
+
+myq975 <- function(alist) {
+   n = length(alist)
+   res = c()
+   for (i in 1:n) {
+      res = c(res,quantile(alist[[i]],0.975))
+   }
+   return(res)
+}
+
+
+
+mymedian <- function(alist) {
+   n = length(alist)
+   res = c()
+   for (i in 1:n) {
+      res = c(res,quantile(alist[[i]],0.5))
+   }
+   return(res)
+}
+
+
+
+
+avgvalue =cul(fitY$value)
+avgdata = mymean(avgvalue)
+
+avgdata025 = myq025(avgvalue)
+avgdata25 = myq25(avgvalue)
+avgdata975 = myq975(avgvalue)
+avgdata05= myq05(avgvalue)
+avgdata75= myq75(avgvalue)
+
+copy_y = y
+copy_y$mean = avgdata
+copy_y$q025 = avgdata025
+copy_y$q25=avgdata25
+copy_y$q75=avgdata75
+copy_y$q975=avgdata975
+
+
+ggplot(data = copy_y) +
+   geom_ribbon(aes(x = time, ymin = q25, ymax = q75), alpha = 0.3) +
+   geom_ribbon(aes(x = time, ymin = q025, ymax = q975), alpha = 0.3) +
+   geom_line(aes(x = time, y = mean)) +
+   geom_point(aes(x = time, y = value), colour = "Red") +
+   ylab("Incidence") +
+   xlab("Time")  
+#+  ylim(c(16000,30000))
+
+
+
+#avgvalue025 =cul(fitY$q025)
+#avgvalue25 =cul(fitY$q25)
+#avgvalue75 =cul(fitY$q75)
+#avgvalue975 =cul(fitY$q975)
+
+
+library(tidyverse)
+copy_y = y
+copy_y$postmean = avgdata
+#  
+y_copy = copy_y %>%  pivot_longer(cols = -time)
+
+ggplot(y_copy,aes(x = time, y = value,color = name,group = name)) + geom_point() + geom_line()+
+   ylab("Daily new confirmed cases")+
+   xlab("Time-Day")
+
+extractE<-cul(bi_lst$E %>%
+                 group_by(time))
+posteriormeanE<-mymean(extractE)
+extractI<-cul(bi_lst$I)
+posteriormeanI<-mymean(extractI)
+
+ratioEI <- posteriormeanE/posteriormeanI
+reprodnumI<-(1/(bi_lst$k))*ratioEI/((1/bi_lst$gamma)+0.0087)
+
+contactrate<-
+plot_reprodI <- (1/bi_lst$k)*bi_lst$E/bi_lst$I/((1/bi_lst$gamma)+0.0087) %>%
+   #bi_lst$E/bi_lst$I %>% mutate(value = (1/bi_lst$k)*value/((1/bi_lst$gamma)+0.0087)) %>%
+   group_by(time) %>%
+   mutate(
+      q025 = quantile(value, 0.025),
+      q25 = quantile(value, 0.25),
+      q50 = quantile(value, 0.5),
+      q75 = quantile(value, 0.75),
+      q975 = quantile(value, 0.975)
+   ) %>% ungroup()
+
+fitE <- bi_lst$E %>% 
+   group_by(time) %>%
+   mutate(
+      q025 = quantile(value, 0.025),
+      q25 = quantile(value, 0.25),
+      q50 = quantile(value, 0.5),
+      q75 = quantile(value, 0.75),
+      q975 = quantile(value, 0.975)
+   ) %>% ungroup() 
+extractE<-cul(fitE$value)
+posteriormeanE<-mymean(extractE)
+
+fitI <- bi_lst$I %>% 
+   group_by(time) %>%
+   mutate(
+      q025 = quantile(value, 0.025),
+      q25 = quantile(value, 0.25),
+      q50 = quantile(value, 0.5),
+      q75 = quantile(value, 0.75),
+      q975 = quantile(value, 0.975)
+   ) %>% ungroup() 
+extractI<-cul(fitI$value)
+posteriormeanI<-mymean(extractI)
+ratioEI <-posteriormeanE/posteriormeanI
+
+fitbeta <- bi_lst$x %>% mutate(value = exp(value)) %>%
+   group_by(time) %>%
+   mutate(
+      q025 = quantile(value, 0.025),
+      q25 = quantile(value, 0.25),
+      q50 = quantile(value, 0.5),
+      q75 = quantile(value, 0.75),
+      q975 = quantile(value, 0.975)
+   ) %>% ungroup()
+extractbeta<-cul(fitbeta$value)
+posteriormeanbeta<-mymean(extractbeta)
+
+posteriormeank<-mymean(1/bi_lst$k)
+posteriormeangamma<-mymean(1/bi_lst$gamma)
+reprodnumI<-(posteriormeank)*ratioEI/(posteriormeangamma+0.0087)
+#reprodnumI<-ts(reprodnumI)
+reprodnumE<-posteriormeanbeta*(1+0.1/ratioEI)/(posteriormeangamma+posteriormeank)
+reprodnumE<-ts(reprodnumE)
+plot(reprodnumI,type = "b",col="Orange",ylab = TeX("Reproduction Num ($\\R_{t}^{I}$)"),xlab="Time-weekly")
+abline(h=1)
+plot(reprodnumE,type = "l",col="Blue",ylab = TeX("Reproduction Num ($\\R_{t}^{E}$)"),xlab="Time-weekly")
+abline(h=1)
