@@ -3,7 +3,7 @@ library(rbi)
 library(rbi.helpers)
 
 # Load the data
-v <- read.csv("60w.csv", header=FALSE, stringsAsFactors=FALSE) %>%
+v <- read.csv("london60w.csv", header=FALSE, stringsAsFactors=FALSE) %>%
   rowSums()
 y <- data.frame(value = v) %>%
   mutate(time = seq(7, by = 7, length.out = n())) %>%
@@ -81,7 +81,7 @@ model dureau {
 }"
 model <- bi_model(lines = stringi::stri_split_lines(model_str)[[1]])
 bi_model <- libbi(model)
-input_lst <- list(N = 55977178)
+input_lst <- list(N = 9541000)
 end_time <- max(y$time)
 obs_lst <- list(y = y %>% dplyr::filter(time <= end_time))
 
@@ -93,16 +93,25 @@ bi <- sample(bi_model, end_time = end_time, input = input_lst, obs = obs_lst, ns
 
 bi_lst <- bi_read(bi %>% sample_obs)
 
-fitY <-  bi_lst$y%>% ungroup() %>%
+fitY <- bi_lst$y %>% 
+  group_by(time) %>%
+  mutate(
+    q025 = quantile(value, 0.025),
+    q25 = quantile(value, 0.25),
+    q50 = quantile(value, 0.5),
+    q75 = quantile(value, 0.75),
+    q975 = quantile(value, 0.975)
+  ) %>% ungroup() %>%
   left_join(y %>% rename(Y = value))
 
+
 g1 <- ggplot(data = fitY) +
-  geom_ribbon(aes(x = time, ymin = q25, ymax = q75)) +
-  geom_ribbon(aes(x = time, ymin = q025, ymax = q975)) +
+  geom_ribbon(aes(x = time, ymin = q25, ymax = q75),alpha=0.3) +
+  geom_ribbon(aes(x = time, ymin = q025, ymax = q975),alpha=0.3) +
   geom_line(aes(x = time, y = q50)) +
   geom_point(aes(x = time, y = Y), colour = "Red") +
-  ylab("Incidence") +
-  xlab("Time")
+  ylab("Daily new confirmed cases") +
+  xlab("Time-Day")
 
 plot_df <- bi_lst$x %>% mutate(value = exp(value)) %>%
   group_by(time) %>%
@@ -118,8 +127,8 @@ g2 <- ggplot(data = plot_df) +
   geom_ribbon(aes(x = time, ymin = q25, ymax = q75),alpha = 0.3) +
   geom_ribbon(aes(x = time, ymin = q025, ymax = q975),alpha = 0.3) +
   geom_line(aes(x = time, y = q50)) +
-  ylab(TeX("Transmissibility ($\\beta(t)$)")) +
-  xlab("Time")
+  ylab(TeX("Transmission rate ($\\beta(t)$)")) +
+  xlab("Time-Day")
 
 plot_df <- bi_lst$x %>% mutate(value = exp(value)) %>% 
   group_by(np) %>% mutate(value = value - value[1]) %>%
@@ -136,8 +145,8 @@ g3 <- ggplot(data = plot_df) +
   geom_ribbon(aes(x = time, ymin = q25, ymax = q75), alpha = 0.3) +
   geom_ribbon(aes(x = time, ymin = q025, ymax = q975), alpha = 0.3) +
   geom_line(aes(x = time, y = q50)) +
-  ylab(TeX("Relative trans. ($\\beta(t)-\\beta(0)$)")) +
-  xlab("Time")
+  ylab(TeX("Relative transmission rate. ($\\beta(t)-\\beta(0)$)")) +
+  xlab("Time-Day")
 
 
 ggarrange(g1, g2, g3, ncol = 1, nrow = 3, align = "v")
