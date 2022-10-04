@@ -6,14 +6,14 @@ fitY$q025
 #write.csv(fitY,"fitY.csv")
 
 #  write.csv(x,"x.csv")
-write.csv(bi_lst$,"60weeksresults")
+#write.csv(bi_lst$,"60weeksresults")
 # 提取 出  1 60 
 
 cul <- function(x) {
    res = list()
    # n = length(x) / 60
-   for (i in  1:60) {
-     res[[i]] = as.numeric(x[seq(i,60000,60)])
+   for (i in  1:30) {
+     res[[i]] = as.numeric(x[seq(i,30000,30)])
    } 
    return(res)
   
@@ -136,29 +136,10 @@ copy_y$postmean = avgdata
 y_copy = copy_y %>%  pivot_longer(cols = -time)
 
 ggplot(y_copy,aes(x = time, y = value,color = name,group = name)) + geom_point() + geom_line()+
-   ylab("Daily new confirmed cases")+
+   ylab("Daily new H1N1 clinical cases")+
    xlab("Time-Day")
 
-extractE<-cul(bi_lst$E %>%
-                 group_by(time))
-posteriormeanE<-mymean(extractE)
-extractI<-cul(bi_lst$I)
-posteriormeanI<-mymean(extractI)
-
-ratioEI <- posteriormeanE/posteriormeanI
-reprodnumI<-(1/(bi_lst$k))*ratioEI/((1/bi_lst$gamma)+0.0087)
-
-contactrate<-
-plot_reprodI <- (1/bi_lst$k)*bi_lst$E/bi_lst$I/((1/bi_lst$gamma)+0.0087) %>%
-   #bi_lst$E/bi_lst$I %>% mutate(value = (1/bi_lst$k)*value/((1/bi_lst$gamma)+0.0087)) %>%
-   group_by(time) %>%
-   mutate(
-      q025 = quantile(value, 0.025),
-      q25 = quantile(value, 0.25),
-      q50 = quantile(value, 0.5),
-      q75 = quantile(value, 0.75),
-      q975 = quantile(value, 0.975)
-   ) %>% ungroup()
+#Reproduction number plot
 
 fitE <- bi_lst$E %>% 
    group_by(time) %>%
@@ -205,5 +186,11 @@ reprodnumE<-posteriormeanbeta*(1+0.1/ratioEI)/(posteriormeangamma+posteriormeank
 reprodnumE<-ts(reprodnumE)
 plot(reprodnumI,type = "b",col="Orange",ylab = TeX("Reproduction Num ($\\R_{t}^{I}$)"),xlab="Time-weekly")
 abline(h=1)
-plot(reprodnumE,type = "l",col="Blue",ylab = TeX("Reproduction Num ($\\R_{t}^{E}$)"),xlab="Time-weekly")
-abline(h=1)
+#plot(reprodnumE,type = "l",col="Blue",ylab = TeX("Reproduction Num ($\\R_{t}^{E}$)"),xlab="Time-weekly")
+#abline(h=1)
+
+#Trace Plot
+par(mfrow=c(2,1))
+plot(1/bi_lst$k$value,type='l',main=TeX("Sampled onset London COVID-19 symptoms rate ($\\alpha$)"),xlab="PMCMC iterations after first 5000 burn-in and thinning by 5",ylab="alpha")
+plot(1/bi_lst$gamma$value,type='l',main=TeX("Sampled London COVID-19 Recovery rate ($\\gamma$)"),xlab="PMCMC iterations after first 5000 burn-in and thinning by 5",ylab="gamma")
+

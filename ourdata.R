@@ -1,16 +1,14 @@
+rm(list=ls())
 library(rbi)
 library(rbi.helpers)
-# Load the data
 
-library(rbi)
-library(rbi.helpers)
 # Load the data
-v <- read.csv("covid.csv", header=FALSE, stringsAsFactors=FALSE) %>%
+v <- read.csv("andre_estimates_21_02.txt", sep  = "\t") %>%
   rowSums()
 y <- data.frame(value = v) %>%
   mutate(time = seq(7, by = 7, length.out = n())) %>%
   dplyr::select(time, value)
-y<- y[1:37,]
+#y<- y[1:37,]
 ncores <- 8
 minParticles <- max(ncores, 16)
 
@@ -24,8 +22,6 @@ model dureau {
   state R
   state x
 
-  state Z
-
   input N
   param k
   param gamma
@@ -34,17 +30,15 @@ model dureau {
   param I0
   param R0
   param x0
-  param tau
 
   sub parameter {
     k ~ truncated_gaussian(1.59, 0.02, lower = 0) // k is the period here, not the rate, i.e. 1/k is the rate
-    gamma ~ truncated_gaussian(1.08, 0.075, lower = 0) // gamma is the period, not the rate
+    gamma ~ truncated_gaussian(1.08, 0.075, lower = 0)// gamma is the period, not the rate
     sigma ~ uniform(0,1)
     x0 ~ uniform(-5,2)
     I0 ~ uniform(-16, -9)
     E0 ~ uniform(-16, -9)
     R0 ~ truncated_gaussian(0.15, 0.15, lower = 0, upper = 1)
-    tau ~ uniform(0, 1)
   }
 
   sub initial {
@@ -57,25 +51,22 @@ model dureau {
     I <- exp(I0 + log(S))
     S <- S - I
     x <- x0
-    Z <- 0
   }
 
   sub transition(delta = 1) {
-    Z <- ((t_now) % 7 == 0 ? 0 : Z)
     noise e
     e ~ wiener()
     ode(alg = 'RK4(3)', h = 1.0, atoler = 1.0e-3, rtoler = 1.0e-8) {
       dx/dt = sigma*e
-      dS/dt = -exp(x)*S*I/N
-      dE/dt = exp(x)*S*I/N - E/k
-      dI/dt = E/k-I/gamma
-      dR/dt = I/gamma
-      dZ/dt = E/k
+      dS/dt = -exp(x)*S*(0.1*I+E)/N
+      dE/dt = exp(x)*S*(0.1*I+E)/N - E*(1/k+1/gamma)
+      dI/dt = E/k-I*(1/gamma+0.0087)
+      dR/dt = (I+E)/gamma
     }
   }
 
   sub observation {
-    y ~ log_normal(log(max(Z/10.0, 0)), tau)
+    y ~ poisson(rate=E/k)
   }
 
   sub proposal_parameter {
@@ -86,7 +77,6 @@ model dureau {
     E0 ~ gaussian(E0, 0.05)
     I0 ~ gaussian(I0, 0.05)
     R0 ~ gaussian(R0, 0.05)
-    tau ~ gaussian(tau, 0.05)
   }
 }"
 model <- bi_model(lines = stringi::stri_split_lines(model_str)[[1]])
@@ -102,3 +92,7 @@ bi <- sample(bi_model, end_time = end_time, input = input_lst, obs = obs_lst, ns
   sample(nsamples = 5000, thin = 5)
 
 bi_lst <- bi_read(bi %>% sample_obs)
+write.csv(bi_lst,"ourmodeltheirdataresult.csv")
+par(mfrow=c(2,1))
+g1
+g2
