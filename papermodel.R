@@ -105,6 +105,7 @@ bi <- sample(bi_model, end_time = end_time, input = input_lst, obs = obs_lst, ns
   sample(nsamples = 1000, thin = 5)
 
 bi_lst <- bi_read(bi %>% sample_obs)
+write.csv(bi_lst,"5weeksresults.csv")
 # fitY <- bi_lst$y %>% 
 #    group_by(time) %>%
 #    mutate(
