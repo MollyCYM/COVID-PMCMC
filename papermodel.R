@@ -105,18 +105,19 @@ bi <- sample(bi_model, end_time = end_time, input = input_lst, obs = obs_lst, ns
   sample(nsamples = 1000, thin = 5)
 
 bi_lst <- bi_read(bi %>% sample_obs)
+
 write.csv(bi_lst,"5weeksresults.csv")
-# fitY <- bi_lst$y %>% 
-#    group_by(time) %>%
-#    mutate(
-#      q025 = quantile(value, 0.025),
-#      q25 = quantile(value, 0.25),
-#      q50 = quantile(value, 0.5),
-#      q75 = quantile(value, 0.75),
-#      q975 = quantile(value, 0.975)
-#    ) %>% ungroup() %>%
-#    left_join(y %>% rename(Y = value))
-#  
+fitY <- bi_lst$y %>%
+   group_by(time) %>%
+   mutate(
+     q025 = quantile(value, 0.025),
+     q25 = quantile(value, 0.25),
+     q50 = quantile(value, 0.5),
+     q75 = quantile(value, 0.75),
+     q975 = quantile(value, 0.975)
+   ) %>% ungroup() %>%
+   left_join(y %>% rename(Y = value))
+write.csv(fitY,"5winfection.csv")
 #  g1 <- ggplot(data = fitY) +
 #    geom_ribbon(aes(x = time, ymin = q25, ymax = q75), alpha = 0.3) +
 #    geom_ribbon(aes(x = time, ymin = q025, ymax = q975), alpha = 0.3) +
@@ -125,16 +126,16 @@ write.csv(bi_lst,"5weeksresults.csv")
 #    ylab("Daily new H1N1 clinical cases") +
 #    xlab("Time-Day")
 #  
-#  plot_df <- bi_lst$x %>% mutate(value = exp(value)) %>%
-#    group_by(time) %>%
-#    mutate(
-#      q025 = quantile(value, 0.025),
-#      q25 = quantile(value, 0.25),
-#      q50 = quantile(value, 0.5),
-#      q75 = quantile(value, 0.75),
-#      q975 = quantile(value, 0.975)
-#    ) %>% ungroup()
-#  
+ plot_df <- bi_lst$x %>% mutate(value = exp(value)) %>%
+   group_by(time) %>%
+   mutate(
+     q025 = quantile(value, 0.025),
+     q25 = quantile(value, 0.25),
+     q50 = quantile(value, 0.5),
+     q75 = quantile(value, 0.75),
+     q975 = quantile(value, 0.975)
+   ) %>% ungroup()
+ write.csv(plot_df,"5wbeta.csv")
 #  g2 <- ggplot(data = plot_df) +
 #    geom_ribbon(aes(x = time, ymin = q25, ymax = q75), alpha = 0.3) +
 #   geom_ribbon(aes(x = time, ymin = q025, ymax = q975), alpha = 0.3) +
@@ -142,17 +143,17 @@ write.csv(bi_lst,"5weeksresults.csv")
 #   ylab(TeX("Transmissibility ($\\beta(t)$)")) +
 #   xlab("Time-Day")
 # 
-# plot_df <- bi_lst$x %>% mutate(value = exp(value)) %>%
-#   group_by(np) %>% mutate(value = value - value[1]) %>%
-#   group_by(time) %>%
-#   mutate(
-#     q025 = quantile(value, 0.025),
-#     q25 = quantile(value, 0.25),
-#     q50 = quantile(value, 0.5),
-#     q75 = quantile(value, 0.75),
-#     q975 = quantile(value, 0.975)
-#   ) %>% ungroup()
-# 
+plot_df1 <- bi_lst$x %>% mutate(value = exp(value)) %>%
+  group_by(np) %>% mutate(value = value - value[1]) %>%
+  group_by(time) %>%
+  mutate(
+    q025 = quantile(value, 0.025),
+    q25 = quantile(value, 0.25),
+    q50 = quantile(value, 0.5),
+    q75 = quantile(value, 0.75),
+    q975 = quantile(value, 0.975)
+  ) %>% ungroup()
+write.csv(plot_df1,"5wbeta1.csv")
 # g3 <- ggplot(data = plot_df) +
 #   geom_ribbon(aes(x = time, ymin = q25, ymax = q75), alpha = 0.3) +
 #   geom_ribbon(aes(x = time, ymin = q025, ymax = q975), alpha = 0.3) +
@@ -162,3 +163,6 @@ write.csv(bi_lst,"5weeksresults.csv")
 # 
 # 
 # ggarrange(g1, g2, g3, ncol = 1, nrow = 3, align = "v")
+write.csv(1/bi_lst$k$value,"5walpha.csv")
+write.csv(1/bi_lst$gamma$value,"5wgamma.csv")
+
