@@ -162,13 +162,13 @@ The following object is masked from ‘package:base’:
 +   adapt_proposal(min = 0.05, max = 0.4) %>%
 +   sample(nsamples = 1000, thin = 5) %>% # burn in 
 +   sample(nsamples = 1000, thin = 5)
-Tue Oct 11 15:15:46 2022 Adapting the proposal distribution
-Tue Oct 11 15:15:46 2022 Adapting the number of particles
-Tue Oct 11 15:16:42 2022 16 particles, loglikelihod variance: 0.708953694716583
-Tue Oct 11 15:16:42 2022 Choosing 16 particles.
-Tue Oct 11 15:16:42 2022 Initial trial run
-Tue Oct 11 15:17:03 2022 Acceptance rate 0.045045045045045, adapting size with scale 1
-Tue Oct 11 15:17:10 2022 Acceptance rate: 0.182182182182182
+Tue Oct 11 18:55:05 2022 Adapting the proposal distribution
+Tue Oct 11 18:55:05 2022 Adapting the number of particles
+Tue Oct 11 18:56:02 2022 16 particles, loglikelihod variance: 0.708953694716583
+Tue Oct 11 18:56:02 2022 Choosing 16 particles.
+Tue Oct 11 18:56:02 2022 Initial trial run
+Tue Oct 11 18:56:23 2022 Acceptance rate 0.045045045045045, adapting size with scale 1
+Tue Oct 11 18:56:29 2022 Acceptance rate: 0.182182182182182
 > 
 > bi_lst <- bi_read(bi %>% sample_obs)
 > write.csv(bi_lst,"5weeksresults.csv")
@@ -231,4 +231,4 @@ Tue Oct 11 15:17:10 2022 Acceptance rate: 0.182182182182182
 > 
 > proc.time()
    user  system elapsed 
-419.936  10.581 125.415 
+418.780  10.864 125.202 
