@@ -34,3 +34,6 @@ AR.1<-arima.sim(model=list(ar=c(0.6,0.3)), n=100)
 
 AR.2<-arima.sim(model=list(ar=c(-0.4,0.5)), n=100)
 #acf(AR.2)
+
+
+
