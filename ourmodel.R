@@ -3,12 +3,11 @@ library(rbi)
 library(rbi.helpers)
 
 # Load the data
-v <- read.csv("andre_estimates_21_02.txt", header=FALSE, stringsAsFactors=FALSE) %>%
+v <- read.csv("60w.csv", header=FALSE, stringsAsFactors=FALSE) %>%
   rowSums()
 y <- data.frame(value = v) %>%
   mutate(time = seq(7, by = 7, length.out = n())) %>%
   dplyr::select(time, value)
-#y<- y[1:37,]
 ncores <- 8
 minParticles <- max(ncores, 16)
 
@@ -81,7 +80,7 @@ model dureau {
 }"
 model <- bi_model(lines = stringi::stri_split_lines(model_str)[[1]])
 bi_model <- libbi(model)
-input_lst <- list(N = 9541000)
+input_lst <- list(N = 55977178)
 end_time <- max(y$time)
 obs_lst <- list(y = y %>% dplyr::filter(time <= end_time))
 
@@ -89,10 +88,45 @@ bi <- sample(bi_model, end_time = end_time, input = input_lst, obs = obs_lst, ns
   adapt_particles(min = minParticles, max = minParticles*200) %>%
   adapt_proposal(min = 0.05, max = 0.4) %>%
   sample(nsamples = 5000, thin = 5) %>% # burn in 
-  sample(nsamples = 5000, thin = 5)
+  sample(nsamples = 10000, thin = 5)
 
 bi_lst <- bi_read(bi %>% sample_obs)
-write.csv(bi_lst,"ourmodelresult.csv")
-par(mfrow=c(2,1))
-g1
-g2
+write.csv(bi_lst,"cv60covid.csv")
+fitY <- bi_lst$y %>%
+  group_by(time) %>%
+  mutate(
+    q025 = quantile(value, 0.025),
+    q25 = quantile(value, 0.25),
+    q50 = quantile(value, 0.5),
+    q75 = quantile(value, 0.75),
+    q975 = quantile(value, 0.975)
+  ) %>% ungroup() %>%
+  left_join(y %>% rename(Y = value))
+write.csv(fitY,"cv60covidy.csv")
+
+plot_df <- bi_lst$x %>% mutate(value = exp(value)) %>%
+  group_by(time) %>%
+  mutate(
+    q025 = quantile(value, 0.025),
+    q25 = quantile(value, 0.25),
+    q50 = quantile(value, 0.5),
+    q75 = quantile(value, 0.75),
+    q975 = quantile(value, 0.975)
+  ) %>% ungroup()
+write.csv(plot_df,"cv60covidbeta.csv")
+
+plot_df1 <- bi_lst$x %>% mutate(value = exp(value)) %>%
+  group_by(np) %>% mutate(value = value - value[1]) %>%
+  group_by(time) %>%
+  mutate(
+    q025 = quantile(value, 0.025),
+    q25 = quantile(value, 0.25),
+    q50 = quantile(value, 0.5),
+    q75 = quantile(value, 0.75),
+    q975 = quantile(value, 0.975)
+  ) %>% ungroup()
+write.csv(plot_df1,"cv60covidbeta1.csv")
+
+write.csv(1/bi_lst$k$value,"cv60covidalpha.csv")
+write.csv(1/bi_lst$gamma$value,"cv60covidgamma.csv")
+
