@@ -14,7 +14,6 @@ v <- read.csv("andre_estimates_21_02.txt", sep  = "\t") %>%
 y <- data.frame(value = v) %>%
   mutate(time = seq(7, by = 7, length.out = n())) %>%
   dplyr::select(time, value)
-y<- y[1:5,]
 ncores <- 8
 minParticles <- max(ncores, 16)
 model_str <- "
@@ -106,7 +105,7 @@ bi <- sample(bi_model, end_time = end_time, input = input_lst, obs = obs_lst, ns
 
 bi_lst <- bi_read(bi %>% sample_obs)
 
-write.csv(bi_lst,"5weeksresults.csv")
+write.csv(bi_lst,"37weeksresults.csv")
 fitY <- bi_lst$y %>%
    group_by(time) %>%
    mutate(
@@ -117,15 +116,8 @@ fitY <- bi_lst$y %>%
      q975 = quantile(value, 0.975)
    ) %>% ungroup() %>%
    left_join(y %>% rename(Y = value))
-write.csv(fitY,"5winfection.csv")
-#  g1 <- ggplot(data = fitY) +
-#    geom_ribbon(aes(x = time, ymin = q25, ymax = q75), alpha = 0.3) +
-#    geom_ribbon(aes(x = time, ymin = q025, ymax = q975), alpha = 0.3) +
-#    geom_line(aes(x = time, y = q50)) +
-#    geom_point(aes(x = time, y = Y), colour = "Red") +
-#    ylab("Daily new H1N1 clinical cases") +
-#    xlab("Time-Day")
-#  
+write.csv(fitY,"37wky.csv")
+
  plot_df <- bi_lst$x %>% mutate(value = exp(value)) %>%
    group_by(time) %>%
    mutate(
@@ -135,14 +127,8 @@ write.csv(fitY,"5winfection.csv")
      q75 = quantile(value, 0.75),
      q975 = quantile(value, 0.975)
    ) %>% ungroup()
- write.csv(plot_df,"5wbeta.csv")
-#  g2 <- ggplot(data = plot_df) +
-#    geom_ribbon(aes(x = time, ymin = q25, ymax = q75), alpha = 0.3) +
-#   geom_ribbon(aes(x = time, ymin = q025, ymax = q975), alpha = 0.3) +
-#   geom_line(aes(x = time, y = q50)) +
-#   ylab(TeX("Transmissibility ($\\beta(t)$)")) +
-#   xlab("Time-Day")
-# 
+ write.csv(plot_df,"37wkbeta.csv")
+
 plot_df1 <- bi_lst$x %>% mutate(value = exp(value)) %>%
   group_by(np) %>% mutate(value = value - value[1]) %>%
   group_by(time) %>%
@@ -153,16 +139,8 @@ plot_df1 <- bi_lst$x %>% mutate(value = exp(value)) %>%
     q75 = quantile(value, 0.75),
     q975 = quantile(value, 0.975)
   ) %>% ungroup()
-write.csv(plot_df1,"5wbeta1.csv")
-# g3 <- ggplot(data = plot_df) +
-#   geom_ribbon(aes(x = time, ymin = q25, ymax = q75), alpha = 0.3) +
-#   geom_ribbon(aes(x = time, ymin = q025, ymax = q975), alpha = 0.3) +
-#   geom_line(aes(x = time, y = q50)) +
-#   ylab(TeX("Relative trans. ($\\beta(t)-\\beta(0)$)")) +
-#   xlab("Time-Day")
-# 
-# 
-# ggarrange(g1, g2, g3, ncol = 1, nrow = 3, align = "v")
-write.csv(1/bi_lst$k$value,"5walpha.csv")
-write.csv(1/bi_lst$gamma$value,"5wgamma.csv")
+write.csv(plot_df1,"37wkbeta1.csv")
+
+write.csv(1/bi_lst$k$value,"37wkwalpha.csv")
+write.csv(1/bi_lst$gamma$value,"37wkgamma.csv")
 
