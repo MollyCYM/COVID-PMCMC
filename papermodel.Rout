@@ -66,7 +66,6 @@ The following object is masked from ‘package:base’:
     sample
 
 > library(rbi.helpers)
-> set.seed(123)
 > # Load the data
 > v <- read.csv("andre_estimates_21_02.txt", sep  = "\t") %>%
 +   rowSums()
@@ -161,18 +160,18 @@ The following object is masked from ‘package:base’:
 +   adapt_proposal(min = 0.05, max = 0.4) %>%
 +   sample(nsamples = 1000, thin = 5) %>% # burn in 
 +   sample(nsamples = 1000, thin = 5)
-Sat Oct 15 23:53:29 2022 Adapting the proposal distribution
-Sat Oct 15 23:53:29 2022 Adapting the number of particles
-Sat Oct 15 23:56:03 2022 16 particles, loglikelihod variance: 3.20679103051799
-Sat Oct 15 23:56:56 2022 32 particles, loglikelihod variance: 2.22415253097087
-Sat Oct 15 23:57:56 2022 64 particles, loglikelihod variance: 1.05736681278814
-Sat Oct 15 23:58:33 2022 128 particles, loglikelihod variance: 0.629748790375082
-Sat Oct 15 23:58:33 2022 Choosing 128 particles.
-Sat Oct 15 23:58:34 2022 Initial trial run
-Sat Oct 15 23:59:22 2022 Acceptance rate 0.021021021021021, adapting size with scale 1
-Sat Oct 15 23:59:55 2022 Acceptance rate 0.00900900900900903, adapting size with scale 0.5
-Sun Oct 16 00:00:29 2022 Acceptance rate 0.029029029029029, adapting size with scale 0.25
-Sun Oct 16 00:01:04 2022 Acceptance rate: 0.0590590590590591
+Sun Oct 16 00:12:27 2022 Adapting the proposal distribution
+Sun Oct 16 00:12:27 2022 Adapting the number of particles
+Sun Oct 16 00:15:00 2022 16 particles, loglikelihod variance: 3.14108488113548
+Sun Oct 16 00:15:55 2022 32 particles, loglikelihod variance: 3.01677350025481
+Sun Oct 16 00:16:55 2022 64 particles, loglikelihod variance: 1.86062943511741
+Sun Oct 16 00:17:34 2022 128 particles, loglikelihod variance: 1.23375292860025
+Sun Oct 16 00:18:33 2022 256 particles, loglikelihod variance: 0.511192838600013
+Sun Oct 16 00:18:33 2022 Choosing 256 particles.
+Sun Oct 16 00:18:33 2022 Initial trial run
+Sun Oct 16 00:19:43 2022 Acceptance rate 0.027027027027027, adapting size with scale 1
+Sun Oct 16 00:20:39 2022 Acceptance rate 0.0180180180180181, adapting size with scale 0.5
+Sun Oct 16 00:21:34 2022 Acceptance rate: 0.104104104104104
 > 
 > bi_lst <- bi_read(bi %>% sample_obs)
 > 
@@ -219,4 +218,4 @@ Joining, by = "time"
 > 
 > proc.time()
     user   system  elapsed 
-3819.106   20.161  555.399 
+4873.853   20.168  687.196 
