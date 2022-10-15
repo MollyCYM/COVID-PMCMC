@@ -1,6 +1,6 @@
 
 
-fitY <- read.csv("cv37h1n1y.csv", header=TRUE, stringsAsFactors=FALSE)
+fitY <- read.csv("37wky.csv", header=TRUE, stringsAsFactors=FALSE)
  g1 <- ggplot(data = fitY) +
    geom_ribbon(aes(x = time, ymin = q25, ymax = q75), alpha = 0.3) +
    geom_ribbon(aes(x = time, ymin = q025, ymax = q975), alpha = 0.3) +
@@ -9,7 +9,7 @@ fitY <- read.csv("cv37h1n1y.csv", header=TRUE, stringsAsFactors=FALSE)
    ylab("Daily new H1N1 clinical cases") +
    xlab("Time-Day")
 
- plot_df <- read.csv("cv37h1n1beta.csv", header=TRUE, stringsAsFactors=FALSE)
+ plot_df <- read.csv("37wkbeta.csv", header=TRUE, stringsAsFactors=FALSE)
 
  g2 <- ggplot(data = plot_df) +
    geom_ribbon(aes(x = time, ymin = q25, ymax = q75), alpha = 0.3) +
@@ -18,7 +18,7 @@ fitY <- read.csv("cv37h1n1y.csv", header=TRUE, stringsAsFactors=FALSE)
   ylab(TeX("Transmissibility ($\\beta(t)$)")) +
   xlab("Time-Day")
 
-plot_df1 <- read.csv("cv37h1n1beta1.csv", header=TRUE, stringsAsFactors=FALSE)
+plot_df1 <- read.csv("37wkbeta1.csv", header=TRUE, stringsAsFactors=FALSE)
 
 g3 <- ggplot(data = plot_df1) +
   geom_ribbon(aes(x = time, ymin = q25, ymax = q75), alpha = 0.3) +
@@ -31,8 +31,8 @@ g3 <- ggplot(data = plot_df1) +
 
 ggarrange(g1, g2, g3, ncol = 1, nrow = 3, align = "v")
 
-alpha<-read.csv("cv37h1n1alpha.csv", header=TRUE, stringsAsFactors=FALSE)
-gamma<-read.csv("cv37h1n1gamma.csv", header=TRUE, stringsAsFactors=FALSE)
+alpha<-read.csv("37wkwalpha.csv", header=TRUE, stringsAsFactors=FALSE)
+gamma<-read.csv("37wkgamma.csv", header=TRUE, stringsAsFactors=FALSE)
 par(mfrow=c(2,1))
 plot(alpha,type='l',main=TeX("Sampled onset H1N1-2009 England symptoms rate ($\\alpha$)"),xlab="PMCMC iterations after first 5000 burn-in and thinning by 5",ylab="alpha")
 plot(gamma,type='l',main=TeX("Sampled H1N1-2009 England Recovery rate ($\\gamma$)"),xlab="PMCMC iterations after first 5000 burn-in and thinning by 5",ylab="gamma")

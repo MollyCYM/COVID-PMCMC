@@ -7,7 +7,6 @@ library(lubridate)
 library(latex2exp)
 library(rbi)
 library(rbi.helpers)
-set.seed(123)
 # Load the data
 v <- read.csv("andre_estimates_21_02.txt", sep  = "\t") %>%
   rowSums()
