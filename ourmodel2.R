@@ -104,7 +104,7 @@ bi <- sample(bi_model, end_time = end_time, input = input_lst, obs = obs_lst, ns
   sample(nsamples = 5000, thin = 5)
 
 bi_lst <- bi_read(bi %>% sample_obs)
-write.csv(bi_lst,"cv60covid.csv")
+write.csv(bi_lst,"cv60covid2.csv")
 fitY <- bi_lst$y %>%
   group_by(time) %>%
   mutate(
@@ -115,7 +115,7 @@ fitY <- bi_lst$y %>%
     q975 = quantile(value, 0.975)
   ) %>% ungroup() %>%
   left_join(y %>% rename(Y = value))
-write.csv(fitY,"cv60covidy.csv")
+write.csv(fitY,"cv60covidy2.csv")
 
 plot_df <- bi_lst$x %>% mutate(value = exp(value)) %>%
   group_by(time) %>%
@@ -126,7 +126,7 @@ plot_df <- bi_lst$x %>% mutate(value = exp(value)) %>%
     q75 = quantile(value, 0.75),
     q975 = quantile(value, 0.975)
   ) %>% ungroup()
-write.csv(plot_df,"cv60covidbeta.csv")
+write.csv(plot_df,"cv60covidbeta2.csv")
 
 plot_df1 <- bi_lst$x %>% mutate(value = exp(value)) %>%
   group_by(np) %>% mutate(value = value - value[1]) %>%
@@ -138,8 +138,8 @@ plot_df1 <- bi_lst$x %>% mutate(value = exp(value)) %>%
     q75 = quantile(value, 0.75),
     q975 = quantile(value, 0.975)
   ) %>% ungroup()
-write.csv(plot_df1,"cv60covidbeta1.csv")
+write.csv(plot_df1,"cv60covidbeta12.csv")
 
-write.csv(1/bi_lst$k$value,"cv60covidalpha.csv")
-write.csv(1/bi_lst$gamma$value,"cv60covidgamma.csv")
+write.csv(1/bi_lst$k$value,"cv60covidalpha2.csv")
+write.csv(1/bi_lst$gamma$value,"cv60covidgamma2.csv")
 
