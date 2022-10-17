@@ -26,6 +26,8 @@ model dureau {
   state I
   state R
   state x
+  
+  state Z
 
   input N
   param k
@@ -56,9 +58,11 @@ model dureau {
     I <- exp(I0 + log(S))
     S <- S - I
     x <- x0
+    Z <- 0
   }
 
   sub transition(delta = 1) {
+  Z <- ((t_now) % 7 == 0 ? 0 : Z)
     noise e
     e ~ wiener()
     ode(alg = 'RK4(3)', h = 1.0, atoler = 1.0e-3, rtoler = 1.0e-8) {
@@ -67,11 +71,12 @@ model dureau {
       dE/dt = exp(x)*S*I/N - E/k
       dI/dt = E/k-I/gamma
       dR/dt = I/gamma
+      dZ/dt = E/k
     }
   }
 
   sub observation {
-    y ~ poisson(rate=E/k)
+    y ~ poisson(rate=Z)
   }
 
   sub proposal_parameter {
