@@ -63,10 +63,10 @@ model dureau {
     e ~ wiener()
     ode(alg = 'RK4(3)', h = 1.0, atoler = 1.0e-3, rtoler = 1.0e-8) {
       dx/dt = sigma*e
-      dS/dt = -exp(x)*S*(0.1*I+E)/N
-      dE/dt = exp(x)*S*(0.1*I+E)/N - E*(1/k+1/gamma)
-      dI/dt = E/k-I*(1/gamma+0.0087)
-      dR/dt = (I+E)/gamma
+      dS/dt = -exp(x)*S*I/N
+      dE/dt = exp(x)*S*I/N - E/k
+      dI/dt = E/k-I/gamma
+      dR/dt = I/gamma
     }
   }
 
