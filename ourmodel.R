@@ -94,7 +94,7 @@ bi <- sample(bi_model, end_time = end_time, input = input_lst, obs = obs_lst, ns
   adapt_particles(min = minParticles, max = minParticles*200) %>%
   adapt_proposal(min = 0.05, max = 0.4) %>%
   sample(nsamples = 5000, thin = 5) %>% # burn in 
-  sample(nsamples = 10000, thin = 5)
+  sample(nsamples = 5000, thin = 5)
 
 bi_lst <- bi_read(bi %>% sample_obs)
 write.csv(bi_lst,"cv60covid.csv")
