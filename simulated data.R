@@ -15,31 +15,6 @@ LVmod <- function(Time, State, Pars) {
   })
 }
 
-N = 55977178
-
-COVIDmod <- function(Time, State, Pars) {
-  with(as.list(c(State, Pars)), {
-    dS = -beta*S*(0.1*I+E)/N
-    dE = beta*S*(0.1*I+E)/N - E*(1/k+1/gamma)
-    dI = E/k-I*(1/gamma+0.0087)
-    dR = (I+E)/gamma
-    dZ = E/k
-    
-    y ~ poisson(rate=Z)
-    
-    return(y)
-  })
-}
-
-pars <- c(k = 6,   # /day: onset symptoms development period
-          gamma = 14, #/day: recovery period
-)
-
-x0 ~ uniform(-5,2)
-I0 ~ uniform(-16, -9)
-E0 ~ uniform(-16, -9)
-R0 ~ truncated_gaussian(0.15, 0.15, lower = 0, upper = 1)
-xstart<- c(S=N-exp(E0 + log(N)), E=exp(E0 + log(N)), I=0, R=0, Z=0)
 
 
 pars  <- c(rIng   = 0.2,    # /day, rate of ingestion
