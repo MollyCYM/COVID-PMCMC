@@ -85,6 +85,8 @@ The following object is masked from ‘package:base’:
 +   state I
 +   state R
 +   state x
++   
++   state Z
 + 
 +   input N
 +   param k
@@ -115,9 +117,11 @@ The following object is masked from ‘package:base’:
 +     I <- exp(I0 + log(S))
 +     S <- S - I
 +     x <- x0
++     Z <- 0
 +   }
 + 
 +   sub transition(delta = 1) {
++   Z <- ((t_now) % 7 == 0 ? 0 : Z)
 +     noise e
 +     e ~ wiener()
 +     ode(alg = 'RK4(3)', h = 1.0, atoler = 1.0e-3, rtoler = 1.0e-8) {
@@ -126,11 +130,12 @@ The following object is masked from ‘package:base’:
 +       dE/dt = exp(x)*S*I/N - E/k
 +       dI/dt = E/k-I/gamma
 +       dR/dt = I/gamma
++       dZ/dt = E/k
 +     }
 +   }
 + 
 +   sub observation {
-+     y ~ poisson(rate=E/k)
++     y ~ poisson(rate=Z)
 +   }
 + 
 +   sub proposal_parameter {
@@ -154,16 +159,79 @@ The following object is masked from ‘package:base’:
 +   adapt_proposal(min = 0.05, max = 0.4) %>%
 +   sample(nsamples = 5000, thin = 5) %>% # burn in 
 +   sample(nsamples = 5000, thin = 5)
-Mon Oct 17 18:59:18 2022 Adapting the proposal distribution
-Mon Oct 17 18:59:18 2022 Adapting the number of particles
-Mon Oct 17 19:02:22 2022 16 particles, loglikelihod variance: 107940.585082773
-Mon Oct 17 19:04:09 2022 32 particles, loglikelihod variance: 12834.7505056731
-Mon Oct 17 19:06:22 2022 64 particles, loglikelihod variance: 766.032397851278
-Mon Oct 17 19:07:32 2022 128 particles, loglikelihod variance: 40.129319817667
-Mon Oct 17 19:10:11 2022 256 particles, loglikelihod variance: 5.82305521805215
-Mon Oct 17 19:16:12 2022 512 particles, loglikelihod variance: 3.99689738812218
-Mon Oct 17 19:30:54 2022 1024 particles, loglikelihod variance: 2.55610283178103
-Mon Oct 17 20:00:13 2022 2048 particles, loglikelihod variance: 1.47171008334291
-Mon Oct 17 20:00:13 2022 Choosing 3200 particles.
-Mon Oct 17 20:00:13 2022 Initial trial run
-Mon Oct 17 20:29:23 2022 Acceptance rate: 0.0620620620620621
+Mon Oct 17 21:19:49 2022 Adapting the proposal distribution
+Mon Oct 17 21:19:49 2022 Adapting the number of particles
+Mon Oct 17 21:22:17 2022 16 particles, loglikelihod variance: 37069184.0343314
+Mon Oct 17 21:23:04 2022 32 particles, loglikelihod variance: 478948761.736237
+Mon Oct 17 21:24:19 2022 64 particles, loglikelihod variance: 1925947490.64456
+Mon Oct 17 21:25:32 2022 128 particles, loglikelihod variance: 405932544.281004
+Mon Oct 17 21:27:25 2022 256 particles, loglikelihod variance: 162825270.715035
+Mon Oct 17 21:31:07 2022 512 particles, loglikelihod variance: 455118.319208842
+Mon Oct 17 21:38:28 2022 1024 particles, loglikelihod variance: 105.484060328587
+Mon Oct 17 21:52:40 2022 2048 particles, loglikelihod variance: 5.6158740052298
+Mon Oct 17 21:52:40 2022 Choosing 3200 particles.
+Mon Oct 17 21:52:40 > 
+> bi_lst <- bi_read(bi %>% sample_obs)
+> write.csv(bi_lst,"cv60covid.csv")
+> fitY <- bi_lst$y %>%
++   group_by(time) %>%
++   mutate(
++     q025 = quantile(value, 0.025),
++     q25 = quantile(value, 0.25),
++     q50 = quantile(value, 0.5),
++     q75 = quantile(value, 0.75),
++     q975 = quantile(value, 0.975)
++   ) %>% ungroup() %>%
++   left_join(y %>% rename(Y = value))
+Joining, by = "time"
+> write.csv(fitY,"cv60covidy.csv")
+> 
+> plot_df <- bi_lst$x %>% mutate(value = exp(value)) %>%
++   group_by(time) %>%
++   mutate(
++     q025 = quantile(value, 0.025),
++     q25 = quantile(value, 0.25),
++     q50 = quantile(value, 0.5),
++     q75 = quantile(value, 0.75),
++     q975 = quantile(value, 0.975)
++   ) %>% ungroup()
+> write.csv(plot_df,"cv60covidbeta.csv")
+> 
+> plot_df1 <- bi_lst$x %>% mutate(value = exp(value)) %>%
++   group_by(np) %>% mutate(value = value - value[1]) %>%
++   group_by(time) %>%
++   mutate(
++     q025 = quantile(value, 0.025),
++     q25 = quantile(value, 0.25),
++     q50 = quantile(value, 0.5),
++     q75 = quantile(value, 0.75),
++     q975 = quantile(value, 0.975)
++   ) %>% ungroup()
+> write.csv(plot_df1,"cv60covidbeta1.csv")
+> 
+> write.csv(1/bi_lst$k$value,"cv60covidalpha.csv")
+> write.csv(1/bi_lst$gamma$value,"cv60covidgamma.csv")
+> 
+> 
+> proc.time()
+      user     system    elapsed 
+319289.209     39.675  40010.923 
+) %>%
++   group_by(np) %>% mutate(value = value - value[1]) %>%
++   group_by(time) %>%
++   mutate(
++     q025 = quantile(value, 0.025),
++     q25 = quantile(value, 0.25),
++     q50 = quantile(value, 0.5),
++     q75 = quantile(value, 0.75),
++     q975 = quantile(value, 0.975)
++   ) %>% ungroup()
+> write.csv(plot_df1,"cv60covidbeta1.csv")
+> 
+> write.csv(1/bi_lst$k$value,"cv60covidalpha.csv")
+> write.csv(1/bi_lst$gamma$value,"cv60covidgamma.csv")
+> 
+> 
+> proc.time()
+      user     system    elapsed 
+173096.428     52.465  21737.329 
