@@ -6,7 +6,7 @@ fitY$q025
 #write.csv(fitY,"fitY.csv")
 
 #  write.csv(x,"x.csv")
-#write.csv(bi_lst$,"60weeksresults")
+write.csv(bi_lst,"5weeksresults.csv")
 # 提取 出  1 60 
 
 cul <- function(x) {
