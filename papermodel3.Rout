@@ -173,3 +173,52 @@ Thu Oct 20 16:56:39 2022 Acceptance rate 0.012012012012012, adapting size with s
 Thu Oct 20 17:08:31 2022 Acceptance rate 0.019019019019019, adapting size with scale 0.5
 Thu Oct 20 17:20:35 2022 Acceptance rate 0.016016016016016, adapting size with scale 0.25
 Thu Oct 20 17:33:01 2022 Acceptance rate: 0.102102102102102
+> 
+> bi_lst <- bi_read(bi %>% sample_obs)
+> 
+> write.csv(bi_lst,"37w2.csv")
+> fitY <- bi_lst$y %>%
++   group_by(time) %>%
++   mutate(
++     q025 = quantile(value, 0.025),
++     q25 = quantile(value, 0.25),
++     q50 = quantile(value, 0.5),
++     q75 = quantile(value, 0.75),
++     q975 = quantile(value, 0.975)
++   ) %>% ungroup() %>%
++   left_join(y %>% rename(Y = value))
+Joining, by = "time"
+> write.csv(fitY,"37wy2.csv")
+> 
+> plot_df <- bi_lst$x %>% mutate(value = exp(value)) %>%
++   group_by(time) %>%
++   mutate(
++     q025 = quantile(value, 0.025),
++     q25 = quantile(value, 0.25),
++     q50 = quantile(value, 0.5),
++     q75 = quantile(value, 0.75),
++     q975 = quantile(value, 0.975)
++   ) %>% ungroup()
+> write.csv(plot_df,"37wbeta2.csv")
+> 
+> plot_df1 <- bi_lst$x %>% mutate(value = exp(value)) %>%
++   group_by(np) %>% mutate(value = value - value[1]) %>%
++   group_by(time) %>%
++   mutate(
++     q025 = quantile(value, 0.025),
++     q25 = quantile(value, 0.25),
++     q50 = quantile(value, 0.5),
++     q75 = quantile(value, 0.75),
++     q975 = quantile(value, 0.975)
++   ) %>% ungroup()
+> write.csv(plot_df1,"37wbeta2.csv")
+> 
+> write.csv(bi_lst$k$value,"37wpalpha2.csv")
+> write.csv(1/bi_lst$k$value,"37walpha2.csv")
+> write.csv(bi_lst$gamma$value,"37wpgamma2.csv")
+> write.csv(1/bi_lst$gamma$value,"37wgamma2.csv")
+> 
+> 
+> proc.time()
+     user    system   elapsed 
+96287.029    32.768 12117.765 
