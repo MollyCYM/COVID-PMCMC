@@ -40,7 +40,7 @@ model dureau {
   param tau
 
   sub parameter {
-    k ~ truncated_gaussian(5.6, 2, lower = 0) // k is the period here, not the rate, i.e. 1/k is the rate
+    k ~ truncated_gaussian(5.6, 5, lower = 0) // k is the period here, not the rate, i.e. 1/k is the rate
     gamma ~ truncated_gaussian(11.5, 2.9, lower = 0) // gamma is the period, not the rate
     sigma ~ uniform(0,1)
     x0 ~ uniform(-5,2)
@@ -102,10 +102,10 @@ bi <- sample(bi_model, end_time = end_time, input = input_lst, obs = obs_lst, ns
   adapt_particles(min = minParticles, max = minParticles*200) %>%
   adapt_proposal(min = 0.05, max = 0.4) %>%
   sample(nsamples = 5000, thin = 5) %>% # burn in 
-  sample(nsamples = 5000, thin = 5) #20000, 40000
+  sample(nsamples = 20000, thin = 5) #20000, 40000
 
 bi_lst <- bi_read(bi %>% sample_obs)
-write.csv(bi_lst,"60w1.csv")
+write.csv(bi_lst,"60w2.csv")
 fitY <- bi_lst$y %>%
   group_by(time) %>%
   mutate(
@@ -116,7 +116,7 @@ fitY <- bi_lst$y %>%
     q975 = quantile(value, 0.975)
   ) %>% ungroup() %>%
   left_join(y %>% rename(Y = value))
-write.csv(fitY,"60wy1.csv")
+write.csv(fitY,"60wy2.csv")
 
 plot_df <- bi_lst$x %>% mutate(value = exp(value)) %>%
   group_by(time) %>%
@@ -127,7 +127,7 @@ plot_df <- bi_lst$x %>% mutate(value = exp(value)) %>%
     q75 = quantile(value, 0.75),
     q975 = quantile(value, 0.975)
   ) %>% ungroup()
-write.csv(plot_df,"60wbeta1.csv")
+write.csv(plot_df,"60wbeta2.csv")
 
 plot_df1 <- bi_lst$x %>% mutate(value = exp(value)) %>%
   group_by(np) %>% mutate(value = value - value[1]) %>%
@@ -139,10 +139,10 @@ plot_df1 <- bi_lst$x %>% mutate(value = exp(value)) %>%
     q75 = quantile(value, 0.75),
     q975 = quantile(value, 0.975)
   ) %>% ungroup()
-write.csv(plot_df1,"60wbeta11.csv")
+write.csv(plot_df1,"60wbeta12.csv")
 
-write.csv(bi_lst$k$value,"60wpalpha1.csv")
-write.csv(1/bi_lst$k$value,"60walpha1.csv")
-write.csv(bi_lst$gamma$value,"60wpgamma1.csv")
-write.csv(1/bi_lst$gamma$value,"60wgamma1.csv")
+write.csv(bi_lst$k$value,"60wpalpha2.csv")
+write.csv(1/bi_lst$k$value,"60walpha2.csv")
+write.csv(bi_lst$gamma$value,"60wpgamma2.csv")
+write.csv(1/bi_lst$gamma$value,"60wgamma2.csv")
 
