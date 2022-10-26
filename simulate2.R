@@ -60,6 +60,7 @@ for (i in 1:259){
 write.csv(y,"yH1N1.csv")
 v1 <- read.csv("yH1N1.csv", header=FALSE, stringsAsFactors=FALSE) 
 v1 <-v1[2:260,2] 
+write.csv(v1,"dataH1N1.csv")
 y1 <- data.frame(value = v1) %>%
   mutate(time = seq(1,259, by = 1)) %>%
   dplyr::select(time, value)

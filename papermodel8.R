@@ -8,7 +8,7 @@ library(latex2exp)
 library(rbi)
 library(rbi.helpers)
 # Load the data
-v <- read.csv("simulateh1n1.csv", header=FALSE, stringsAsFactors=FALSE) %>%
+v <- read.csv("sim1.csv", header=FALSE, stringsAsFactors=FALSE) %>%
   rowSums()
 y <- data.frame(value = v) %>%
   mutate(time = seq(7, by = 7, length.out = n())) %>%
@@ -92,7 +92,7 @@ model dureau {
 }"
 model <- bi_model(lines = stringi::stri_split_lines(model_str)[[1]])
 bi_model <- libbi(model)
-input_lst <- list(N = 52196381)
+input_lst <- list(N = 1000000)
 end_time <- max(y$time)
 obs_lst <- list(y = y %>% dplyr::filter(time <= end_time))
 
