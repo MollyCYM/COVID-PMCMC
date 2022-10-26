@@ -28,7 +28,7 @@ H1N1mod <- function(Time, State, Pars) {
   })
 }
 pars <- c(k = 1.6,   # /day: onset symptoms development period
-          gamma = 1.1 #/day: recovery period
+          gamma = 9 #/day: recovery period
 )
 library('truncnorm')
 R0 <- rtruncnorm(1, a=0, b=1, mean = 0.15, sd = 0.15)
@@ -49,7 +49,7 @@ xstart<- c(x=x, S=S, E=E, I=I, R=R, Z=Z)
 
 out <-ode(xstart, times, H1N1mod,pars)
 write.csv(out,"simulatedH1N1.csv")
-ZtransferH1N1 <- read.csv("simulatedH1N1Z.csv", header=FALSE, stringsAsFactors=FALSE) 
+ZtransferH1N1 <- read.csv("Z.csv", header=FALSE, stringsAsFactors=FALSE) 
 Ztransfer <- data.frame(ZtransferH1N1) 
 
 tau <- runif(1,0,1)
@@ -57,15 +57,21 @@ y <-vector(length = 259)
 for (i in 1:259){
   y[i]<- rlnorm(1,log(Ztransfer[i,]/10),tau)
 }
-write.csv(y,"simulatedyH1N1.csv")
-v <- read.csv("simulatedyH1N1.csv", header=FALSE, stringsAsFactors=FALSE) 
-v<-v[2:258,2] 
-y <- data.frame(value = v) %>%
+write.csv(y,"yH1N1.csv")
+v1 <- read.csv("yH1N1.csv", header=FALSE, stringsAsFactors=FALSE) 
+v1 <-v1[2:260,2] 
+y1 <- data.frame(value = v1) %>%
   mutate(time = seq(1,259, by = 1)) %>%
   dplyr::select(time, value)
+v <- read.csv("andre_estimates_21_02.txt", sep  = "\t") %>%
+  rowSums()
+y <- data.frame(value = v) %>%
+  mutate(time = seq(7, by = 7, length.out = n())) %>%
+  dplyr::select(time, value)
 
-
-plot(y,type='l')
+plot(y1[,2],type='l',col='red')
+plot(y,type='l',col='red')
+lines(y1[,2],col='blue')
 ###########################################
 
 F<- rnorm(100000, -3,tau)
