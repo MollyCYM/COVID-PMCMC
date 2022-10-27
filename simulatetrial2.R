@@ -86,7 +86,7 @@ bi <- sample(bi_model, end_time = end_time, input = input_lst, obs = obs_lst, ns
 
 bi_lst <- bi_read(bi %>% sample_obs)
 
-write.csv(bi_lst,"SEIR2.csv")
+write.csv(bi_lst,file=gzfile("SEIR2.csv.gz"))
 fitY <- bi_lst$y %>%
   group_by(time) %>%
   mutate(

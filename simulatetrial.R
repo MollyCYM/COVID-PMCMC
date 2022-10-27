@@ -84,7 +84,7 @@ bi <- sample(bi_model, end_time = end_time, input = input_lst, obs = obs_lst, ns
 
 bi_lst <- bi_read(bi %>% sample_obs)
 
-write.csv(bi_lst,"SEIR.csv")
+write.csv(bi_lst,file=gzfile("SEIR.csv.gz"))
 fitY <- bi_lst$y %>%
   group_by(time) %>%
   mutate(
@@ -104,3 +104,13 @@ write.csv(bi_lst$beta$value,"SEIRbeta.csv")
 write.csv(bi_lst$mu$value,"SEIRmu.csv")
 
 
+
+write.csv(y, file=gzfile("ytrial.csv.gz"))
+library(readr)
+
+read_csv("ytrial.csv.gz") -> d
+
+# write uncompressed data
+d %>% write_csv("ytrial.csv")
+d[3,3]
+y[3,2]
