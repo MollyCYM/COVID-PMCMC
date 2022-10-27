@@ -52,7 +52,7 @@ model dureau {
       dE/dt = (beta*S*I)/N - sigma*E
       dI/dt = sigma*E - gamma*I - mu*I
       dR/dt = gamma*I
-      dM <- mu*I
+      dM <- 0.0086*I
     }
   }
 
