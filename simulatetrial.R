@@ -79,8 +79,8 @@ obs_lst <- list(y = y %>% dplyr::filter(time <= end_time))
 bi <- sample(bi_model, end_time = end_time, input = input_lst, obs = obs_lst, nsamples = 1000, nparticles = minParticles, nthreads = ncores, proposal = 'prior') %>% 
   adapt_particles(min = minParticles, max = minParticles*200) %>%
   adapt_proposal(min = 0.05, max = 0.4) %>%
-  sample(nsamples = 1000, thin = 5) %>% # burn in 
-  sample(nsamples = 1000, thin = 5)
+  sample(nsamples = 10000, thin = 5) %>% # burn in 
+  sample(nsamples = 10000, thin = 5)
 
 bi_lst <- bi_read(bi %>% sample_obs)
 
@@ -101,5 +101,6 @@ write.csv(fitY,"SEIRy.csv")
 write.csv(bi_lst$sigma$value,"SEIRsigma.csv")
 write.csv(bi_lst$gamma$value,"SEIRgamma.csv")
 write.csv(bi_lst$beta$value,"SEIRbeta.csv")
+write.csv(bi_lst$mu$value,"SEIRmu.csv")
 
 
