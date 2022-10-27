@@ -67,11 +67,11 @@ The following object is masked from ‘package:base’:
 
 > library(rbi.helpers)
 > # Load the data
-> v <- read.csv("sim1.csv", header=FALSE, stringsAsFactors=FALSE) %>%
-+   rowSums()
+> v <- read.csv("simulate366.csv", header=FALSE, stringsAsFactors=FALSE) 
 > y <- data.frame(value = v) %>%
-+   mutate(time = seq(7, by = 7, length.out = n())) %>%
-+   dplyr::select(time, value)
++   mutate(time = seq(1, by = 1, length.out = n())) %>%
++   dplyr::select(time, V1)
+> colnames(y) <- c("time", "value")
 > ncores <- 8
 > minParticles <- max(ncores, 16)
 > model_str <- "
@@ -82,17 +82,20 @@ The following object is masked from ‘package:base’:
 +   state E
 +   state I
 +   state R
++   state M
 +   
 +   input N
 +   param sigma
 +   param beta
 +   param gamma
 +   param tau
++   param mu
 + 
 +   sub parameter {
-+     sigma ~ truncated_gaussian(0.2, 0.02, lower = 0) 
-+     gamma ~ truncated_gaussian(0.07, 0.075, lower = 0) // gamma is the period, not the rate
-+     beta ~ truncated_gaussian(0.6, 0.06, lower = 0) 
++     sigma ~ truncated_gaussian(0.25, 0.2, lower = 0) 
++     gamma ~ truncated_gaussian(0.2, 0.2, lower = 0) // gamma is the period, not the rate
++     beta ~ truncated_gaussian(0.5, 0.3, lower = 0) 
++     mu ~ truncated_gaussian(0.001, 0.25, lower = 0) 
 +     tau ~ uniform(0, 1)
 +   }
 + 
@@ -101,14 +104,16 @@ The following object is masked from ‘package:base’:
 +     E <- 1 
 +     I <-0
 +     R <-0
++     M <-0
 +   }
 + 
 +   sub transition(delta = 1) {
 +     ode(alg = 'RK4(3)', h = 1.0, atoler = 1.0e-3, rtoler = 1.0e-8) {
 +       dS/dt = -(beta*S*I)/N
 +       dE/dt = (beta*S*I)/N - sigma*E
-+       dI/dt = sigma*E - gamma*I - 0.0086*I
++       dI/dt = sigma*E - gamma*I - mu*I
 +       dR/dt = gamma*I
++       dM/dt = mu*I
 +     }
 +   }
 + 
@@ -120,6 +125,7 @@ The following object is masked from ‘package:base’:
 +     sigma ~ gaussian(sigma, 0.01)
 +     gamma ~ gaussian(gamma, 0.01)
 +     beta ~ gaussian(beta, 0.01)
++     mu ~ gaussian(mu,0.001)
 +     tau ~ gaussian(tau, 0.05)
 +   }
 + }"
@@ -134,13 +140,15 @@ The following object is masked from ‘package:base’:
 +   adapt_proposal(min = 0.05, max = 0.4) %>%
 +   sample(nsamples = 1000, thin = 5) %>% # burn in 
 +   sample(nsamples = 1000, thin = 5)
-Thu Oct 27 10:57:54 2022 Adapting the proposal distribution
-Thu Oct 27 10:57:54 2022 Adapting the number of particles
-Thu Oct 27 10:58:50 2022 16 particles, loglikelihod variance: 0
-Thu Oct 27 10:58:50 2022 Choosing 16 particles.
-Thu Oct 27 10:58:51 2022 Initial trial run
-Thu Oct 27 10:59:14 2022 Acceptance rate 0.036036036036036, adapting size with scale 1
-Thu Oct 27 10:59:23 2022 Acceptance rate: 0.16016016016016
+Thu Oct 27 12:27:18 2022 Adapting the proposal distribution
+Thu Oct 27 12:27:18 2022 Adapting the number of particles
+Thu Oct 27 12:28:36 2022 16 particles, loglikelihod variance: 0
+Thu Oct 27 12:28:36 2022 Choosing 16 particles.
+Thu Oct 27 12:28:36 2022 Initial trial run
+Thu Oct 27 12:29:09 2022 Acceptance rate 0.016016016016016, adapting size with scale 1
+Thu Oct 27 12:29:28 2022 Acceptance rate 0.00800800800800805, adapting size with scale 0.5
+Thu Oct 27 12:29:48 2022 Acceptance rate 0.04004004004004, adapting size with scale 0.25
+Thu Oct 27 12:30:07 2022 Acceptance rate: 0.0580580580580581
 > 
 > bi_lst <- bi_read(bi %>% sample_obs)
 > 
@@ -166,5 +174,5 @@ Joining, by = "time"
 > 
 > 
 > proc.time()
-   user  system elapsed 
-516.600  13.731 132.246 
+    user   system  elapsed 
+1277.139   35.960  235.643 
