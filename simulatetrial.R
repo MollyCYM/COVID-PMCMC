@@ -23,7 +23,6 @@ model dureau {
   state E
   state I
   state R
-  state M
   
   input N
   param sigma
@@ -43,16 +42,14 @@ model dureau {
     E <- 1 
     I <-0
     R <-0
-    M <-0
   }
 
   sub transition(delta = 1) {
     ode(alg = 'RK4(3)', h = 1.0, atoler = 1.0e-3, rtoler = 1.0e-8) {
       dS/dt = -(beta*S*I)/N
       dE/dt = (beta*S*I)/N - sigma*E
-      dI/dt = sigma*E - gamma*I - mu*I
+      dI/dt = sigma*E - gamma*I - 0.0086*I
       dR/dt = gamma*I
-      dM <- 0.0086*I
     }
   }
 
