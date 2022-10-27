@@ -8,7 +8,7 @@ library(latex2exp)
 library(rbi)
 library(rbi.helpers)
 # Load the data
-v <- read.csv("andre_estimates_21_02.txt", sep  = "\t") %>%
+v <- read.csv("sim1.csv", header=FALSE, stringsAsFactors=FALSE) %>%
   rowSums()
 y <- data.frame(value = v) %>%
   mutate(time = seq(7, by = 7, length.out = n())) %>%
