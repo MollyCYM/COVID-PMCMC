@@ -8,12 +8,13 @@ library(latex2exp)
 library(rbi)
 library(rbi.helpers)
 # Load the data
+
 v <- read.csv("simulate366.csv", header=FALSE, stringsAsFactors=FALSE) %>%
-  
+  rowSums()
 y <- data.frame(value = v) %>%
-  mutate(time = seq(1, by = 1, length.out = n())) %>%
-  dplyr::select(time, V1)
-colnames(y) <- c("time", "value")
+  mutate(time = seq(7, by = 7, length.out = n())) %>%
+  dplyr::select(time, value)
+
 ncores <- 8
 minParticles <- max(ncores, 16)
 model_str <- "
@@ -49,7 +50,7 @@ model dureau {
     M <-0
   }
 
-  sub transition(delta = 1) {
+  sub transition(delta = 7) {
     ode(alg = 'RK4(3)', h = 1.0, atoler = 1.0e-3, rtoler = 1.0e-8) {
       dS/dt = -(beta*S*I)/N
       dE/dt = (beta*S*I)/N - sigma*E
@@ -85,7 +86,7 @@ bi <- sample(bi_model, end_time = end_time, input = input_lst, obs = obs_lst, ns
 
 bi_lst <- bi_read(bi %>% sample_obs)
 
-write.csv(bi_lst,"SEIR.csv")
+write.csv(bi_lst,"SEIR2.csv")
 fitY <- bi_lst$y %>%
   group_by(time) %>%
   mutate(
@@ -96,12 +97,12 @@ fitY <- bi_lst$y %>%
     q975 = quantile(value, 0.975)
   ) %>% ungroup() %>%
   left_join(y %>% rename(Y = value))
-write.csv(fitY,"SEIRy.csv")
+write.csv(fitY,"SEIRy2.csv")
 
 
-write.csv(bi_lst$sigma$value,"SEIRsigma.csv")
-write.csv(bi_lst$gamma$value,"SEIRgamma.csv")
-write.csv(bi_lst$beta$value,"SEIRbeta.csv")
-write.csv(bi_lst$mu$value,"SEIRmu.csv")
+write.csv(bi_lst$sigma$value,"SEIRsigma2.csv")
+write.csv(bi_lst$gamma$value,"SEIRgamma2.csv")
+write.csv(bi_lst$beta$value,"SEIRbeta2.csv")
+write.csv(bi_lst$mu$value,"SEIRmu2.csv")
 
 
