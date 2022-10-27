@@ -1,0 +1,170 @@
+
+R version 4.2.1 (2022-06-23) -- "Funny-Looking Kid"
+Copyright (C) 2022 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+[Previously saved workspace restored]
+
+> rm(list=ls())
+> library(tidyverse)
+── Attaching packages ─────────────────────────────────────── tidyverse 1.3.2 ──
+✔ ggplot2 3.3.6      ✔ purrr   0.3.5 
+✔ tibble  3.1.8      ✔ dplyr   1.0.10
+✔ tidyr   1.2.1      ✔ stringr 1.4.1 
+✔ readr   2.1.3      ✔ forcats 0.5.2 
+── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+✖ dplyr::filter() masks stats::filter()
+✖ dplyr::lag()    masks stats::lag()
+> library(ggplot2)
+> library(ggpubr)
+> library(pander)
+> library(lubridate)
+
+Attaching package: ‘lubridate’
+
+The following objects are masked from ‘package:base’:
+
+    date, intersect, setdiff, union
+
+> library(latex2exp)
+> library(rbi)
+
+Attaching package: ‘rbi’
+
+The following object is masked from ‘package:dplyr’:
+
+    filter
+
+The following object is masked from ‘package:purrr’:
+
+    flatten
+
+The following objects are masked from ‘package:stats’:
+
+    filter, optimise, predict, simulate, update
+
+The following object is masked from ‘package:utils’:
+
+    fix
+
+The following object is masked from ‘package:base’:
+
+    sample
+
+> library(rbi.helpers)
+> # Load the data
+> v <- read.csv("sim1.csv", header=FALSE, stringsAsFactors=FALSE) %>%
++   rowSums()
+> y <- data.frame(value = v) %>%
++   mutate(time = seq(7, by = 7, length.out = n())) %>%
++   dplyr::select(time, value)
+> ncores <- 8
+> minParticles <- max(ncores, 16)
+> model_str <- "
++ model dureau {
++   obs y
++ 
++   state S
++   state E
++   state I
++   state R
++   
++   input N
++   param sigma
++   param beta
++   param gamma
++   param tau
++ 
++   sub parameter {
++     sigma ~ truncated_gaussian(0.2, 0.02, lower = 0) 
++     gamma ~ truncated_gaussian(0.07, 0.075, lower = 0) // gamma is the period, not the rate
++     beta ~ truncated_gaussian(0.6, 0.06, lower = 0) 
++     tau ~ uniform(0, 1)
++   }
++ 
++   sub initial {
++     S <-999999
++     E <- 1 
++     I <-0
++     R <-0
++   }
++ 
++   sub transition(delta = 1) {
++     ode(alg = 'RK4(3)', h = 1.0, atoler = 1.0e-3, rtoler = 1.0e-8) {
++       dS/dt = -(beta*S*I)/N
++       dE/dt = (beta*S*I)/N - sigma*E
++       dI/dt = sigma*E - gamma*I - 0.0086*I
++       dR/dt = gamma*I
++     }
++   }
++ 
++   sub observation {
++     y ~ log_normal(log(max((sigma*E)/5, 0)), tau)
++   }
++ 
++   sub proposal_parameter {
++     sigma ~ gaussian(sigma, 0.01)
++     gamma ~ gaussian(gamma, 0.01)
++     beta ~ gaussian(beta, 0.01)
++     tau ~ gaussian(tau, 0.05)
++   }
++ }"
+> model <- bi_model(lines = stringi::stri_split_lines(model_str)[[1]])
+> bi_model <- libbi(model)
+> input_lst <- list(N = 1000000)
+> end_time <- max(y$time)
+> obs_lst <- list(y = y %>% dplyr::filter(time <= end_time))
+> 
+> bi <- sample(bi_model, end_time = end_time, input = input_lst, obs = obs_lst, nsamples = 1000, nparticles = minParticles, nthreads = ncores, proposal = 'prior') %>% 
++   adapt_particles(min = minParticles, max = minParticles*200) %>%
++   adapt_proposal(min = 0.05, max = 0.4) %>%
++   sample(nsamples = 1000, thin = 5) %>% # burn in 
++   sample(nsamples = 1000, thin = 5)
+Thu Oct 27 10:57:54 2022 Adapting the proposal distribution
+Thu Oct 27 10:57:54 2022 Adapting the number of particles
+Thu Oct 27 10:58:50 2022 16 particles, loglikelihod variance: 0
+Thu Oct 27 10:58:50 2022 Choosing 16 particles.
+Thu Oct 27 10:58:51 2022 Initial trial run
+Thu Oct 27 10:59:14 2022 Acceptance rate 0.036036036036036, adapting size with scale 1
+Thu Oct 27 10:59:23 2022 Acceptance rate: 0.16016016016016
+> 
+> bi_lst <- bi_read(bi %>% sample_obs)
+> 
+> write.csv(bi_lst,"SEIR.csv")
+> fitY <- bi_lst$y %>%
++   group_by(time) %>%
++   mutate(
++     q025 = quantile(value, 0.025),
++     q25 = quantile(value, 0.25),
++     q50 = quantile(value, 0.5),
++     q75 = quantile(value, 0.75),
++     q975 = quantile(value, 0.975)
++   ) %>% ungroup() %>%
++   left_join(y %>% rename(Y = value))
+Joining, by = "time"
+> write.csv(fitY,"SEIRy.csv")
+> 
+> 
+> write.csv(bi_lst$sigma$value,"SEIRsigma.csv")
+> write.csv(bi_lst$gamma$value,"SEIRgamma.csv")
+> write.csv(bi_lst$beta$value,"SEIRbeta.csv")
+> 
+> 
+> 
+> proc.time()
+   user  system elapsed 
+516.600  13.731 132.246 
