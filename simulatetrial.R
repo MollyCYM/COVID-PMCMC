@@ -8,11 +8,11 @@ library(latex2exp)
 library(rbi)
 library(rbi.helpers)
 # Load the data
-v <- read.csv("sim1.csv", header=FALSE, stringsAsFactors=FALSE) %>%
-  rowSums()
+v <- read.csv("simulate366.csv", header=FALSE, stringsAsFactors=FALSE) 
 y <- data.frame(value = v) %>%
-  mutate(time = seq(7, by = 7, length.out = n())) %>%
-  dplyr::select(time, value)
+  mutate(time = seq(1, by = 1, length.out = n())) %>%
+  dplyr::select(time, V1)
+colnames(y) <- c("time", "value")
 ncores <- 8
 minParticles <- max(ncores, 16)
 model_str <- "
@@ -23,17 +23,20 @@ model dureau {
   state E
   state I
   state R
+  state M
   
   input N
   param sigma
   param beta
   param gamma
   param tau
+  param mu
 
   sub parameter {
-    sigma ~ truncated_gaussian(0.2, 0.02, lower = 0) 
-    gamma ~ truncated_gaussian(0.07, 0.075, lower = 0) // gamma is the period, not the rate
-    beta ~ truncated_gaussian(0.6, 0.06, lower = 0) 
+    sigma ~ truncated_gaussian(0.25, 0.2, lower = 0) 
+    gamma ~ truncated_gaussian(0.2, 0.2, lower = 0) // gamma is the period, not the rate
+    beta ~ truncated_gaussian(0.5, 0.3, lower = 0) 
+    mu ~ truncated_gaussian(0.001, 0.25, lower = 0) 
     tau ~ uniform(0, 1)
   }
 
@@ -42,14 +45,16 @@ model dureau {
     E <- 1 
     I <-0
     R <-0
+    M <-0
   }
 
   sub transition(delta = 1) {
     ode(alg = 'RK4(3)', h = 1.0, atoler = 1.0e-3, rtoler = 1.0e-8) {
       dS/dt = -(beta*S*I)/N
       dE/dt = (beta*S*I)/N - sigma*E
-      dI/dt = sigma*E - gamma*I - 0.0086*I
+      dI/dt = sigma*E - gamma*I - mu*I
       dR/dt = gamma*I
+      dM/dt = mu*I
     }
   }
 
@@ -61,6 +66,7 @@ model dureau {
     sigma ~ gaussian(sigma, 0.01)
     gamma ~ gaussian(gamma, 0.01)
     beta ~ gaussian(beta, 0.01)
+    mu ~ gaussian(mu,0.001)
     tau ~ gaussian(tau, 0.05)
   }
 }"
