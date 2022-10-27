@@ -1,0 +1,223 @@
+
+R version 4.2.1 (2022-06-23) -- "Funny-Looking Kid"
+Copyright (C) 2022 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+[Previously saved workspace restored]
+
+> rm(list=ls())
+> library(tidyverse)
+── Attaching packages ─────────────────────────────────────── tidyverse 1.3.2 ──
+✔ ggplot2 3.3.6      ✔ purrr   0.3.5 
+✔ tibble  3.1.8      ✔ dplyr   1.0.10
+✔ tidyr   1.2.1      ✔ stringr 1.4.1 
+✔ readr   2.1.3      ✔ forcats 0.5.2 
+── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+✖ dplyr::filter() masks stats::filter()
+✖ dplyr::lag()    masks stats::lag()
+> library(ggplot2)
+> library(ggpubr)
+> library(pander)
+> library(lubridate)
+
+Attaching package: ‘lubridate’
+
+The following objects are masked from ‘package:base’:
+
+    date, intersect, setdiff, union
+
+> library(latex2exp)
+> library(rbi)
+
+Attaching package: ‘rbi’
+
+The following object is masked from ‘package:dplyr’:
+
+    filter
+
+The following object is masked from ‘package:purrr’:
+
+    flatten
+
+The following objects are masked from ‘package:stats’:
+
+    filter, optimise, predict, simulate, update
+
+The following object is masked from ‘package:utils’:
+
+    fix
+
+The following object is masked from ‘package:base’:
+
+    sample
+
+> library(rbi.helpers)
+> # Load the data
+> v <- read.csv("sim1.csv", header=FALSE, stringsAsFactors=FALSE) %>%
++   rowSums()
+> y <- data.frame(value = v) %>%
++   mutate(time = seq(7, by = 7, length.out = n())) %>%
++   dplyr::select(time, value)
+> ncores <- 8
+> minParticles <- max(ncores, 16)
+> model_str <- "
++ model dureau {
++   obs y
++ 
++   state S
++   state E
++   state I
++   state R
++   state x
++ 
++   state Z
++ 
++   input N
++   param k
++   param gamma
++   param sigma // Noise driver
++   param E0
++   param I0
++   param R0
++   param x0
++   param tau
++ 
++   sub parameter {
++     k ~ truncated_gaussian(1.59, 0.02, lower = 0) // k is the period here, not the rate, i.e. 1/k is the rate
++     gamma ~ truncated_gaussian(1.08, 0.075, lower = 0) // gamma is the period, not the rate
++     sigma ~ uniform(0,1)
++     x0 ~ uniform(-5,2)
++     I0 ~ uniform(-16, -9)
++     E0 ~ uniform(-16, -9)
++     R0 ~ truncated_gaussian(0.15, 0.15, lower = 0, upper = 1)
++     tau ~ uniform(0, 1)
++   }
++ 
++   sub initial {
++     S <- N
++     R <- R0*S
++     S <- S - R
++ 
++     E <- exp(E0 + log(S))
++     S <- S - E
++     I <- exp(I0 + log(S))
++     S <- S - I
++     x <- x0
++     Z <- 0
++   }
++ 
++   sub transition(delta = 1) {
++     Z <- ((t_now) % 7 == 0 ? 0 : Z)
++     noise e
++     e ~ wiener()
++     ode(alg = 'RK4(3)', h = 1.0, atoler = 1.0e-3, rtoler = 1.0e-8) {
++       dx/dt = sigma*e
++       dS/dt = -exp(x)*S*I/N
++       dE/dt = exp(x)*S*I/N - E/k
++       dI/dt = E/k-I/gamma
++       dR/dt = I/gamma
++       dZ/dt = E/k
++     }
++   }
++ 
++   sub observation {
++     y ~ log_normal(log(max(Z/10.0, 0)), tau)
++   }
++ 
++   sub proposal_parameter {
++     k ~ gaussian(k, 0.005)
++     sigma ~ gaussian(sigma, 0.01)
++     gamma ~ gaussian(gamma, 0.01)
++     x0 ~ gaussian(x0, 0.05)
++     E0 ~ gaussian(E0, 0.05)
++     I0 ~ gaussian(I0, 0.05)
++     R0 ~ gaussian(R0, 0.05)
++     tau ~ gaussian(tau, 0.05)
++   }
++ }"
+> model <- bi_model(lines = stringi::stri_split_lines(model_str)[[1]])
+> bi_model <- libbi(model)
+> input_lst <- list(N = 1000000)
+> end_time <- max(y$time)
+> obs_lst <- list(y = y %>% dplyr::filter(time <= end_time))
+> 
+> bi <- sample(bi_model, end_time = end_time, input = input_lst, obs = obs_lst, nsamples = 1000, nparticles = minParticles, nthreads = ncores, proposal = 'prior') %>% 
++   adapt_particles(min = minParticles, max = minParticles*200) %>%
++   adapt_proposal(min = 0.05, max = 0.4) %>%
++   sample(nsamples = 5000, thin = 5) %>% # burn in 
++   sample(nsamples = 15000, thin = 5)
+Wed Oct 26 23:31:28 2022 Adapting the proposal distribution
+Wed Oct 26 23:31:28 2022 Adapting the number of particles
+Wed Oct 26 23:45:58 2022 16 particles, loglikelihod variance: 63.8069500798741
+Wed Oct 26 23:46:25 2022 32 particles, loglikelihod variance: 4.53867358727189
+Wed Oct 26 23:46:59 2022 64 particles, loglikelihod variance: 6.23674327708737
+Wed Oct 26 23:47:33 2022 128 particles, loglikelihod variance: 7.15931276161802
+Wed Oct 26 23:48:21 2022 256 particles, loglikelihod variance: 1.90241581355549
+Wed Oct 26 23:49:18 2022 512 particles, loglikelihod variance: 1.28755482441179
+Wed Oct 26 23:50:59 2022 1024 particles, loglikelihod variance: 0.784410843150757
+Wed Oct 26 23:50:59 2022 Choosing 1024 particles.
+Wed Oct 26 23:50:59 2022 Initial trial run
+Wed Oct 26 23:52:54 2022 Acceptance rate 0.00800800800800805, adapting size with scale 1
+Wed Oct 26 23:54:19 2022 Acceptance rate: 0.25025025025025
+> 
+> bi_lst <- bi_read(bi %>% sample_obs)
+> 
+> write.csv(bi_lst,"sim37results.csv")
+> fitY <- bi_lst$y %>%
++   group_by(time) %>%
++   mutate(
++     q025 = quantile(value, 0.025),
++     q25 = quantile(value, 0.25),
++     q50 = quantile(value, 0.5),
++     q75 = quantile(value, 0.75),
++     q975 = quantile(value, 0.975)
++   ) %>% ungroup() %>%
++   left_join(y %>% rename(Y = value))
+Joining, by = "time"
+> write.csv(fitY,"sim37y.csv")
+> 
+> plot_df <- bi_lst$x %>% mutate(value = exp(value)) %>%
++   group_by(time) %>%
++   mutate(
++     q025 = quantile(value, 0.025),
++     q25 = quantile(value, 0.25),
++     q50 = quantile(value, 0.5),
++     q75 = quantile(value, 0.75),
++     q975 = quantile(value, 0.975)
++   ) %>% ungroup()
+> write.csv(plot_df,"sim37beta.csv")
+> 
+> plot_df1 <- bi_lst$x %>% mutate(value = exp(value)) %>%
++   group_by(np) %>% mutate(value = value - value[1]) %>%
++   group_by(time) %>%
++   mutate(
++     q025 = quantile(value, 0.025),
++     q25 = quantile(value, 0.25),
++     q50 = quantile(value, 0.5),
++     q75 = quantile(value, 0.75),
++     q975 = quantile(value, 0.975)
++   ) %>% ungroup()
+> write.csv(plot_df1,"sim37beta1.csv")
+> write.csv(bi_lst$k$value,"sim37palpha.csv")
+> write.csv(1/bi_lst$k$value,"sim37alpha.csv")
+> write.csv(bi_lst$gamma$value,"sim37pgamma.csv")
+> write.csv(1/bi_lst$gamma$value,"sim37gamma.csv")
+> 
+> 
+> proc.time()
+     user    system   elapsed 
+22835.186    52.304  2962.561 
