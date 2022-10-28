@@ -12,8 +12,8 @@ write.csv(bi_lst,"5weeksresults.csv")
 cul <- function(x) {
    res = list()
    # n = length(x) / 60
-   for (i in  1:30) {
-     res[[i]] = as.numeric(x[seq(i,30000,30)])
+   for (i in  1:366) {
+     res[[i]] = as.numeric(x[seq(i,732000,366)])
    } 
    return(res)
   
@@ -94,8 +94,8 @@ mymedian <- function(alist) {
 
 
 
-
-avgvalue =cul(fitY$value)
+SEIR <- read.csv("SEIR.csv", header=TRUE, stringsAsFactors=FALSE)
+avgvalue =cul()
 avgdata = mymean(avgvalue)
 
 avgdata025 = myq025(avgvalue)
