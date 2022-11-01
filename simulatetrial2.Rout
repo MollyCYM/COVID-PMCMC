@@ -66,6 +66,7 @@ The following object is masked from ‘package:base’:
     sample
 
 > library(rbi.helpers)
+> library(readr)
 > # Load the data
 > 
 > v <- read.csv("simulate366.csv", header=FALSE, stringsAsFactors=FALSE) %>%
@@ -142,19 +143,19 @@ The following object is masked from ‘package:base’:
 +   adapt_proposal(min = 0.05, max = 0.4) %>%
 +   sample(nsamples = 0, thin = 1) %>% # burn in 
 +   sample(nsamples = 100000, thin = 1)
-Tue Nov  1 21:02:06 2022 Adapting the proposal distribution
-Tue Nov  1 21:02:06 2022 Adapting the number of particles
-Tue Nov  1 21:03:34 2022 16 particles, loglikelihod variance: 0
-Tue Nov  1 21:03:34 2022 Choosing 16 particles.
-Tue Nov  1 21:03:34 2022 Initial trial run
-Tue Nov  1 21:04:13 2022 Acceptance rate 0.00400400400400402, adapting size with scale 1
-Tue Nov  1 21:04:37 2022 Acceptance rate 0.00600600600600598, adapting size with scale 0.5
-Tue Nov  1 21:04:59 2022 Acceptance rate 0.0480480480480481, adapting size with scale 0.25
-Tue Nov  1 21:05:21 2022 Acceptance rate 0.0230230230230231, adapting size with scale 0.125
-Tue Nov  1 21:05:43 2022 Acceptance rate 0.021021021021021, adapting size with scale 0.0625
-Tue Nov  1 21:06:04 2022 Acceptance rate: 0.0790790790790791
+Tue Nov  1 21:22:34 2022 Adapting the proposal distribution
+Tue Nov  1 21:22:34 2022 Adapting the number of particles
+Tue Nov  1 21:24:13 2022 16 particles, loglikelihod variance: 0
+Tue Nov  1 21:24:13 2022 Choosing 16 particles.
+Tue Nov  1 21:24:13 2022 Initial trial run
+Tue Nov  1 21:25:20 2022 Acceptance rate 0.00400400400400402, adapting size with scale 1
+Tue Nov  1 21:26:11 2022 Acceptance rate 0.00600600600600598, adapting size with scale 0.5
+Tue Nov  1 21:27:03 2022 Acceptance rate 0.0480480480480481, adapting size with scale 0.25
+Tue Nov  1 21:27:43 2022 Acceptance rate 0.0230230230230231, adapting size with scale 0.125
+Tue Nov  1 21:28:06 2022 Acceptance rate 0.021021021021021, adapting size with scale 0.0625
+Tue Nov  1 21:28:28 2022 Acceptance rate: 0.0790790790790791
 Error in run.libbi(x, client = "sample", ...) : 
   LibBi terminated with "sample: src/bi/sampler/MarginalMH.hpp:201: void bi::MarginalMH<B, F>::sample(bi::Random&, bi::ScheduleIterator, bi::ScheduleIterator, S1&, int, IO1&, IO2&) [with S1 = bi::MarginalMHState<Modeldureau, bi::ON_HOST, bi::BootstrapPFState<Modeldureau, bi::ON_HOST>, bi::ParticleFilterBuffer<bi::BootstrapPFCache<bi::ON_HOST> > >; IO1 = bi::MCMCBuffer<bi::MCMCCache<bi::ON_HOST, bi::MCMCNetCDFBuffer> >; IO2 = bi::InputNetCDFBuffer; B = Modeldureau; F = bi::Filter<bi::BootstrapPF<Modeldureau, bi::Forcer<bi::InputNetCDFBuffer, bi::ON_HOST>, bi::Observer<bi::InputNetCDFBuffer, bi::ON_HOST>, bi::Resampler<bi::SystematicResampler> > >; bi::ScheduleIterator = __gnu_cxx::__normal_iterator<const bi::ScheduleElement*, std::vector<bi::ScheduleElement> >]: Assertion `C > 0' failed.".
-You can view a full log using "print_log('/tmp/RtmpOoWnbM/dureau3259744ebc61/output32592d07b116.txt')"
+You can view a full log using "print_log('/tmp/RtmpYNIoCf/dureau4d984c198449/output4d985fae9480.txt')"
 Calls: %>% -> sample -> sample -> sample.libbi -> run.libbi
 Execution halted

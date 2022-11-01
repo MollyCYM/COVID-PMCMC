@@ -66,6 +66,7 @@ The following object is masked from ‘package:base’:
     sample
 
 > library(rbi.helpers)
+> library(readr)
 > # Load the data
 > v <- read.csv("simulate366.csv", header=FALSE, stringsAsFactors=FALSE) 
 > y <- data.frame(value = v) %>%
@@ -140,18 +141,18 @@ The following object is masked from ‘package:base’:
 +   adapt_proposal(min = 0.05, max = 0.4) %>%
 +   sample(nsamples = 0, thin = 1) %>% # burn in 
 +   sample(nsamples = 100000, thin = 1)
-Tue Nov  1 21:06:38 2022 Adapting the proposal distribution
-Tue Nov  1 21:06:38 2022 Adapting the number of particles
-Tue Nov  1 21:07:55 2022 16 particles, loglikelihod variance: 0
-Tue Nov  1 21:07:55 2022 Choosing 16 particles.
-Tue Nov  1 21:07:55 2022 Initial trial run
-Tue Nov  1 21:08:28 2022 Acceptance rate 0.011011011011011, adapting size with scale 1
-Tue Nov  1 21:08:47 2022 Acceptance rate 0.00200200200200196, adapting size with scale 0.5
-Tue Nov  1 21:09:06 2022 Acceptance rate 0.00700700700700696, adapting size with scale 0.25
-Tue Nov  1 21:09:25 2022 Acceptance rate 0.017017017017017, adapting size with scale 0.125
-Tue Nov  1 21:09:44 2022 Acceptance rate: 0.109109109109109
+Tue Nov  1 21:22:42 2022 Adapting the proposal distribution
+Tue Nov  1 21:22:42 2022 Adapting the number of particles
+Tue Nov  1 21:24:11 2022 16 particles, loglikelihod variance: 0
+Tue Nov  1 21:24:11 2022 Choosing 16 particles.
+Tue Nov  1 21:24:11 2022 Initial trial run
+Tue Nov  1 21:25:13 2022 Acceptance rate 0.011011011011011, adapting size with scale 1
+Tue Nov  1 21:25:59 2022 Acceptance rate 0.00200200200200196, adapting size with scale 0.5
+Tue Nov  1 21:26:44 2022 Acceptance rate 0.00700700700700696, adapting size with scale 0.25
+Tue Nov  1 21:27:28 2022 Acceptance rate 0.017017017017017, adapting size with scale 0.125
+Tue Nov  1 21:27:53 2022 Acceptance rate: 0.109109109109109
 Error in run.libbi(x, client = "sample", ...) : 
   LibBi terminated with "sample: src/bi/sampler/MarginalMH.hpp:201: void bi::MarginalMH<B, F>::sample(bi::Random&, bi::ScheduleIterator, bi::ScheduleIterator, S1&, int, IO1&, IO2&) [with S1 = bi::MarginalMHState<Modeldureau, bi::ON_HOST, bi::BootstrapPFState<Modeldureau, bi::ON_HOST>, bi::ParticleFilterBuffer<bi::BootstrapPFCache<bi::ON_HOST> > >; IO1 = bi::MCMCBuffer<bi::MCMCCache<bi::ON_HOST, bi::MCMCNetCDFBuffer> >; IO2 = bi::InputNetCDFBuffer; B = Modeldureau; F = bi::Filter<bi::BootstrapPF<Modeldureau, bi::Forcer<bi::InputNetCDFBuffer, bi::ON_HOST>, bi::Observer<bi::InputNetCDFBuffer, bi::ON_HOST>, bi::Resampler<bi::SystematicResampler> > >; bi::ScheduleIterator = __gnu_cxx::__normal_iterator<const bi::ScheduleElement*, std::vector<bi::ScheduleElement> >]: Assertion `C > 0' failed.".
-You can view a full log using "print_log('/tmp/RtmpzltnUc/dureau3d6c677e3662/output3d6c1cc63998.txt')"
+You can view a full log using "print_log('/tmp/RtmpjbGXUx/dureau54041f1bbbd4/output54041bbe061a.txt')"
 Calls: %>% -> sample -> sample -> sample.libbi -> run.libbi
 Execution halted
