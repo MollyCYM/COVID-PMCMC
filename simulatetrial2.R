@@ -7,6 +7,7 @@ library(lubridate)
 library(latex2exp)
 library(rbi)
 library(rbi.helpers)
+library(readr)
 # Load the data
 
 v <- read.csv("simulate366.csv", header=FALSE, stringsAsFactors=FALSE) %>%
