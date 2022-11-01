@@ -82,7 +82,7 @@ obs_lst <- list(y = y %>% dplyr::filter(time <= end_time))
 bi <- sample(bi_model, end_time = end_time, input = input_lst, obs = obs_lst, nsamples = 1000, nparticles = minParticles, nthreads = ncores, proposal = 'prior') %>% 
   adapt_particles(min = minParticles, max = minParticles*200) %>%
   adapt_proposal(min = 0.05, max = 0.4) %>%
-  sample(nsamples = 0, thin = 1) %>% # burn in 
+  sample(nsamples = 100, thin = 1) %>% # burn in 
   sample(nsamples = 100000, thin = 1)
 
 bi_lst <- bi_read(bi %>% sample_obs)
