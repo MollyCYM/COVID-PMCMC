@@ -8,6 +8,7 @@ library(latex2exp)
 library(rbi)
 library(rbi.helpers)
 library(readr)
+options(digits=2)
 # Load the data
 v <- read.csv("simulate366.csv", header=FALSE, stringsAsFactors=FALSE) 
 y <- data.frame(value = v) %>%
@@ -85,7 +86,7 @@ bi <- sample(bi_model, end_time = end_time, input = input_lst, obs = obs_lst, ns
 
 bi_lst <- bi_read(bi %>% sample_obs)
 
-write.csv(bi_lst,file=gzfile("SEIR1.csv.gz"))
+write.csv(bi_lst,"../data/SEIR1.csv")
 fitY <- bi_lst$y %>%
   group_by(time) %>%
   mutate(
@@ -96,12 +97,12 @@ fitY <- bi_lst$y %>%
     q975 = quantile(value, 0.975)
   ) %>% ungroup() %>%
   left_join(y %>% rename(Y = value))
-write.csv(fitY,"SEIRy1.csv")
+write.csv(fitY,"../data/SEIRy1.csv")
 
 
-write.csv(bi_lst$sigma$value,"SEIRsigma1.csv")
-write.csv(bi_lst$gamma$value,"SEIRgamma1.csv")
-write.csv(bi_lst$beta$value,"SEIRbeta1.csv")
-write.csv(bi_lst$mu$value,"SEIRmu1.csv")
+write.csv(bi_lst$sigma$value,"../data/SEIRsigma1.csv")
+write.csv(bi_lst$gamma$value,"../data/SEIRgamma1.csv")
+write.csv(bi_lst$beta$value,"../data/SEIRbeta1.csv")
+write.csv(bi_lst$mu$value,"../data/SEIRmu1.csv")
 
 

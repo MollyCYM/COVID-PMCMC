@@ -85,7 +85,7 @@ bi <- sample(bi_model, end_time = end_time, input = input_lst, obs = obs_lst, ns
 
 bi_lst <- bi_read(bi %>% sample_obs)
 
-write.csv(bi_lst, file=gzfile("SEIR.csv.gz"))
+write.csv(bi_lst, "../data/SEIR.csv")
 fitY <- bi_lst$y %>%
   group_by(time) %>%
   mutate(
@@ -96,22 +96,14 @@ fitY <- bi_lst$y %>%
     q975 = quantile(value, 0.975)
   ) %>% ungroup() %>%
   left_join(y %>% rename(Y = value))
-write.csv(fitY,"SEIRy.csv")
+write.csv(fitY,"../data/SEIRy.csv")
 
 
-write.csv(bi_lst$sigma$value,"SEIRsigma.csv")
-write.csv(bi_lst$gamma$value,"SEIRgamma.csv")
-write.csv(bi_lst$beta$value,"SEIRbeta.csv")
-write.csv(bi_lst$mu$value,"SEIRmu.csv")
+write.csv(bi_lst$sigma$value,"../data/SEIRsigma.csv")
+write.csv(bi_lst$gamma$value,"../data/SEIRgamma.csv")
+write.csv(bi_lst$beta$value,"../data/SEIRbeta.csv")
+write.csv(bi_lst$mu$value,"../data/SEIRmu.csv")
 
 
 
-#write.csv(y, file=gzfile("ytrial.csv.gz"))
-#library(readr)
 
-#read_csv("ytrial.csv.gz") -> d
-
-# write uncompressed data
-#d %>% write_csv("ytrial.csv")
-#d[3,3]
-#y[3,2]

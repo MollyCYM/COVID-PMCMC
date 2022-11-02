@@ -87,7 +87,7 @@ bi <- sample(bi_model, end_time = end_time, input = input_lst, obs = obs_lst, ns
 
 bi_lst <- bi_read(bi %>% sample_obs)
 
-write.csv(bi_lst,file=gzfile("SEIR2.csv.gz"))
+write.csv(bi_lst,"../data/SEIR2.csv")
 fitY <- bi_lst$y %>%
   group_by(time) %>%
   mutate(
@@ -98,12 +98,12 @@ fitY <- bi_lst$y %>%
     q975 = quantile(value, 0.975)
   ) %>% ungroup() %>%
   left_join(y %>% rename(Y = value))
-write.csv(fitY,"SEIRy2.csv")
+write.csv(fitY,"../data/SEIRy2.csv")
 
 
-write.csv(bi_lst$sigma$value,"SEIRsigma2.csv")
-write.csv(bi_lst$gamma$value,"SEIRgamma2.csv")
-write.csv(bi_lst$beta$value,"SEIRbeta2.csv")
-write.csv(bi_lst$mu$value,"SEIRmu2.csv")
+write.csv(bi_lst$sigma$value,"../data/SEIRsigma2.csv")
+write.csv(bi_lst$gamma$value,"../data/SEIRgamma2.csv")
+write.csv(bi_lst$beta$value,"../data/SEIRbeta2.csv")
+write.csv(bi_lst$mu$value,"../data/SEIRmu2.csv")
 
 
