@@ -81,7 +81,7 @@ bi <- sample(bi_model, end_time = end_time, input = input_lst, obs = obs_lst, ns
   adapt_particles(min = minParticles, max = minParticles*200) %>%
   adapt_proposal(min = 0.05, max = 0.4) %>%
   sample(nsamples = 100, thin = 1) %>% # burn in 
-  sample(nsamples = 100000, thin = 1)
+  sample(nsamples = 10000, thin = 1)
 
 bi_lst <- bi_read(bi %>% sample_obs)
 
