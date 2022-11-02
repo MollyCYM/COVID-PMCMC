@@ -158,22 +158,65 @@ The following object is masked from ‘package:base’:
 > bi <- sample(bi_model, end_time = end_time, input = input_lst, obs = obs_lst, nsamples = 1000, nparticles = minParticles, nthreads = ncores, proposal = 'prior') %>% 
 +   adapt_particles(min = minParticles, max = minParticles*200) %>%
 +   adapt_proposal(min = 0.05, max = 0.4) %>%
-+   sample(nsamples = 0, thin = 1) %>% # burn in 
-+   sample(nsamples = 1000, thin = 5)
-Tue Nov  1 21:47:36 2022 Adapting the proposal distribution
-Tue Nov  1 21:47:36 2022 Adapting the number of particles
-Tue Nov  1 21:50:14 2022 16 particles, loglikelihod variance: 2.84559696655362
-Tue Nov  1 21:51:06 2022 32 particles, loglikelihod variance: 2.7015884635904
-Tue Nov  1 21:52:02 2022 64 particles, loglikelihod variance: 1.45729979222863
-Tue Nov  1 21:52:39 2022 128 particles, loglikelihod variance: 0.599999211936215
-Tue Nov  1 21:52:39 2022 Choosing 128 particles.
-Tue Nov  1 21:52:39 2022 Initial trial run
-Tue Nov  1 21:53:28 2022 Acceptance rate 0.022022022022022, adapting size with scale 1
-Tue Nov  1 21:54:01 2022 Acceptance rate 0.01001001001001, adapting size with scale 0.5
-Tue Nov  1 21:54:36 2022 Acceptance rate 0.024024024024024, adapting size with scale 0.25
-Tue Nov  1 21:55:11 2022 Acceptance rate: 0.1001001001001
-Error in run.libbi(x, client = "sample", ...) : 
-  LibBi terminated with "sample: src/bi/sampler/MarginalMH.hpp:201: void bi::MarginalMH<B, F>::sample(bi::Random&, bi::ScheduleIterator, bi::ScheduleIterator, S1&, int, IO1&, IO2&) [with S1 = bi::MarginalMHState<Modeldureau, bi::ON_HOST, bi::BootstrapPFState<Modeldureau, bi::ON_HOST>, bi::ParticleFilterBuffer<bi::BootstrapPFCache<bi::ON_HOST> > >; IO1 = bi::MCMCBuffer<bi::MCMCCache<bi::ON_HOST, bi::MCMCNetCDFBuffer> >; IO2 = bi::InputNetCDFBuffer; B = Modeldureau; F = bi::Filter<bi::BootstrapPF<Modeldureau, bi::Forcer<bi::InputNetCDFBuffer, bi::ON_HOST>, bi::Observer<bi::InputNetCDFBuffer, bi::ON_HOST>, bi::Resampler<bi::SystematicResampler> > >; bi::ScheduleIterator = __gnu_cxx::__normal_iterator<const bi::ScheduleElement*, std::vector<bi::ScheduleElement> >]: Assertion `C > 0' failed.".
-You can view a full log using "print_log('/tmp/RtmpaEKVcy/dureau730359fa964/output73037a60d647.txt')"
-Calls: %>% -> sample -> sample -> sample.libbi -> run.libbi
-Execution halted
++   sample(nsamples = 100, thin = 5) %>% # burn in 
++   sample(nsamples = 100, thin = 5)
+Wed Nov  2 12:34:33 2022 Adapting the proposal distribution
+Wed Nov  2 12:34:33 2022 Adapting the number of particles
+Wed Nov  2 12:37:02 2022 16 particles, loglikelihod variance: 4.48440710759773
+Wed Nov  2 12:37:58 2022 32 particles, loglikelihod variance: 4.0436208238171
+Wed Nov  2 12:39:00 2022 64 particles, loglikelihod variance: 2.1572775146478
+Wed Nov  2 12:39:39 2022 128 particles, loglikelihod variance: 1.07080220082598
+Wed Nov  2 12:40:43 2022 256 particles, loglikelihod variance: 0.595196179917941
+Wed Nov  2 12:40:43 2022 Choosing 256 particles.
+Wed Nov  2 12:40:43 2022 Initial trial run
+Wed Nov  2 12:41:54 2022 Acceptance rate 0.021021021021021, adapting size with scale 1
+Wed Nov  2 12:42:49 2022 Acceptance rate 0.046046046046046, adapting size with scale 0.5
+Wed Nov  2 12:43:43 2022 Acceptance rate 0.0470470470470471, adapting size with scale 0.25
+Wed Nov  2 12:44:40 2022 Acceptance rate: 0.151151151151151
+> 
+> bi_lst <- bi_read(bi %>% sample_obs)
+> 
+> write.csv(bi_lst,"../data/37weeksresults.csv")
+> fitY <- bi_lst$y %>%
++    group_by(time) %>%
++    mutate(
++      q025 = quantile(value, 0.025),
++      q25 = quantile(value, 0.25),
++      q50 = quantile(value, 0.5),
++      q75 = quantile(value, 0.75),
++      q975 = quantile(value, 0.975)
++    ) %>% ungroup() %>%
++    left_join(y %>% rename(Y = value))
+Joining, by = "time"
+> write.csv(fitY,"../data/37wky.csv")
+> 
+>  plot_df <- bi_lst$x %>% mutate(value = exp(value)) %>%
++    group_by(time) %>%
++    mutate(
++      q025 = quantile(value, 0.025),
++      q25 = quantile(value, 0.25),
++      q50 = quantile(value, 0.5),
++      q75 = quantile(value, 0.75),
++      q975 = quantile(value, 0.975)
++    ) %>% ungroup()
+>  write.csv(plot_df,"../data/37wkbeta.csv")
+> 
+> plot_df1 <- bi_lst$x %>% mutate(value = exp(value)) %>%
++   group_by(np) %>% mutate(value = value - value[1]) %>%
++   group_by(time) %>%
++   mutate(
++     q025 = quantile(value, 0.025),
++     q25 = quantile(value, 0.25),
++     q50 = quantile(value, 0.5),
++     q75 = quantile(value, 0.75),
++     q975 = quantile(value, 0.975)
++   ) %>% ungroup()
+> write.csv(plot_df1,"../data/37wkbeta1.csv")
+> 
+> write.csv(1/bi_lst$k$value,"../data/37wkwalpha.csv")
+> write.csv(1/bi_lst$gamma$value,"../data/37wkgamma.csv")
+> 
+> 
+> proc.time()
+    user   system  elapsed 
+4535.978   19.507  645.426 
