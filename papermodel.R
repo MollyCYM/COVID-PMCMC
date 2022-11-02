@@ -104,7 +104,7 @@ bi <- sample(bi_model, end_time = end_time, input = input_lst, obs = obs_lst, ns
 
 bi_lst <- bi_read(bi %>% sample_obs)
 
-write.csv(bi_lst,"37weeksresults.csv")
+write.csv(bi_lst,"../data/37weeksresults.csv")
 fitY <- bi_lst$y %>%
    group_by(time) %>%
    mutate(
@@ -115,7 +115,7 @@ fitY <- bi_lst$y %>%
      q975 = quantile(value, 0.975)
    ) %>% ungroup() %>%
    left_join(y %>% rename(Y = value))
-write.csv(fitY,"37wky.csv")
+write.csv(fitY,"../data/37wky.csv")
 
  plot_df <- bi_lst$x %>% mutate(value = exp(value)) %>%
    group_by(time) %>%
@@ -126,7 +126,7 @@ write.csv(fitY,"37wky.csv")
      q75 = quantile(value, 0.75),
      q975 = quantile(value, 0.975)
    ) %>% ungroup()
- write.csv(plot_df,"37wkbeta.csv")
+ write.csv(plot_df,"../data/37wkbeta.csv")
 
 plot_df1 <- bi_lst$x %>% mutate(value = exp(value)) %>%
   group_by(np) %>% mutate(value = value - value[1]) %>%
@@ -138,8 +138,8 @@ plot_df1 <- bi_lst$x %>% mutate(value = exp(value)) %>%
     q75 = quantile(value, 0.75),
     q975 = quantile(value, 0.975)
   ) %>% ungroup()
-write.csv(plot_df1,"37wkbeta1.csv")
+write.csv(plot_df1,"../data/37wkbeta1.csv")
 
-write.csv(1/bi_lst$k$value,"37wkwalpha.csv")
-write.csv(1/bi_lst$gamma$value,"37wkgamma.csv")
+write.csv(1/bi_lst$k$value,"../data/37wkwalpha.csv")
+write.csv(1/bi_lst$gamma$value,"../data/37wkgamma.csv")
 
