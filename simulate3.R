@@ -27,6 +27,20 @@ legend("right", legend=legend, col=2:6, lty = 1)
 Z <-as.vector(model[,3])
 Z <-0.2*Z
 Z <-0.2*model[,3]
+S<-model[,2]
+I<-model[,4]
+R<-model[,5]
+M<-model[,6]
+plot(Z/5,type='l',col='Red',main="Simulation states vs Model latent state estimations",ylab=TeX("State Z=($\\sigma E/5$)"))
+lines(Zmodel,type='l',col='Blue')
+plot(S,type='l',col='Red',main="Simulation states vs Model latent state estimations",ylab=TeX("State S"))
+lines(Savgdata,type='l',col='Blue')
+plot(I,type='l',col='Red',main="Simulation states vs Model latent state estimations",ylab=TeX("State I"))
+lines(Iavgdata,type='l',col='Blue')
+plot(R,type='l',col='Red',main="Simulation states vs Model latent state estimations",ylab=TeX("State R"))
+lines(Ravgdata,type='l',col='Blue')
+plot(M,type='l',col='Red',main="Simulation states vs Model latent state estimations",ylab=TeX("State M"),ylim=c(0,10000))
+lines(Mavgdata,type='l',col='Blue')
 write.csv(Z,"simZ1.csv")
 Z <- read.csv("simz_1.csv", header=FALSE, stringsAsFactors=FALSE) 
 Z <- data.frame(Z) 
@@ -36,5 +50,7 @@ Y <-vector(length = 366)
 for (i in 1:366){
   Y[i]<- rlnorm(1,log(Z[i,]/5),tau)
 }
+plot(Y,type='l')
 write.csv(Y,"simY1.csv")
+write.csv(model,"simulatestates.csv")
 

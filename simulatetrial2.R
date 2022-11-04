@@ -10,7 +10,7 @@ library(rbi.helpers)
 library(readr)
 # Load the data
 
-v <- read.csv("simulate366.csv", header=FALSE, stringsAsFactors=FALSE) %>%
+v <- read.csv("366wk.csv", header=FALSE, stringsAsFactors=FALSE) %>%
   rowSums()
 y <- data.frame(value = v) %>%
   mutate(time = seq(7, by = 7, length.out = n())) %>%
@@ -27,6 +27,8 @@ model dureau {
   state I
   state R
   state M
+  
+  state Z
   
   input N
   param sigma
@@ -49,20 +51,23 @@ model dureau {
     I <-0
     R <-0
     M <-0
+    Z <-0
   }
 
-  sub transition(delta = 7) {
+  sub transition(delta = 1) {
+  Z <- ((t_now) % 7 == 0 ? 0 : Z)
     ode(alg = 'RK4(3)', h = 1.0, atoler = 1.0e-3, rtoler = 1.0e-8) {
       dS/dt = -(beta*S*I)/N
       dE/dt = (beta*S*I)/N - sigma*E
       dI/dt = sigma*E - gamma*I - mu*I
       dR/dt = gamma*I
       dM/dt = mu*I
+      dZ/dt = sigma*E
     }
   }
 
   sub observation {
-    y ~ log_normal(log(max((sigma*E)/5, 0)), tau)
+    y ~ log_normal(log(max((Z)/5, 0)), tau)
   }
 
   sub proposal_parameter {
@@ -82,8 +87,8 @@ obs_lst <- list(y = y %>% dplyr::filter(time <= end_time))
 bi <- sample(bi_model, end_time = end_time, input = input_lst, obs = obs_lst, nsamples = 1000, nparticles = minParticles, nthreads = ncores, proposal = 'prior') %>% 
   adapt_particles(min = minParticles, max = minParticles*200) %>%
   adapt_proposal(min = 0.05, max = 0.4) %>%
-  sample(nsamples = 100, thin = 1) %>% # burn in 
-  sample(nsamples = 10000, thin = 5)
+  sample(nsamples = 1000, thin = 1) %>% # burn in 
+  sample(nsamples = 100000, thin = 5)
 
 bi_lst <- bi_read(bi %>% sample_obs)
 
