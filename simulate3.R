@@ -31,6 +31,13 @@ S<-model[,2]
 I<-model[,4]
 R<-model[,5]
 M<-model[,6]
+
+Mmodel <- read.csv("simulatestates.csv", header=TRUE, stringsAsFactors=FALSE)
+S<-Mmodel[,3]
+E<-Mmodel[,4]
+I<-Mmodel[,5]
+R<-Mmodel[,6]
+M<-Mmodel[,7]
 plot(Z/5,type='l',col='Red',main="Simulation states vs Model latent state estimations",ylab=TeX("State Z=($\\sigma E/5$)"))
 lines(Zmodel,type='l',col='Blue')
 plot(S,type='l',col='Red',main="Simulation states vs Model latent state estimations",ylab=TeX("State S"))
@@ -39,8 +46,9 @@ plot(I,type='l',col='Red',main="Simulation states vs Model latent state estimati
 lines(Iavgdata,type='l',col='Blue')
 plot(R,type='l',col='Red',main="Simulation states vs Model latent state estimations",ylab=TeX("State R"))
 lines(Ravgdata,type='l',col='Blue')
-plot(M,type='l',col='Red',main="Simulation states vs Model latent state estimations",ylab=TeX("State M"),ylim=c(0,10000))
+plot(M,type='l',col='Red',main="Simulation states vs Model latent state estimations",ylab=TeX("State M"))
 lines(Mavgdata,type='l',col='Blue')
+plot()
 write.csv(Z,"simZ1.csv")
 Z <- read.csv("simz_1.csv", header=FALSE, stringsAsFactors=FALSE) 
 Z <- data.frame(Z) 
