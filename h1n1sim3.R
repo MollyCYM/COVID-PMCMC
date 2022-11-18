@@ -9,11 +9,12 @@ library(rbi)
 library(rbi.helpers)
 library(readr)
 # Load the data
-v <- read.csv("simulate366.csv", header=FALSE, stringsAsFactors=FALSE) 
+v <- read.csv("259wk.csv", header=FALSE, stringsAsFactors=FALSE) %>%
+  rowSums()
+
 y <- data.frame(value = v) %>%
-  mutate(time = seq(1, by = 1, length.out = n())) %>%
-  dplyr::select(time, V1)
-colnames(y) <- c("time", "value")
+  mutate(time = seq(7, by = 7, length.out = n())) %>%
+  dplyr::select(time, value)
 ncores <- 8
 minParticles <- max(ncores, 16)
 model_str <- "
@@ -24,72 +25,87 @@ model dureau {
   state E
   state I
   state R
-  state M
-  
+  state x
+
+  state Z
+
   input N
-  param sigma
-  param beta
+  param k
   param gamma
+  param sigma // Noise driver
+  param E0
+  param I0
+  param R0
+  param x0
   param tau
-  param mu
 
   sub parameter {
-    sigma ~ truncated_gaussian(0.211, 0.2, lower = 0) 
-    gamma ~ truncated_gaussian(0.2328, 0.2, lower = 0) // gamma is the period, not the rate
-    beta ~ truncated_gaussian(0.5876, 0.3, lower = 0) 
-    mu ~ truncated_gaussian(0.001, 0.001, lower = 0)
+    k ~ truncated_gaussian(1.59, 0.02, lower = 0) // k is the period here, not the rate, i.e. 1/k is the rate
+    gamma ~ truncated_gaussian(1.08, 0.075, lower = 0) // gamma is the period, not the rate
+    sigma ~ uniform(0,1)
+    x0 ~ uniform(-5,2)
+    I0 ~ uniform(-16, -9)
+    E0 ~ uniform(-16, -9)
+    R0 ~ truncated_gaussian(0.15, 0.15, lower = 0, upper = 1)
     tau ~ uniform(0, 1)
   }
 
   sub initial {
-    S <-999999
-    E <- 1 
-    I <-0
-    R <-0
-    M <-0
-    sigma <-0.211
-    gamma <-0.2328
-    beta <-0.5876
-    mu <-0.001
+    S <- N
+    R <- R0*S
+    S <- S - R
+
+    E <- exp(E0 + log(S))
+    S <- S - E
+    I <- exp(I0 + log(S))
+    S <- S - I
+    x <- x0
+    Z <- 0
   }
 
   sub transition(delta = 1) {
+    Z <- ((t_now) % 7 == 0 ? 0 : Z)
+    noise e
+    e ~ wiener()
     ode(alg = 'RK4(3)', h = 1.0, atoler = 1.0e-3, rtoler = 1.0e-8) {
-      dS/dt = -(beta*S*I)/N
-      dE/dt = (beta*S*I)/N - sigma*E
-      dI/dt = sigma*E - gamma*I - mu*I
-      dR/dt = gamma*I
-      dM/dt = mu*I
+      dx/dt = sigma*e
+      dS/dt = -exp(x)*S*I/N
+      dE/dt = exp(x)*S*I/N - E/k
+      dI/dt = E/k-I/gamma
+      dR/dt = I/gamma
+      dZ/dt = E/k
     }
   }
 
   sub observation {
-    y ~ log_normal(log(max((sigma*E)/5, 0)), tau)
+    y ~ log_normal(log(max(Z/5.0, 0)), tau)
   }
 
   sub proposal_parameter {
+    k ~ gaussian(k, 0.005)
     sigma ~ gaussian(sigma, 0.01)
     gamma ~ gaussian(gamma, 0.01)
-    beta ~ gaussian(beta, 0.01)
-    mu ~ gaussian(mu,0.001)
+    x0 ~ gaussian(x0, 0.05)
+    E0 ~ gaussian(E0, 0.05)
+    I0 ~ gaussian(I0, 0.05)
+    R0 ~ gaussian(R0, 0.05)
     tau ~ gaussian(tau, 0.05)
   }
 }"
 model <- bi_model(lines = stringi::stri_split_lines(model_str)[[1]])
 bi_model <- libbi(model)
-input_lst <- list(N = 1000000)
+input_lst <- list(N = 52196381)
 end_time <- max(y$time)
 obs_lst <- list(y = y %>% dplyr::filter(time <= end_time))
 
 bi <- sample(bi_model, end_time = end_time, input = input_lst, obs = obs_lst, nsamples = 1000, nparticles = minParticles, nthreads = ncores, proposal = 'prior') %>% 
   adapt_particles(min = minParticles, max = minParticles*200) %>%
   adapt_proposal(min = 0.05, max = 0.4) %>%
-  sample(nsamples = 100, thin = 1) %>% # burn in 
-  sample(nsamples = 1000, thin = 5)
+  sample(nsamples = 1000, thin = 1) %>% # burn in 
+  sample(nsamples = 100000, thin = 5)
 
 bi_lst <- bi_read(bi %>% sample_obs)
-
-write.csv(bi_lst, "../data/MSEIR2_1.csv")
+write.csv(bi_lst, "../data/h1n13.csv")
 fitY <- bi_lst$y %>%
   group_by(time) %>%
   mutate(
@@ -100,14 +116,25 @@ fitY <- bi_lst$y %>%
     q975 = quantile(value, 0.975)
   ) %>% ungroup() %>%
   left_join(y %>% rename(Y = value))
-write.csv(fitY,"../data/My2_1.csv")
+write.csv(fitY,"../data/h1n1_y3.csv")
 
-Mmodel <- read.csv("simulatestates.csv", header=TRUE, stringsAsFactors=FALSE)
-S<-Mmodel[,3]
-E<-Mmodel[,4]
-I<-Mmodel[,5]
-R<-Mmodel[,6]
-M<-Mmodel[,7]
+plot_df <- bi_lst$x %>% mutate(value = exp(value)) %>%
+  group_by(time) %>%
+  mutate(
+    q025 = quantile(value, 0.025),
+    q25 = quantile(value, 0.25),
+    q50 = quantile(value, 0.5),
+    q75 = quantile(value, 0.75),
+    q975 = quantile(value, 0.975)
+  ) %>% ungroup()
+write.csv(plot_df,"../data/h1n1_beta3.csv")
+
+Mmodel <- read.csv("simulatestates1.csv", header=TRUE, stringsAsFactors=FALSE)
+S<-Mmodel[,4]
+E<-Mmodel[,5]
+I<-Mmodel[,6]
+R<-Mmodel[,7]
+
 S <- data.frame(value = S) %>%
   mutate(time = seq(1, by = 1, length.out = n())) %>%
   dplyr::select(time, value)
@@ -121,7 +148,7 @@ fitS <-bi_lst$S %>%
     q975 = quantile(value, 0.975)
   ) %>% ungroup() %>%
   left_join(S %>% rename(S = value))
-write.csv(fitS,"../data/MS2_1.csv")
+write.csv(fitS,"../data/h1n1_S3.csv")
 
 E <- data.frame(value = E) %>%
   mutate(time = seq(1, by = 1, length.out = n())) %>%
@@ -136,7 +163,7 @@ fitE <-bi_lst$E %>%
     q975 = quantile(value, 0.975)
   ) %>% ungroup() %>%
   left_join(E %>% rename(E = value))
-write.csv(fitE,"../data/ME2_1.csv")
+write.csv(fitE,"../data/h1n1_E3.csv")
 
 I <- data.frame(value = I) %>%
   mutate(time = seq(1, by = 1, length.out = n())) %>%
@@ -151,7 +178,7 @@ fitI <-bi_lst$I %>%
     q975 = quantile(value, 0.975)
   ) %>% ungroup() %>%
   left_join(I %>% rename(I = value))
-write.csv(fitI,"../data/MI2_1.csv")
+write.csv(fitI,"../data/h1n1_I3.csv")
 
 R <- data.frame(value = R) %>%
   mutate(time = seq(1, by = 1, length.out = n())) %>%
@@ -166,28 +193,10 @@ fitR <-bi_lst$R %>%
     q975 = quantile(value, 0.975)
   ) %>% ungroup() %>%
   left_join(R %>% rename(R = value))
-write.csv(fitR,"../data/MR2_1.csv")
-
-M <- data.frame(value = M) %>%
-  mutate(time = seq(1, by = 1, length.out = n())) %>%
-  dplyr::select(time, value)
-fitM <-bi_lst$M %>%
-  group_by(time) %>%
-  mutate(
-    q025 = quantile(value, 0.025),
-    q25 = quantile(value, 0.25),
-    q50 = quantile(value, 0.5),
-    q75 = quantile(value, 0.75),
-    q975 = quantile(value, 0.975)
-  ) %>% ungroup() %>%
-  left_join(M %>% rename(M = value))
-write.csv(fitM,"../data/MM2_1.csv")
-
-write.csv(bi_lst$sigma$value,"../data/Msigma2_1.csv")
-write.csv(bi_lst$gamma$value,"../data/Mgamma2_1.csv")
-write.csv(bi_lst$beta$value,"../data/Mbeta2_1.csv")
-write.csv(bi_lst$mu$value,"../data/Mmu2_1.csv")
+write.csv(fitR,"../data/h1n1_R3.csv")
 
 
 
+write.csv(bi_lst$k$value,"../data/h1n1_alpha3.csv")
+write.csv(bi_lst$gamma$value,"../data/h1n1_gamma3.csv")
 
