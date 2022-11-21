@@ -9,6 +9,8 @@ e <- rnorm(n = length(times) - 1, sd = sqrt(0.01))
 e <- c(0, cumsum(e))
 
 beta<- exp(sigma*e)
+write.csv(beta,"simulatebeta.csv")
+
 
 # H1N1 <- function(time, current_state, params){
 # 

@@ -47,13 +47,9 @@ model dureau {
     I <-0
     R <-0
     M <-0
-    sigma <-0.211
-    gamma <-0.2328
-    beta <-0.5876
-    mu <-0.001
   }
 
-  sub transition(delta = 1) {
+  sub transition(delta = 0.5) {
     ode(alg = 'RK4(3)', h = 1.0, atoler = 1.0e-3, rtoler = 1.0e-8) {
       dS/dt = -(beta*S*I)/N
       dE/dt = (beta*S*I)/N - sigma*E
@@ -81,7 +77,7 @@ input_lst <- list(N = 1000000)
 end_time <- max(y$time)
 obs_lst <- list(y = y %>% dplyr::filter(time <= end_time))
 
-bi <- sample(bi_model, end_time = end_time, input = input_lst, obs = obs_lst, nsamples = 1000, nparticles = minParticles, nthreads = ncores, proposal = 'prior') %>% 
+bi <- sample(bi_model, end_time = end_time, input = input_lst, obs = obs_lst, nsamples = 1000, nparticles = minParticles, nthreads = ncores, proposal = 'proposal') %>% 
   adapt_particles(min = minParticles, max = minParticles*200) %>%
   adapt_proposal(min = 0.05, max = 0.4) %>%
   sample(nsamples = 1000, thin = 1) %>% # burn in 

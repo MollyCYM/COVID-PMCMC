@@ -9,7 +9,7 @@ library(rbi)
 library(rbi.helpers)
 library(readr)
 # Load the data
-v <- read.csv("259wk.csv", header=FALSE, stringsAsFactors=FALSE) %>%
+v <- read.csv("259wk1.csv", header=FALSE, stringsAsFactors=FALSE) %>%
   rowSums()
 
 y <- data.frame(value = v) %>%
