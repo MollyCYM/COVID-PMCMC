@@ -129,6 +129,18 @@ plot_df <- bi_lst$x %>% mutate(value = exp(value)) %>%
   ) %>% ungroup()
 write.csv(plot_df,"../data/h1n1_beta3.csv")
 
+plot_df1 <- bi_lst$x %>% mutate(value = exp(value)) %>%
+  group_by(np) %>% mutate(value = value - value[1]) %>%
+  group_by(time) %>%
+  mutate(
+    q025 = quantile(value, 0.025),
+    q25 = quantile(value, 0.25),
+    q50 = quantile(value, 0.5),
+    q75 = quantile(value, 0.75),
+    q975 = quantile(value, 0.975)
+  ) %>% ungroup()
+write.csv(plot_df1,"../data/h1n1_beta03.csv")
+
 Mmodel <- read.csv("simulatestates1.csv", header=TRUE, stringsAsFactors=FALSE)
 S<-Mmodel[,4]
 E<-Mmodel[,5]
