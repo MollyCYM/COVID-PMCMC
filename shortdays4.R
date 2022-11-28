@@ -38,7 +38,7 @@ model dureau {
     sigma ~ truncated_gaussian(0.20379467, 0.2, lower = 0) 
     gamma ~ truncated_gaussian(0.12460946, 0.2, lower = 0) // gamma is the period, not the rate
     beta ~ truncated_gaussian(0.57586873, 0.3, lower = 0) 
-    mu ~ truncated_gaussian(0.001, 0.01, lower = 0) 
+    mu ~ truncated_gaussian(0.001, 0.005, lower = 0) 
     tau ~ uniform(0, 1)
   }
 
