@@ -38,7 +38,7 @@ model dureau {
     sigma ~ truncated_gaussian(0.20379467, 0.2, lower = 0) 
     gamma ~ truncated_gaussian(0.12460946, 0.2, lower = 0) // gamma is the period, not the rate
     beta ~ truncated_gaussian(0.57586873, 0.3, lower = 0) 
-    mu ~ truncated_gaussian(0.09454979, 0.001, lower = 0) 
+    mu ~ truncated_gaussian(0.001, 0.01, lower = 0) 
     tau ~ uniform(0, 1)
   }
 
@@ -65,11 +65,11 @@ model dureau {
   }
 
   sub proposal_parameter {
-    sigma ~ gaussian(sigma, 0.01)
-    gamma ~ gaussian(gamma, 0.01)
-    beta ~ gaussian(beta, 0.01)
-    mu ~ gaussian(mu,0.001)
-    tau ~ gaussian(tau, 0.05)
+    sigma ~ truncated_gaussian(sigma, 0.01,lower=0)
+    gamma ~ truncated_gaussian(gamma, 0.01, lower=0)
+    beta ~ truncated_gaussian(beta, 0.01, lower=0)
+    mu ~ truncated_gaussian(mu,0.001, lower=0)
+    tau ~ truncated_gaussian(tau, 0.05, lower=0)
   }
 }"
 model <- bi_model(lines = stringi::stri_split_lines(model_str)[[1]])
@@ -86,7 +86,7 @@ bi <- sample(bi_model, end_time = end_time, input = input_lst, init=init_list, o
   sample(nsamples = 100000, thin = 5)
 
 bi_lst <- bi_read(bi %>% sample_obs)
-write.csv(bi_lst, "../data/short.csv")
+write.csv(bi_lst, "../data/short4.csv")
 fitY <- bi_lst$y %>%
   group_by(time) %>%
   mutate(
@@ -97,7 +97,7 @@ fitY <- bi_lst$y %>%
     q975 = quantile(value, 0.975)
   ) %>% ungroup() %>%
   left_join(y %>% rename(Y = value))
-write.csv(fitY,"../data/short_y.csv")
+write.csv(fitY,"../data/short_y4.csv")
 
 Mmodel <- read.csv("simulatestates.csv", header=TRUE, stringsAsFactors=FALSE)
 S<-Mmodel[,3]
@@ -123,7 +123,7 @@ fitS <-bi_lst$S %>%
     q975 = quantile(value, 0.975)
   ) %>% ungroup() %>%
   left_join(S %>% rename(S = value))
-write.csv(fitS,"../data/short_S.csv")
+write.csv(fitS,"../data/short_S4.csv")
 
 E <- data.frame(value = E) %>%
   mutate(time = seq(1, by = 1, length.out = n())) %>%
@@ -138,7 +138,7 @@ fitE <-bi_lst$E %>%
     q975 = quantile(value, 0.975)
   ) %>% ungroup() %>%
   left_join(E %>% rename(E = value))
-write.csv(fitE,"../data/short_E.csv")
+write.csv(fitE,"../data/short_E4.csv")
 
 I <- data.frame(value = I) %>%
   mutate(time = seq(1, by = 1, length.out = n())) %>%
@@ -153,7 +153,7 @@ fitI <-bi_lst$I %>%
     q975 = quantile(value, 0.975)
   ) %>% ungroup() %>%
   left_join(I %>% rename(I = value))
-write.csv(fitI,"../data/short_I.csv")
+write.csv(fitI,"../data/short_I4.csv")
 
 R <- data.frame(value = R) %>%
   mutate(time = seq(1, by = 1, length.out = n())) %>%
@@ -168,7 +168,7 @@ fitR <-bi_lst$R %>%
     q975 = quantile(value, 0.975)
   ) %>% ungroup() %>%
   left_join(R %>% rename(R = value))
-write.csv(fitR,"../data/short_R.csv")
+write.csv(fitR,"../data/short_R4.csv")
 
 M <- data.frame(value = M) %>%
   mutate(time = seq(1, by = 1, length.out = n())) %>%
@@ -183,58 +183,13 @@ fitM <-bi_lst$M %>%
     q975 = quantile(value, 0.975)
   ) %>% ungroup() %>%
   left_join(M %>% rename(M = value))
-write.csv(fitM,"../data/short_M.csv")
+write.csv(fitM,"../data/short_M4.csv")
 
-write.csv(bi_lst$sigma$value,"../data/short_sigma.csv")
-write.csv(bi_lst$gamma$value,"../data/short_gamma.csv")
-write.csv(bi_lst$beta$value,"../data/short_beta.csv")
-write.csv(bi_lst$mu$value,"../data/short_mu.csv")
+write.csv(bi_lst$sigma$value,"../data/short_sigma4.csv")
+write.csv(bi_lst$gamma$value,"../data/short_gamma4.csv")
+write.csv(bi_lst$beta$value,"../data/short_beta4.csv")
+write.csv(bi_lst$mu$value,"../data/short_mu4.csv")
 
-#Prior generating
-sigma ~ truncated_gaussian(0.20379467, 0.2, lower = 0) 
-gamma ~ truncated_gaussian(0.12460946, 0.2, lower = 0) 
-beta ~ truncated_gaussian(0.57586873, 0.3, lower = 0) 
-mu ~ truncated_gaussian(0.09454979, 0.001, lower = 0) 
-library('truncnorm')
-sigma <- rtruncnorm(20000, a=0, b=Inf, mean = 0.20379467, sd = 0.2)
-write.csv(sigma,"sim_sigma.csv")
-plot(sigma,type='p')
-abline(h=0.20379467, col="red")
-abline(h=0.26,col="pink")
-abline(h=0.61, col="pink", lty=2)
-abline(h=0.018, col="pink", lty=2)
-quantile(sigma,probs=0.975)
-quantile(sigma,probs=0.025)
-
-gamma <- rtruncnorm(20000, a=0, b=Inf, mean = 0.12460946, sd = 0.2)
-write.csv(gamma,"sim_gamma.csv")
-plot(gamma,type='p')
-abline(h=0.12460946, col="red")
-abline(h=0.21,col="pink")
-abline(h=0.54, col="pink", lty=2)
-abline(h=0.011, col="pink", lty=2)
-quantile(gamma,probs=0.975)
-quantile(gamma,probs=0.025)
-
-beta <- rtruncnorm(20000, a=0, b=Inf, mean = 0.57586873, sd = 0.3)
-write.csv(beta,"sim_beta.csv")
-plot(beta,type='p')
-abline(h=0.57586873, col="red")
-abline(h=0.59,col="pink")
-abline(h=1.2, col="pink", lty=2)
-abline(h=0.082, col="pink", lty=2)
-quantile(beta,probs=0.975)
-quantile(beta,probs=0.025)
-
-mu <- rtruncnorm(20000, a=0, b=Inf, mean = 0.001, sd = 0.001)
-write.csv(mu,"sim_mu1.csv")
-plot(mu,type='p')
-abline(h=0.001, col="red")
-abline(h=0.0013,col="pink")
-abline(h=0.003, col="pink", lty=2)
-abline(h=0.000081, col="pink", lty=2)
-quantile(mu,probs=0.975)
-quantile(mu,probs=0.025)
 
 
 
