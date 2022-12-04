@@ -65,10 +65,10 @@ model dureau {
   }
 
   sub proposal_parameter {
-    sigma ~ gaussian(sigma, 0.01,lower=0)
-    gamma ~ gaussian(gamma, 0.01, lower=0)
-    beta ~ gaussian(beta, 0.01, lower=0)
-    mu ~ gaussian(mu,0.001, lower=0)
+    sigma ~ gaussian(sigma, 0.01)
+    gamma ~ gaussian(gamma, 0.01)
+    beta ~ gaussian(beta, 0.01)
+    mu ~ gaussian(mu,0.001)
     tau ~ truncated_gaussian(tau, 0.05, lower=0)
   }
 }"
