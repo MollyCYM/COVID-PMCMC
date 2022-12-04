@@ -10,7 +10,7 @@ library(rbi.helpers)
 library(readr)
 options(digits=2)
 # Load the data
-v <- read.csv("30days.csv", header=FALSE, stringsAsFactors=FALSE) 
+v <- read.csv("2days.csv", header=FALSE, stringsAsFactors=FALSE) 
 y <- data.frame(value = v) %>%
   mutate(time = seq(1, by = 1, length.out = n())) %>%
   dplyr::select(time, V1)
@@ -38,7 +38,7 @@ model dureau {
     sigma ~ truncated_gaussian(0.20379467, 0.2, lower = 0) 
     gamma ~ truncated_gaussian(0.12460946, 0.2, lower = 0) // gamma is the period, not the rate
     beta ~ truncated_gaussian(0.57586873, 0.3, lower = 0) 
-    mu ~ truncated_gaussian(0.001, 0.005, lower = 0) 
+    mu ~ truncated_gaussian(0.001, 0.001, lower = 0) 
     tau ~ uniform(0, 1)
   }
 
