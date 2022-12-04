@@ -10,7 +10,7 @@ library(rbi.helpers)
 library(readr)
 options(digits=2)
 # Load the data
-v <- read.csv("30days.csv", header=FALSE, stringsAsFactors=FALSE) 
+v <- read.csv("5days.csv", header=FALSE, stringsAsFactors=FALSE) 
 y <- data.frame(value = v) %>%
   mutate(time = seq(1, by = 1, length.out = n())) %>%
   dplyr::select(time, V1)
@@ -38,7 +38,7 @@ model dureau {
     sigma ~ truncated_gaussian(0.20379467, 0.2, lower = 0) 
     gamma ~ truncated_gaussian(0.12460946, 0.2, lower = 0) // gamma is the period, not the rate
     beta ~ truncated_gaussian(0.57586873, 0.3, lower = 0) 
-    mu ~ truncated_gaussian(0.09454979, 0.001, lower = 0) 
+    mu ~ truncated_gaussian(0.001, 0.001, lower = 0) 
     tau ~ uniform(0, 1)
   }
 
@@ -65,10 +65,10 @@ model dureau {
   }
 
   sub proposal_parameter {
-    sigma ~ truncated_gaussian(sigma, 0.01,lower=0)
-    gamma ~ truncated_gaussian(gamma, 0.01, lower=0)
-    beta ~ truncated_gaussian(beta, 0.01, lower=0)
-    mu ~ truncated_gaussian(mu,0.001, lower=0)
+    sigma ~ gaussian(sigma, 0.01,lower=0)
+    gamma ~ gaussian(gamma, 0.01, lower=0)
+    beta ~ gaussian(beta, 0.01, lower=0)
+    mu ~ gaussian(mu,0.001, lower=0)
     tau ~ truncated_gaussian(tau, 0.05, lower=0)
   }
 }"
