@@ -10,7 +10,7 @@ library(rbi.helpers)
 library(readr)
 options(digits=2)
 # Load the data
-v <- read.csv("30days.csv", header=FALSE, stringsAsFactors=FALSE) 
+v <- read.csv("5days.csv", header=FALSE, stringsAsFactors=FALSE) 
 y <- data.frame(value = v) %>%
   mutate(time = seq(1, by = 1, length.out = n())) %>%
   dplyr::select(time, V1)
