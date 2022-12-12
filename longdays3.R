@@ -8,8 +8,9 @@ library(latex2exp)
 library(rbi)
 library(rbi.helpers)
 library(readr)
+options(digits=2)
 # Load the data
-v <- read.csv("1001days.csv", header=FALSE, stringsAsFactors=FALSE) 
+v <- read.csv("simulate366.csv", header=FALSE, stringsAsFactors=FALSE) 
 y <- data.frame(value = v) %>%
   mutate(time = seq(1, by = 1, length.out = n())) %>%
   dplyr::select(time, V1)
@@ -34,10 +35,10 @@ model dureau {
   param mu
 
   sub parameter {
-    sigma ~ truncated_gaussian(0.211, 0.2, lower = 0) 
-    gamma ~ truncated_gaussian(0.2328, 0.2, lower = 0) // gamma is the period, not the rate
-    beta ~ truncated_gaussian(0.5876, 0.3, lower = 0) 
-    mu ~ truncated_gaussian(0.001, 0.001, lower = 0)
+    sigma ~ truncated_gaussian(0.20379467, 0.2, lower = 0) 
+    gamma ~ truncated_gaussian(0.12460946, 0.2, lower = 0) // gamma is the period, not the rate
+    beta ~ truncated_gaussian(0.57586873, 0.3, lower = 0) 
+    mu ~ truncated_gaussian(0.001, 0.001, lower = 0) 
     tau ~ uniform(0, 1)
   }
 
@@ -64,11 +65,11 @@ model dureau {
   }
 
   sub proposal_parameter {
-    sigma ~ gaussian(sigma, 0.01)
-    gamma ~ gaussian(gamma, 0.01)
-    beta ~ gaussian(beta, 0.01)
-    mu ~ gaussian(mu,0.001)
-    tau ~ gaussian(tau, 0.05)
+    sigma ~ truncated_gaussian(sigma, 0.01,lower=0)
+    gamma ~ truncated_gaussian(gamma, 0.01, lower=0)
+    beta ~ truncated_gaussian(beta, 0.01, lower=0)
+    mu ~ truncated_gaussian(mu,0.001, lower=0)
+    tau ~ truncated_gaussian(tau, 0.05, lower=0)
   }
 }"
 model <- bi_model(lines = stringi::stri_split_lines(model_str)[[1]])
@@ -76,16 +77,16 @@ bi_model <- libbi(model)
 input_lst <- list(N = 1000000)
 end_time <- max(y$time)
 obs_lst <- list(y = y %>% dplyr::filter(time <= end_time))
+init_list <- list(sigma =0.19, gamma =0.2, beta=0.53, mu =0.0015)
 
-bi <- sample(bi_model, end_time = end_time, input = input_lst, obs = obs_lst, nsamples = 1000, nparticles = minParticles, nthreads = ncores, proposal = 'prior') %>% 
+bi <- sample(bi_model, end_time = end_time, input = input_lst, init=init_list, obs = obs_lst, nsamples = 1000, nparticles = minParticles, nthreads = ncores, proposal = 'model') %>% 
   adapt_particles(min = minParticles, max = minParticles*200) %>%
   adapt_proposal(min = 0.05, max = 0.4) %>%
-  sample(nsamples = 1000, thin = 1) %>% # burn in 
-  sample(nsamples = 50000, thin = 5)
+  sample(nsamples = 100, thin = 1) %>% # burn in 
+  sample(nsamples = 200000, thin = 5)
 
 bi_lst <- bi_read(bi %>% sample_obs)
-
-write.csv(bi_lst, "../data/longdays3.csv")
+write.csv(bi_lst, "../data/MSEIR3.csv")
 fitY <- bi_lst$y %>%
   group_by(time) %>%
   mutate(
@@ -96,9 +97,9 @@ fitY <- bi_lst$y %>%
     q975 = quantile(value, 0.975)
   ) %>% ungroup() %>%
   left_join(y %>% rename(Y = value))
-write.csv(fitY,"../data/longdays_y3.csv")
+write.csv(fitY,"../data/My3.csv")
 
-Mmodel <- read.csv("simulatestatesl.csv", header=TRUE, stringsAsFactors=FALSE)
+Mmodel <- read.csv("simulatestates.csv", header=TRUE, stringsAsFactors=FALSE)
 S<-Mmodel[,3]
 E<-Mmodel[,4]
 I<-Mmodel[,5]
@@ -117,7 +118,7 @@ fitS <-bi_lst$S %>%
     q975 = quantile(value, 0.975)
   ) %>% ungroup() %>%
   left_join(S %>% rename(S = value))
-write.csv(fitS,"../data/longdays_S3.csv")
+write.csv(fitS,"../data/MS3.csv")
 
 E <- data.frame(value = E) %>%
   mutate(time = seq(1, by = 1, length.out = n())) %>%
@@ -132,7 +133,7 @@ fitE <-bi_lst$E %>%
     q975 = quantile(value, 0.975)
   ) %>% ungroup() %>%
   left_join(E %>% rename(E = value))
-write.csv(fitE,"../data/longdays_E3.csv")
+write.csv(fitE,"../data/ME3.csv")
 
 I <- data.frame(value = I) %>%
   mutate(time = seq(1, by = 1, length.out = n())) %>%
@@ -147,7 +148,7 @@ fitI <-bi_lst$I %>%
     q975 = quantile(value, 0.975)
   ) %>% ungroup() %>%
   left_join(I %>% rename(I = value))
-write.csv(fitI,"../data/longdays_I3.csv")
+write.csv(fitI,"../data/MI3.csv")
 
 R <- data.frame(value = R) %>%
   mutate(time = seq(1, by = 1, length.out = n())) %>%
@@ -162,7 +163,7 @@ fitR <-bi_lst$R %>%
     q975 = quantile(value, 0.975)
   ) %>% ungroup() %>%
   left_join(R %>% rename(R = value))
-write.csv(fitR,"../data/longdays_R3.csv")
+write.csv(fitR,"../data/MR3.csv")
 
 M <- data.frame(value = M) %>%
   mutate(time = seq(1, by = 1, length.out = n())) %>%
@@ -177,12 +178,12 @@ fitM <-bi_lst$M %>%
     q975 = quantile(value, 0.975)
   ) %>% ungroup() %>%
   left_join(M %>% rename(M = value))
-write.csv(fitM,"../data/longdays_M3.csv")
+write.csv(fitM,"../data/MM3.csv")
 
-write.csv(bi_lst$sigma$value,"../data/longdays_sigma3.csv")
-write.csv(bi_lst$gamma$value,"../data/longdays_gamma3.csv")
-write.csv(bi_lst$beta$value,"../data/longdays_beta3.csv")
-write.csv(bi_lst$mu$value,"../data/longdays_mu3.csv")
+write.csv(bi_lst$sigma$value,"../data/Msigma3.csv")
+write.csv(bi_lst$gamma$value,"../data/Mgamma3.csv")
+write.csv(bi_lst$beta$value,"../data/Mbeta3.csv")
+write.csv(bi_lst$mu$value,"../data/Mmu3.csv")
 
 
 
