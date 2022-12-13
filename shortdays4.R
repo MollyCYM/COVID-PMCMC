@@ -69,7 +69,7 @@ model dureau {
     gamma ~ truncated_gaussian(gamma, 0.01, lower=0)
     beta ~ truncated_gaussian(beta, 0.01, lower=0)
     mu ~ truncated_gaussian(mu,0.001, lower=0)
-    tau ~ truncated_gaussian(tau,0.01, lower=0)
+    tau ~ truncated_gaussian(tau,0.001, lower=0)
   }
 }"
 model <- bi_model(lines = stringi::stri_split_lines(model_str)[[1]])
