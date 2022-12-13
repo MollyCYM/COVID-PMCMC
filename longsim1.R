@@ -39,7 +39,7 @@ model dureau {
     gamma ~ truncated_gaussian(0.12460946, 0.2, lower = 0) // gamma is the period, not the rate
     beta ~ truncated_gaussian(0.57586873, 0.3, lower = 0) 
     mu ~ truncated_gaussian(0.001, 0.001, lower = 0) 
-    tau ~ uniform(0,100)
+    tau ~ uniform(0,10)
   }
 
   sub initial {
@@ -69,7 +69,7 @@ model dureau {
     gamma ~ truncated_gaussian(gamma, 0.01, lower=0)
     beta ~ truncated_gaussian(beta, 0.01, lower=0)
     mu ~ truncated_gaussian(mu,0.001, lower=0)
-    tau ~ truncated_gaussian(tau,0.001, lower=0)
+    tau ~ truncated_gaussian(tau,0.0001, lower=0)
   }
 }"
 model <- bi_model(lines = stringi::stri_split_lines(model_str)[[1]])
