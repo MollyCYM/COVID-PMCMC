@@ -10,7 +10,7 @@ library(rbi.helpers)
 library(readr)
 options(digits=2)
 # Load the data
-v <- read.csv("simulate366_2.csv", header=FALSE, stringsAsFactors=FALSE) 
+v <- read.csv("5days2.csv", header=FALSE, stringsAsFactors=FALSE) 
 y <- data.frame(value = v) %>%
   mutate(time = seq(1, by = 1, length.out = n())) %>%
   dplyr::select(time, V1)
@@ -31,7 +31,6 @@ model dureau {
   param sigma
   param beta
   param gamma
-  param tau
   param mu
 
   sub parameter {
@@ -39,7 +38,6 @@ model dureau {
     gamma ~ truncated_gaussian(0.12460946, 0.2, lower = 0) // gamma is the period, not the rate
     beta ~ truncated_gaussian(0.57586873, 0.3, lower = 0) 
     mu ~ truncated_gaussian(0.001, 0.001, lower = 0) 
-    tau ~ uniform(0, 1)
   }
 
   sub initial {
@@ -61,7 +59,7 @@ model dureau {
   }
 
   sub observation {
-    y ~ log_normal(log(max((sigma*E)/5, 0)), tau)
+    y ~ log_normal(log(max((sigma*E)/5, 0)), 100)
   }
 
   sub proposal_parameter {
@@ -69,7 +67,6 @@ model dureau {
     gamma ~ truncated_gaussian(gamma, 0.01, lower=0)
     beta ~ truncated_gaussian(beta, 0.01, lower=0)
     mu ~ truncated_gaussian(mu,0.001, lower=0)
-    tau ~ truncated_gaussian(tau, 0.05, lower=0)
   }
 }"
 model <- bi_model(lines = stringi::stri_split_lines(model_str)[[1]])
@@ -82,8 +79,8 @@ init_list <- list(sigma =0.19, gamma =0.2, beta=0.53, mu =0.0015)
 bi <- sample(bi_model, end_time = end_time, input = input_lst, init=init_list, obs = obs_lst, nsamples = 1000, nparticles = minParticles, nthreads = ncores, proposal = 'model') %>% 
   adapt_particles(min = minParticles, max = minParticles*200) %>%
   adapt_proposal(min = 0.05, max = 0.4) %>%
-  sample(nsamples = 1000, thin = 1) %>% # burn in 
-  sample(nsamples = 200000, thin = 5)
+  sample(nsamples = 100, thin = 1) %>% # burn in 
+  sample(nsamples = 1000, thin = 5)
 
 bi_lst <- bi_read(bi %>% sample_obs)
 write.csv(bi_lst, "../data/MSEIR1.csv")
