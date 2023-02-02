@@ -63,13 +63,7 @@ model dureau {
     y ~ log_normal(log(max((sigma*E)/5, 0)), tau)
   }
 
-  sub proposal_parameter {
-    sigma ~ gaussian(sigma, 0.01)
-    gamma ~ gaussian(gamma, 0.01)
-    beta ~ gaussian(beta, 0.01)
-    mu ~ gaussian(mu,0.001)
-    tau ~ gaussian(tau, 0.05)
-  }
+
 }"
 model <- bi_model(lines = stringi::stri_split_lines(model_str)[[1]])
 bi_model <- libbi(model)
@@ -77,7 +71,7 @@ input_lst <- list(N = 1000000)
 end_time <- max(y$time)
 obs_lst <- list(y = y %>% dplyr::filter(time <= end_time))
 
-bi <- sample(bi_model, end_time = end_time, input = input_lst, obs = obs_lst, nsamples = 1000, nparticles = minParticles, nthreads = ncores, proposal = 'prior') %>% 
+bi <- sample(bi_model, end_time = end_time, filter='lookahead', input = input_lst, obs = obs_lst, nsamples = 1000, nparticles = minParticles, nthreads = ncores, proposal = 'proposal') %>% 
   adapt_particles(min = minParticles, max = minParticles*200) %>%
   adapt_proposal(min = 0.05, max = 0.4) %>%
   sample(nsamples = 10, thin = 1) %>% # burn in 

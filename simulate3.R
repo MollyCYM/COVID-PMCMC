@@ -23,6 +23,7 @@ summary(model)
 matplot(model, type="l", lty=1, main="SEIR model", xlab="Time")
 legend <- colnames(model)[2:6]
 legend("right", legend=legend, col=2:6, lty = 1)
+write.csv(model,"simulatestates3.csv")
 
 Z <-as.vector(model[,3])
 Z <-0.2*Z
@@ -49,16 +50,17 @@ lines(Ravgdata,type='l',col='Blue')
 plot(M,type='l',col='Red',main="Simulation states vs Model latent state estimations",ylab=TeX("State M"))
 lines(Mavgdata,type='l',col='Blue')
 plot()
-write.csv(Z,"simZ1.csv")
+write.csv(Z,"simZ3.csv")
 Z <- read.csv("simz_1.csv", header=FALSE, stringsAsFactors=FALSE) 
 Z <- data.frame(Z) 
 
-tau <- runif(1,0,1)
-Y <-vector(length = 366)
-for (i in 1:366){
-  Y[i]<- rlnorm(1,log(Z[i,]/5),tau)
+#tau <- runif(1,0,1)
+tau <-0.8
+Y <-vector(length = 3)
+for (i in 1:3){
+  Y[i]<- rlnorm(1,log(Z[i]/5),tau)
 }
 plot(Y,type='l')
-write.csv(Y,"simY1.csv")
+write.csv(Y,"simY3.csv")
 write.csv(model,"simulatestates.csv")
 

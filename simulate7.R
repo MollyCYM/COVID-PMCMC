@@ -22,7 +22,7 @@ summary(model)
 matplot(model, type="l", lty=1, main="SEIR model", xlab="Time")
 legend <- colnames(model)[2:5]
 legend("right", legend=legend, col=2:5, lty = 1)
-write.csv(model,"simulatestates2.csv")
+write.csv(model,"simulatestates4.csv")
 
 
 Z <-0.2*model[,3]
@@ -30,10 +30,10 @@ Z <-0.2*model[,3]
 
 
 
-tau <- runif(1,0,1)
+tau <- 0.8
 Y <-vector(length = 366)
 for (i in 1:366){
   Y[i]<- rlnorm(1,log(Z[i]/5),tau)
 }
 plot(Y,type='l')
-write.csv(Y,"simY2.csv")
+write.csv(Y,"simY4.csv")

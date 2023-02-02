@@ -99,7 +99,7 @@ fitY <- bi_lst$y %>%
   left_join(y %>% rename(Y = value))
 write.csv(fitY,"../data/short_y4.csv")
 
-Mmodel <- read.csv("simulatestates.csv", header=TRUE, stringsAsFactors=FALSE)
+Mmodel <- read.csv("simulatestates4.csv", header=TRUE, stringsAsFactors=FALSE)
 S<-Mmodel[,3]
 S<-S[1:30]
 E<-Mmodel[,4]

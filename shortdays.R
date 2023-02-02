@@ -196,14 +196,14 @@ gamma ~ truncated_gaussian(0.12460946, 0.2, lower = 0)
 beta ~ truncated_gaussian(0.57586873, 0.3, lower = 0) 
 mu ~ truncated_gaussian(0.09454979, 0.001, lower = 0) 
 library('truncnorm')
-sigma <- rtruncnorm(20000, a=0, b=Inf, mean = 0.20379467, sd = 0.2)
+sigma <- rtruncnorm(20000, a=0, b=Inf, mean = 0.20379467, sd = 0.1)
 prior<- 
 write.csv(sigma,"sim_sigma.csv")
 plot(sigma,type='p')
 abline(h=0.25, col="red")             #True
-abline(h=0.2441596 ,col="blue")       #Median
-abline(h=0.605125, col="blue", lty=2) #95% CI
-abline(h=0.01798, col="blue", lty=2)  #95% CI
+abline(h=0.2078025 ,col="blue")       #Median
+abline(h=0.404596 , col="blue", lty=2) #95% CI
+abline(h=0.03397732 , col="blue", lty=2)  #95% CI
 quantile(sigma,probs=0.975)
 quantile(sigma,probs=0.025)
 quantile(sigma,probs=0.5)

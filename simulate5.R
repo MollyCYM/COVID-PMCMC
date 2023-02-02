@@ -1,6 +1,6 @@
 rm(list=ls())
+N=1000000
 require(deSolve)
-
 SEIR <- function(time, current_state, params){
   
   with(as.list(c(current_state, params)),{
@@ -39,6 +39,6 @@ for (i in 1:1001){
   Y[i]<- rlnorm(1,log(Z[i]/5),tau)
 }
 plot(Y,type='l')
-write.csv(Y,"simY1.csv")
-write.csv(model,"simulatestates.csv")
+write.csv(Y,"simYl.csv")
+write.csv(model2,"simulatestatesl.csv")
 

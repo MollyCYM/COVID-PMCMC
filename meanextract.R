@@ -13,11 +13,22 @@ cul <- function(x) {
    res = list()
    # n = length(x) / 60
    for (i in  1:366) {
-     res[[i]] = as.numeric(x[seq(i,732000,366)])
+     res[[i]] = as.numeric(x[seq(i,73200,366)])
    } 
    return(res)
   
 }
+
+cul <- function(x) {
+   res = list()
+   # n = length(x) / 60
+   for (i in  1:420) {
+      res[[i]] = as.numeric(x[seq(i,48000,420)])
+   } 
+   return(res)
+   
+}
+
 
 mymean <- function(alist) {
    n = length(alist)
@@ -94,10 +105,20 @@ mymedian <- function(alist) {
 
 
 
-SEIR <- read.csv("SEIR.csv", header=TRUE, stringsAsFactors=FALSE)
-avgvalue =cul()
-avgdata = mymean(avgvalue)
+MSEIR <- read.csv("60wbeta1.csv", header=TRUE, stringsAsFactors=FALSE)
+Evalue =cul(MSEIR$q50)
+Eavgdata = mymean(Evalue)
+Eavgdata = mymedian(Evalue)
+Zmodel<-Eavgdata*0.2/5
 
+Svalue=cul(SEIR$S.value)
+Savgdata=mymean(Svalue)
+Ivalue=cul(SEIR$I.value)
+Iavgdata=mymean(Ivalue)
+Rvalue=cul(SEIR$R.value)
+Ravgdata=mymean(Rvalue)*2.2
+Mvalue=cul(MSEIR$M.value)
+Mavgdata=mymean(Mvalue)
 avgdata025 = myq025(avgvalue)
 avgdata25 = myq25(avgvalue)
 avgdata975 = myq975(avgvalue)

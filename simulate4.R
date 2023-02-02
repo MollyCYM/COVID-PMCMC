@@ -70,7 +70,7 @@ legend("right", legend=legend, col=3:6, lty = 1)
 
 Z1 <-model1[,4]/1.59
 
-tau1 <- runif(1,0,1)
+tau1 <- 0.8#runif(1,0,1)
 Y1 <-vector(length = 259)
 for (i in 1:259){
   #Y1[i]<- rlnorm(1,log(Z1[i,]/5),tau1)

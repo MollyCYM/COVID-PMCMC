@@ -16,9 +16,13 @@ y <- data.frame(value = v) %>%
   dplyr::select(time, value)
 ncores <- 8 #modify this for multi-tasks
 minParticles <- max(ncores, 16)
-
+ifelse(
+  (49 <= t <= 141 || 276 <= t <= 303 || 338 <= t <= 399),
+  0.6, 0.2
+)
 model_str <- "
 model dureau {
+  const theta = 0.3
   obs y
 
   state S
@@ -67,10 +71,11 @@ model dureau {
    Z <- ((t_now) % 7 == 0 ? 0 : Z)
     noise e
     e ~ wiener()
+
     ode(alg = 'RK4(3)', h = 1.0, atoler = 1.0e-3, rtoler = 1.0e-8) {
-      dx/dt = sigma*e
-      dS/dt = -exp(x)*S*(0.1*I+E)/N
-      dE/dt = exp(x)*S*(0.1*I+E)/N - E*(1/k+1/gamma)
+      dx/dt = theta*(0.5-x)+sigma*e
+      dS/dt = -x*S*(0.1*I+E)/N
+      dE/dt = x*S*(0.1*I+E)/N - E*(1/k+1/gamma)
       dI/dt = E/k-I*(1/gamma+0.0087)
       dR/dt = (I+E)/gamma
       dZ/dt = E/k
@@ -98,11 +103,11 @@ input_lst <- list(N = 55977178)
 end_time <- max(y$time)
 obs_lst <- list(y = y %>% dplyr::filter(time <= end_time))
 
-bi <- sample(bi_model, end_time = end_time, input = input_lst, obs = obs_lst, nsamples = 1000, nparticles = minParticles, nthreads = ncores, proposal = 'prior') %>% 
+bi <- sample(bi_model, end_time = end_time, input = input_lst, obs = obs_lst, nsamples = 1000, nparticles = minParticles, nthreads = ncores, proposal = 'model') %>% 
   adapt_particles(min = minParticles, max = minParticles*200) %>%
   adapt_proposal(min = 0.05, max = 0.4) %>%
-  sample(nsamples = 5000, thin = 5) %>% # burn in 
-  sample(nsamples = 20000, thin = 5) #20000, 40000
+  sample(nsamples = 5, thin = 5) %>% # burn in 
+  sample(nsamples = 100, thin = 5) #20000, 40000
 
 bi_lst <- bi_read(bi %>% sample_obs)
 write.csv(bi_lst,"60w2.csv")
