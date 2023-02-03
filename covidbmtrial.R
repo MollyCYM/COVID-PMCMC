@@ -9,7 +9,7 @@ library(rbi)
 library(rbi.helpers)
 library(readr)
 # Load the data
-v <- read.csv("covid259days.csv", header=FALSE, stringsAsFactors=FALSE) %>%
+v <- read.csv("covid259days1.csv", header=FALSE, stringsAsFactors=FALSE) %>%
   rowSums()
 
 y <- data.frame(value = v) %>%
@@ -101,11 +101,11 @@ obs_lst <- list(y = y %>% dplyr::filter(time <= end_time))
 bi <- sample(bi_model, end_time = end_time, input = input_lst, obs = obs_lst, nsamples = 1000, nparticles = minParticles, nthreads = ncores, proposal = 'prior') %>% 
   adapt_particles(min = minParticles, max = minParticles*200) %>%
   adapt_proposal(min = 0.05, max = 0.4) %>%
-  sample(nsamples = 100, thin = 1) %>% # burn in 
-  sample(nsamples = 1000, thin = 5)
+  sample(nsamples = 1000, thin = 1) %>% # burn in 
+  sample(nsamples = 10000, thin = 5)
 
 bi_lst <- bi_read(bi %>% sample_obs)
-write.csv(bi_lst, "../data/covid259.csv")
+write.csv(bi_lst, "../data/covid2591.csv")
 fitY <- bi_lst$y %>%
   group_by(time) %>%
   mutate(
@@ -116,7 +116,7 @@ fitY <- bi_lst$y %>%
     q975 = quantile(value, 0.975)
   ) %>% ungroup() %>%
   left_join(y %>% rename(Y = value))
-write.csv(fitY,"../data/covid259_y.csv")
+write.csv(fitY,"../data/covid259_y1.csv")
 
 plot_df <- bi_lst$x %>% mutate(value = exp(value)) %>%
   group_by(time) %>%
@@ -127,7 +127,7 @@ plot_df <- bi_lst$x %>% mutate(value = exp(value)) %>%
     q75 = quantile(value, 0.75),
     q975 = quantile(value, 0.975)
   ) %>% ungroup()
-write.csv(plot_df,"../data/covid259_beta.csv")
+write.csv(plot_df,"../data/covid259_beta1.csv")
 
 plot_df1 <- bi_lst$x %>% mutate(value = exp(value)) %>%
   group_by(np) %>% mutate(value = value - value[1]) %>%
@@ -139,9 +139,9 @@ plot_df1 <- bi_lst$x %>% mutate(value = exp(value)) %>%
     q75 = quantile(value, 0.75),
     q975 = quantile(value, 0.975)
   ) %>% ungroup()
-write.csv(plot_df1,"../data/covid259_beta0.csv")
+write.csv(plot_df1,"../data/covid259_beta01.csv")
 
-Mmodel <- read.csv("simulatecovid1.csv", header=TRUE, stringsAsFactors=FALSE)
+Mmodel <- read.csv("simulatecovid11.csv", header=TRUE, stringsAsFactors=FALSE)
 S<-Mmodel[,4]
 E<-Mmodel[,5]
 I<-Mmodel[,6]
@@ -160,7 +160,7 @@ fitS <-bi_lst$S %>%
     q975 = quantile(value, 0.975)
   ) %>% ungroup() %>%
   left_join(S %>% rename(S = value))
-write.csv(fitS,"../data/covid259_S.csv")
+write.csv(fitS,"../data/covid259_S1.csv")
 
 E <- data.frame(value = E) %>%
   mutate(time = seq(1, by = 1, length.out = n())) %>%
@@ -175,7 +175,7 @@ fitE <-bi_lst$E %>%
     q975 = quantile(value, 0.975)
   ) %>% ungroup() %>%
   left_join(E %>% rename(E = value))
-write.csv(fitE,"../data/covid259_E.csv")
+write.csv(fitE,"../data/covid259_E1.csv")
 
 I <- data.frame(value = I) %>%
   mutate(time = seq(1, by = 1, length.out = n())) %>%
@@ -190,7 +190,7 @@ fitI <-bi_lst$I %>%
     q975 = quantile(value, 0.975)
   ) %>% ungroup() %>%
   left_join(I %>% rename(I = value))
-write.csv(fitI,"../data/covid259_I.csv")
+write.csv(fitI,"../data/covid259_I1.csv")
 
 R <- data.frame(value = R) %>%
   mutate(time = seq(1, by = 1, length.out = n())) %>%
@@ -205,10 +205,10 @@ fitR <-bi_lst$R %>%
     q975 = quantile(value, 0.975)
   ) %>% ungroup() %>%
   left_join(R %>% rename(R = value))
-write.csv(fitR,"../data/covid259_R.csv")
+write.csv(fitR,"../data/covid259_R1.csv")
 
 
 
-write.csv(bi_lst$k$value,"../data/covid259_alpha.csv")
-write.csv(bi_lst$gamma$value,"../data/covid259_gamma.csv")
+write.csv(bi_lst$k$value,"../data/covid259_alpha1.csv")
+write.csv(bi_lst$gamma$value,"../data/covid259_gamma1.csv")
 
