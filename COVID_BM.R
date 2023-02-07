@@ -1,14 +1,17 @@
 rm(list=ls())
 require(deSolve)
+set.seed(11)
 times <- 1:259
 N=52196381
-sigma <- runif(1, min = 0, max = 1)
+#sigma <- runif(1, min = 0, max = 1)
+sigma <-0.4
 ## first, simulate a set of random deviates
 e <- rnorm(n = length(times) - 1, sd = sqrt(0.01))
 ## now compute their cumulative sum
 e <- c(0, cumsum(e))
 
-beta<- exp(sigma*e)
+beta<- exp(sigma*e)+1
+write.csv(beta,"covid259beta3.csv")
 COVID_BM <- function(time, current_state, params){
   
   with(as.list(c(current_state, params)),{
@@ -24,33 +27,47 @@ COVID_BM <- function(time, current_state, params){
   })
 }
 
-params <- c(k=1.59, gamma=1.08)
+params <- c(k=0.3, gamma=7) #1.08
 
-library('truncnorm')
-R0 <- rtruncnorm(1, a=0, b=1, mean = 0.15, sd = 0.15)
-E0 <-runif(1,-16, -9)
-I0 <-runif(1,-16, -9)
-#x <-runif(1, -5,2)
+# library('truncnorm')
+# R0 <- rtruncnorm(1, a=0, b=1, mean = 0.15, sd = 0.15)
+# E0 <-runif(1,-16, -9)
+# I0 <-runif(1,-16, -9)
+# 
+# S <- N
+# R <- R0*S
+# S <- S - R
+# 
+# E <- exp(E0 + log(S))
+# S <- S - E
+# 
+# I <- exp(I0 + log(S))
+# S <- S - I
+R0 <-0.03
 S <- N
-R <- R0*S
+R <- S*R0
 S <- S - R
 
+E0 <- -15
 E <- exp(E0 + log(S))
 S <- S - E
+
+I0 <- -10
 I <- exp(I0 + log(S))
 S <- S - I
 
 
+
 initial_state<- c(t=1, S=S, E=E, I=I, R=R)
-#initial_state <- c(t=1,S=52196380, E=1, I=0, R=0)
+#initial_state <- c(t=1,S=N-1, E=1, I=0, R=0)
 model1 <- ode(initial_state, times, COVID_BM, params)
 
 summary(model1)
 
 matplot(model1, type="l", lty=1, main="SEIR model", xlab="Time")
 legend <- colnames(model1)[3:6]
-legend("right", legend=legend, col=3:6, lty = 1)
-Z1 <-model1[,4]/1.59
+legend("center", legend=legend, col=3:6, lty = 1)
+Z1 <-model1[,4]/0.3
 
 tau1 <- 0.8#runif(1,0,1)
 Y1 <-vector(length = 259)
@@ -59,9 +76,9 @@ for (i in 1:259){
   Y1[i]<- rlnorm(1,log(Z1[i]/5),tau1)
 }
 plot(Y1,type='l')
-write.csv(Y1,"simcovidY1.csv")
-write.csv(model1,"simulatecovid1.csv")
-
+write.csv(Y1,"simcovidY12.csv")
+write.csv(model1,"simulatecovid12.csv")
+plot(beta,type='l')
 ##########################################################################
 rm(list=ls())
 library(tidyverse)
@@ -74,7 +91,7 @@ library(rbi)
 library(rbi.helpers)
 library(readr)
 # Load the data
-v <- read.csv("covid259days.csv", header=FALSE, stringsAsFactors=FALSE) %>%
+v <- read.csv("covid259days2.csv", header=FALSE, stringsAsFactors=FALSE) %>%
   rowSums()
 
 y <- data.frame(value = v) %>%
@@ -134,16 +151,16 @@ model dureau {
     e ~ wiener()
     ode(alg = 'RK4(3)', h = 1.0, atoler = 1.0e-3, rtoler = 1.0e-8) {
       dx/dt = sigma*e
-      dS <- -exp(x)*S*(E+0.1*I)/N
-      dE <- exp(x)*S*(E+0.1*I)/N - E*(1/k+1/gamma)
-      dI <- E/k-I*(1/gamma+0.0087)
-      dR <- (I+E)/gamma+0.0087*I
+      dS/dt = -(exp(x)+1)*S*(E+0.1*I)/N
+      dE/dt = (exp(x)+1)*S*(E+0.1*I)/N - E*(1/k+1/gamma)
+      dI/dt = E/k-I*(1/gamma+0.0087)
+      dR/dt = (I+E)/gamma+0.0087*I
       dZ/dt = E/k
     }
   }
 
   sub observation {
-    y ~ log_normal(log(max(Z/5.0, 0)), tau)
+    y ~ log_normal(log(max(Z/5, 0)), tau)
   }
 
   sub proposal_parameter {
@@ -170,7 +187,7 @@ bi <- sample(bi_model, end_time = end_time, input = input_lst, obs = obs_lst, ns
   sample(nsamples = 10000, thin = 5)
 
 bi_lst <- bi_read(bi %>% sample_obs)
-write.csv(bi_lst, "../data/covid259.csv")
+write.csv(bi_lst, "../data/covid2591.csv")
 fitY <- bi_lst$y %>%
   group_by(time) %>%
   mutate(
@@ -181,7 +198,7 @@ fitY <- bi_lst$y %>%
     q975 = quantile(value, 0.975)
   ) %>% ungroup() %>%
   left_join(y %>% rename(Y = value))
-write.csv(fitY,"../data/covid259_y.csv")
+write.csv(fitY,"../data/covid259_y1.csv")
 
 plot_df <- bi_lst$x %>% mutate(value = exp(value)) %>%
   group_by(time) %>%
@@ -192,7 +209,7 @@ plot_df <- bi_lst$x %>% mutate(value = exp(value)) %>%
     q75 = quantile(value, 0.75),
     q975 = quantile(value, 0.975)
   ) %>% ungroup()
-write.csv(plot_df,"../data/covid259_beta.csv")
+write.csv(plot_df,"../data/covid259_beta1.csv")
 
 plot_df1 <- bi_lst$x %>% mutate(value = exp(value)) %>%
   group_by(np) %>% mutate(value = value - value[1]) %>%
@@ -204,9 +221,9 @@ plot_df1 <- bi_lst$x %>% mutate(value = exp(value)) %>%
     q75 = quantile(value, 0.75),
     q975 = quantile(value, 0.975)
   ) %>% ungroup()
-write.csv(plot_df1,"../data/covid259_beta0.csv")
+write.csv(plot_df1,"../data/covid259_beta01.csv")
 
-Mmodel <- read.csv("simulatecovid1.csv", header=TRUE, stringsAsFactors=FALSE)
+Mmodel <- read.csv("simulatecovid11.csv", header=TRUE, stringsAsFactors=FALSE)
 S<-Mmodel[,4]
 E<-Mmodel[,5]
 I<-Mmodel[,6]
@@ -225,7 +242,7 @@ fitS <-bi_lst$S %>%
     q975 = quantile(value, 0.975)
   ) %>% ungroup() %>%
   left_join(S %>% rename(S = value))
-write.csv(fitS,"../data/covid259_S.csv")
+write.csv(fitS,"../data/covid259_S1.csv")
 
 E <- data.frame(value = E) %>%
   mutate(time = seq(1, by = 1, length.out = n())) %>%
@@ -240,7 +257,7 @@ fitE <-bi_lst$E %>%
     q975 = quantile(value, 0.975)
   ) %>% ungroup() %>%
   left_join(E %>% rename(E = value))
-write.csv(fitE,"../data/covid259_E.csv")
+write.csv(fitE,"../data/covid259_E1.csv")
 
 I <- data.frame(value = I) %>%
   mutate(time = seq(1, by = 1, length.out = n())) %>%
@@ -255,7 +272,7 @@ fitI <-bi_lst$I %>%
     q975 = quantile(value, 0.975)
   ) %>% ungroup() %>%
   left_join(I %>% rename(I = value))
-write.csv(fitI,"../data/covid259_I.csv")
+write.csv(fitI,"../data/covid259_I1.csv")
 
 R <- data.frame(value = R) %>%
   mutate(time = seq(1, by = 1, length.out = n())) %>%
@@ -270,10 +287,10 @@ fitR <-bi_lst$R %>%
     q975 = quantile(value, 0.975)
   ) %>% ungroup() %>%
   left_join(R %>% rename(R = value))
-write.csv(fitR,"../data/covid259_R.csv")
+write.csv(fitR,"../data/covid259_R1.csv")
 
 
 
-write.csv(bi_lst$k$value,"../data/covid259_alpha.csv")
-write.csv(bi_lst$gamma$value,"../data/covid259_gamma.csv")
+write.csv(bi_lst$k$value,"../data/covid259_alpha1.csv")
+write.csv(bi_lst$gamma$value,"../data/covid259_gamma1.csv")
 
