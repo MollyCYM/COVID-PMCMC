@@ -101,8 +101,8 @@ obs_lst <- list(y = y %>% dplyr::filter(time <= end_time))
 bi <- sample(bi_model, end_time = end_time, input = input_lst, obs = obs_lst, nsamples = 1000, nparticles = minParticles, nthreads = ncores, proposal = 'prior') %>% 
   adapt_particles(min = minParticles, max = minParticles*200) %>%
   adapt_proposal(min = 0.05, max = 0.4) %>%
-  sample(nsamples = 5000, thin = 5) %>% # burn in 
-  sample(nsamples = 5000, thin = 5) #20000, 40000
+  sample(nsamples = 1000, thin = 5) %>% # burn in 
+  sample(nsamples = 4000, thin = 5) #20000, 40000
 
 bi_lst <- bi_read(bi %>% sample_obs)
 write.csv(bi_lst,"60w1.csv")

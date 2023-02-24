@@ -1,5 +1,6 @@
 rm(list=ls())
 require(deSolve)
+set.seed(1218) #125 1217 1231 1218 1237 1240 1247
 times <- 1:259
 N=52196381
 #Simulate a Brownian Motion Path
@@ -9,10 +10,10 @@ e <- c(0, cumsum(e))
 mu<-vector(length=259) 
 for (t in 1:259) {
   if (t <= 60){
-    mu[t]=exp(-0.92)      }                    #No lock-down policy
+    mu[t]=exp(1.098)      }                    #No lock-down policy
   else if (t <= 210){                         
-    mu[t]=exp(-0.92-1.38)     }                #Strict national lock-down 
-  else {mu[t]=exp(-0.92-0.69) }                #Mitigate Tier System
+    mu[t]=exp(1.098-1.26)     }                #Strict national lock-down 
+  else {mu[t]=exp(1.098-0.915) }                #Mitigate Tier System
 }
 mu<-ts(mu)
 
@@ -29,11 +30,18 @@ ornstein_uhlenbeck <- function(n,theta,sigma,beta0){
   return(beta);
 }
 
-beta<- ornstein_uhlenbeck(259,0.3,0.02,0)
-plot(beta,type='l')
+beta<- ornstein_uhlenbeck(259,0.03,0.1,1)
+plot(beta,type='l',xlab="time",ylim=c(0,5))
 abline(v=61, col="red")
 abline(v=211,col="red")
 lines(mu,col="blue")
+tt1 <-expression(mu==3)
+text(20,3.2,tt1,col="green")
+tt2 <-expression(mu==0.85)
+text(100,1.05,tt2,col="green")
+tt3 <-expression(mu==1.2)
+text(230,1.4,tt3,col="green")
+#write.csv(beta,"covidoubeta2.csv")
 #Main ODE Model
 COVID_OU <- function(time, current_state, params){
   
@@ -41,41 +49,52 @@ COVID_OU <- function(time, current_state, params){
     
     N <- S+E+I+R
     dt <- 1
-    dS <- -beta[t]*S*(E+0.1*I)/N
-    dE <- beta[t]*S*(E+0.1*I)/N - E*(1/k+1/gamma)
+    dS <- -beta[t+1]*S*(E+0.1*I)/N
+    dE <- beta[t+1]*S*(E+0.1*I)/N - E*(1/k+1/gamma)
     dI <- E/k-I*(1/gamma+0.0087)
     dR <- (I+E)/gamma+0.0087*I
     
     return(list(c( dt, dS, dE, dI, dR)))
   })
 }
-params <- c(k=1.59, gamma=1.08)
+params <- c(k=0.2, gamma=5)
 
-library('truncnorm')
-R0 <- rtruncnorm(1, a=0, b=1, mean = 0.15, sd = 0.15)
-E0 <-runif(1,-16, -9)
-I0 <-runif(1,-16, -9)
-#x <-runif(1, -5,2)
+#library('truncnorm')
+# R0 <- rtruncnorm(1, a=0, b=1, mean = 0.15, sd = 0.15)
+# E0 <-runif(1,-16, -9)
+# I0 <-runif(1,-16, -9)
+# #x <-runif(1, -5,2)
+# S <- N
+# R <- R0*S
+# S <- S - R
+# 
+# E <- exp(E0 + log(S))
+# S <- S - E
+# I <- exp(I0 + log(S))
+# S <- S - I
+
+R0 <-0.03
 S <- N
-R <- R0*S
+R <- S*R0
 S <- S - R
 
+E0 <- -15
 E <- exp(E0 + log(S))
 S <- S - E
+
+I0 <- -10
 I <- exp(I0 + log(S))
 S <- S - I
-
-
 initial_state<- c(t=1, S=S, E=E, I=I, R=R)
 #initial_state <- c(t=1,S=52196380, E=1, I=0, R=0)
 model1 <- ode(initial_state, times, COVID_OU, params)
 
 summary(model1)
 
-matplot(model1, type="l", lty=1, main="SEIR model", xlab="Time")
+matplot(model1, type="l", lty=1, main="COVID—OU Model",ylab="counts", xlab="Time")
 legend <- colnames(model1)[3:6]
 legend("right", legend=legend, col=3:6, lty = 1)
-Z1 <-model1[,4]/1.59
+Z1 <-model1[,4]/0.2
 
 tau1 <- 0.8#runif(1,0,1)
 Y1 <-vector(length = 259)
@@ -83,4 +102,7 @@ for (i in 1:259){
   #Y1[i]<- rlnorm(1,log(Z1[i,]/5),tau1)
   Y1[i]<- rlnorm(1,log(Z1[i]/5),tau1)
 }
-plot(Y1,type='l')
+plot(Y1,type='l',ylab="Obs Y",xlab="time",col="blue")
+write.csv(Y1,"covidouY2.csv")
+write.csv(model1,"simcovidou2.csv")
+

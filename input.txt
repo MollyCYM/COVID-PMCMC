@@ -1,0 +1,8 @@
+File input.nc (NC_FORMAT_NETCDF4_CLASSIC):
+
+     2 variables (excluding dimension variables):
+        double time[nr]   (Contiguous storage)  
+        double F[nr]   (Contiguous storage)  
+
+     1 dimensions:
+        nr  Size:1054 (no dimvar)
