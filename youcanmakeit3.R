@@ -15,16 +15,16 @@ y <- data.frame(value = v) %>%
   mutate(time = seq(1, by = 1, length.out = n())) %>%
   dplyr::select(time, V1)
 colnames(y) <- c("time", "value")
-L <- read.csv("F.csv", header=TRUE, stringsAsFactors=FALSE)
+L <- read.csv("Forcing.csv", header=FALSE, stringsAsFactors=FALSE)
 Forcing <- data.frame(value = L) %>%
 mutate(time = seq(1, by = 1, length.out = n())) %>%
-  dplyr::select(time, F)
+  dplyr::select(time,V1 )
 colnames(Forcing) <- c("time","value")
 
-Forcing2 <- data.frame(value = L) %>%
-  mutate(time = seq(1, by = 1, length.out = n())) %>%
-  dplyr::select(time, F)
-colnames(Forcing2) <- c("time","value")
+# Forcing2 <- data.frame(value = L) %>%
+#   mutate(time = seq(1, by = 1, length.out = n())) %>%
+#   dplyr::select(time, F)
+# colnames(Forcing2) <- c("time","value")
 #Forcing <- as.numeric(unlist(Forcing))
 ncores <- 8
 minParticles <- max(ncores, 16)
@@ -122,7 +122,7 @@ input_lst <- list(N=52196381,Forcing=Forcing)
 end_time <- max(y$time)
 obs_lst <- list(y = y %>% dplyr::filter(time <= end_time))
 
-bi <- sample(bi_model, end_time = end_time, input = input_lst, obs = obs_lst, nsamples = 1000, nparticles = minParticles, nthreads = ncores, proposal = 'prior',seed=1234) %>% 
+bi <- sample(bi_model, end_time = end_time, input = input_lst, obs = obs_lst, nsamples = 1000, nparticles = minParticles, nthreads = ncores, proposal = 'model',seed=1234) %>% 
   adapt_particles(min = minParticles, max = minParticles*200) %>%
   adapt_proposal(min = 0.05, max = 0.4) %>%
   sample(nsamples = 100, thin = 1) %>% # burn in 
