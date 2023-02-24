@@ -9,7 +9,6 @@ library(rbi)
 library(rbi.helpers)
 library(readr)
 
-set.seed(12345)
 # Load the data
 v <- read.csv("covidinter1.csv", header=FALSE, stringsAsFactors=FALSE) 
 y <- data.frame(value = v) %>%
@@ -41,7 +40,8 @@ model dureau {
   state x
 
   state Z
-
+  
+  input N
   input Forcing
   
   param k
@@ -71,7 +71,7 @@ model dureau {
   }
 
   sub initial {
-    S <- 52196381
+    S <- N
     R <- R0*S
     S <- S - R
 
@@ -88,9 +88,9 @@ model dureau {
     e ~ wiener()
     
     ode(alg = 'RK4(3)', h = 1.0, atoler = 1.0e-3, rtoler = 1.0e-8) {
-      dx/dt = theta*(a+b*Forcing-x)+sigma*e/h
-      dS/dt = -exp(x)*S*I/52196381
-      dE/dt = exp(x)*S*I/52196381 - E/k
+      dx/dt = theta*(a+b*Forcing-x)+sigma*e
+      dS/dt = -exp(x)*S*I/N
+      dE/dt = exp(x)*S*I/N - E/k
       dI/dt = E/k-I*(1/gamma+0.0087)
       dR/dt = I/gamma+0.0087*I
       dZ/dt = E/k
@@ -99,7 +99,7 @@ model dureau {
   }
 
   sub observation {
-    y ~ log_normal(log(max(Z/5.0, 0)), tau)
+    y ~ log_normal(log(max(Z/5, 0)), tau)
   }
 
   sub proposal_parameter {
@@ -118,15 +118,15 @@ model dureau {
 }"
 model <- bi_model(lines = stringi::stri_split_lines(model_str)[[1]])
 bi_model <- libbi(model)
-input_lst <- list(Forcing=Forcing)
+input_lst <- list(N=52196381,Forcing=Forcing)
 end_time <- max(y$time)
 obs_lst <- list(y = y %>% dplyr::filter(time <= end_time))
 
-bi <- sample(bi_model, end_time = end_time, input = input_lst, obs = obs_lst, nsamples = 1000, nparticles = minParticles, nthreads = ncores, proposal = 'model',seed=1234) %>% 
+bi <- sample(bi_model, end_time = end_time, input = input_lst, obs = obs_lst, nsamples = 1000, nparticles = minParticles, nthreads = ncores, proposal = 'prior',seed=1234) %>% 
   adapt_particles(min = minParticles, max = minParticles*200) %>%
   adapt_proposal(min = 0.05, max = 0.4) %>%
   sample(nsamples = 100, thin = 1) %>% # burn in 
-  sample(nsamples = 200, thin = 5)
+  sample(nsamples = 2000, thin = 5)
 
 bi_lst <- bi_read(bi %>% sample_obs)
 #dx/dt = theta*(a+b*Forcing-x)+sigma*e/h
@@ -244,3 +244,5 @@ write.csv(fitR,"../data/covid365_R1.csv")
 
 write.csv(bi_lst$k$value,"../data/covid365_alpha1.csv")
 write.csv(bi_lst$gamma$value,"../data/covid365_gamma1.csv")
+write.csv(bi_lst$sigma$value,"../data/covid365_sigma1.csv")
+write.csv(bi_lst$theta$value,"../data/covid365_theta1.csv")
