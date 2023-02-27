@@ -37,6 +37,7 @@ model dureau {
   state E
   state I
   state R
+  state mu
   state x
 
   state Z
@@ -80,6 +81,7 @@ model dureau {
     I <- exp(I0 + log(S))
     S <- S - I
     x<- x0
+    mu<- 0
     Z <- 0
   }
 
@@ -88,7 +90,8 @@ model dureau {
     e ~ wiener()
     
     ode(alg = 'RK4(3)', h = 1.0, atoler = 1.0e-3, rtoler = 1.0e-8) {
-      dx/dt = theta*(a+b*Forcing-x)+sigma*e
+      dmu/dt = a+b*Forcing
+      dx/dt = theta*(mu-x)+sigma*e
       dS/dt = -exp(x)*S*I/N
       dE/dt = exp(x)*S*I/N - E/k
       dI/dt = E/k-I*(1/gamma+0.0087)
