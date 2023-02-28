@@ -170,7 +170,7 @@ fitmu <-bi_lst$mu %>%
     q75 = quantile(value, 0.75),
     q975 = quantile(value, 0.975)
   ) 
-write.csv(fitS,"../data/covid365_mu1.csv")
+write.csv(fitmu,"../data/covid365_mu1.csv")
 
 Mmodel <- read.csv("simcovidinter1.csv", header=TRUE, stringsAsFactors=FALSE)
 S<-Mmodel[,4]
