@@ -61,14 +61,14 @@ model dureau {
     k ~ truncated_gaussian(7, 0.1, lower = 0) // k is the period here, not the rate, i.e. 1/k is the rate
     gamma ~ truncated_gaussian(5, 0.1, lower = 0) // gamma is the period, not the rate
     sigma ~ truncated_gaussian(sqrt(0.004), 0.0001, lower = 0)
-    theta ~ truncated_gaussian(0.05, 0.01, lower = 0)
+    theta ~ truncated_gaussian(0.05, 0.001, lower = 0)
     a ~ gaussian(-0.02, 0.01)
-    b ~ gaussian(-0.2, 0.1)
+    b ~ gaussian(-0.2, 0.01)
     x0 ~ uniform(0,2)
     I0 ~ uniform(-16, -9)
     E0 ~ uniform(-16, -9)
     R0 ~ truncated_gaussian(0.15, 0.15, lower = 0, upper = 1)
-    tau ~ uniform(0, 1)
+    tau ~ truncated_gaussian(0.8, 0.01, lower = 0)
   }
 
   sub initial {
@@ -109,14 +109,14 @@ model dureau {
     k ~ gaussian(k, 0.01)
     sigma ~ gaussian(sigma, 0.01)
     gamma ~ gaussian(gamma, 0.01)
-    theta ~ truncated_gaussian(theta, 0.01,lower=0)
+    theta ~ truncated_gaussian(theta, 0.001,lower=0)
     a ~ gaussian(a, 0.01)
     b ~ gaussian(b, 0.01)
     x0 ~ gaussian(x0, 0.05)
     E0 ~ gaussian(E0, 0.05)
     I0 ~ gaussian(I0, 0.05)
     R0 ~ gaussian(R0, 0.05)
-    tau ~ gaussian(tau, 0.05)
+    tau ~ gaussian(tau, 0.01)
   }
 }"
 model <- bi_model(lines = stringi::stri_split_lines(model_str)[[1]])
@@ -125,7 +125,7 @@ input_lst <- list(N=52196381,Forcing=Forcing)
 end_time <- max(y$time)
 obs_lst <- list(y = y %>% dplyr::filter(time <= end_time))
 
-bi <- sample(bi_model, end_time = end_time, input = input_lst, obs = obs_lst, nsamples = 1000, nparticles = minParticles, nthreads = ncores, proposal = 'model',seed=1234) %>% 
+bi <- sample(bi_model, end_time = end_time, input = input_lst, obs = obs_lst, nsamples = 1000, nparticles = minParticles, nthreads = ncores, proposal = 'model',seed=123) %>% 
   adapt_particles(min = minParticles, max = minParticles*200) %>%
   adapt_proposal(min = 0.05, max = 0.4) %>%
   sample(nsamples = 100, thin = 1) %>% # burn in 
