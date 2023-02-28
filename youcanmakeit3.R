@@ -81,7 +81,7 @@ model dureau {
     I <- exp(I0 + log(S))
     S <- S - I
     x<- x0
-    mu<- 0
+    mu<- 1
     Z <- 0
   }
 
@@ -148,12 +148,8 @@ fitY <- bi_lst$y %>%
   left_join(y %>% rename(Y = value))
 write.csv(fitY,"../data/covid365_y1.csv")
 
-btr <- read.csv("covidintex1.csv", header=TRUE, stringsAsFactors=FALSE)
-bt <- exp(btr[,2])
-B <- data.frame(value = bt) %>%
-  mutate(time = seq(1, by = 1, length.out = n())) %>%
-  dplyr::select(time, value)
-plot_df <- bi_lst$x %>% mutate(value = exp(value)) %>%
+
+plot_df <- bi_lst$x %>%
   group_by(time) %>%
   mutate(
     q025 = quantile(value, 0.025),
@@ -161,8 +157,7 @@ plot_df <- bi_lst$x %>% mutate(value = exp(value)) %>%
     q50 = quantile(value, 0.5),
     q75 = quantile(value, 0.75),
     q975 = quantile(value, 0.975)
-  ) %>% ungroup() %>%
-  left_join(B %>% rename(B = value))
+  ) 
 write.csv(plot_df,"../data/covid365_beta1.csv")
 
 # plot_df1 <- bi_lst$x %>% mutate(value = exp(value)) %>%
