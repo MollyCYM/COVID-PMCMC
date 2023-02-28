@@ -88,7 +88,7 @@ model dureau {
   sub transition(delta = h) {
     noise e
     e ~ wiener()
-    mu = a+b*Forcing
+    mu <- a+b*Forcing
     ode(alg = 'RK4(3)', h = 1.0, atoler = 1.0e-3, rtoler = 1.0e-8) {
     
       dx/dt = theta*(mu-x)+sigma*e
