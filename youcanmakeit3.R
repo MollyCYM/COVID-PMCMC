@@ -51,10 +51,6 @@ model dureau {
   param theta
   param a
   param b
-  param E0
-  param I0
-  param R0
-  param x0
   param tau
 
   sub parameter {
@@ -64,23 +60,19 @@ model dureau {
     theta ~ truncated_gaussian(0.05, 0.001, lower = 0)
     a ~ gaussian(-0.02, 0.01)
     b ~ gaussian(-0.2, 0.01)
-    x0 ~ uniform(0,2)
-    I0 ~ uniform(-16, -9)
-    E0 ~ uniform(-16, -9)
-    R0 ~ truncated_gaussian(0.15, 0.15, lower = 0, upper = 1)
     tau ~ uniform(0,1)
   }
 
   sub initial {
     S <- N
-    R <- R0*S
+    R <- 0.03*S
     S <- S - R
 
-    E <- exp(E0 + log(S))
+    E <- exp(-15 + log(S))
     S <- S - E
-    I <- exp(I0 + log(S))
+    I <- exp(-10 + log(S))
     S <- S - I
-    x<- x0
+    x<- 1
     mu<- 1
     Z <- 0
   }
@@ -112,10 +104,6 @@ model dureau {
     theta ~ truncated_gaussian(theta, 0.001,lower=0)
     a ~ gaussian(a, 0.01)
     b ~ gaussian(b, 0.01)
-    x0 ~ gaussian(x0, 0.05)
-    E0 ~ gaussian(E0, 0.05)
-    I0 ~ gaussian(I0, 0.05)
-    R0 ~ gaussian(R0, 0.05)
     tau ~ gaussian(tau, 0.01)
   }
 }"
