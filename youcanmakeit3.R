@@ -68,7 +68,7 @@ model dureau {
     I0 ~ uniform(-16, -9)
     E0 ~ uniform(-16, -9)
     R0 ~ truncated_gaussian(0.15, 0.15, lower = 0, upper = 1)
-    tau ~ truncated_gaussian(0.8, 0.01, lower = 0)
+    tau ~ uniform(0,1)
   }
 
   sub initial {
@@ -88,9 +88,9 @@ model dureau {
   sub transition(delta = h) {
     noise e
     e ~ wiener()
-    
+    mu = a+b*Forcing
     ode(alg = 'RK4(3)', h = 1.0, atoler = 1.0e-3, rtoler = 1.0e-8) {
-      dmu/dt = a+b*Forcing
+    
       dx/dt = theta*(mu-x)+sigma*e
       dS/dt = -exp(x)*S*I/N
       dE/dt = exp(x)*S*I/N - E/k
@@ -124,11 +124,12 @@ bi_model <- libbi(model)
 input_lst <- list(N=52196381,Forcing=Forcing)
 end_time <- max(y$time)
 obs_lst <- list(y = y %>% dplyr::filter(time <= end_time))
+init_list <- list(k =7, gamma =5, sigma=sqrt(0.004), theta =0.05, a=-0.02, b=-0.2, tau=0.8)
 
-bi <- sample(bi_model, end_time = end_time, input = input_lst, obs = obs_lst, nsamples = 1000, nparticles = minParticles, nthreads = ncores, proposal = 'model',seed=123) %>% 
+bi <- sample(bi_model, end_time = end_time, input = input_lst, init=init_list, obs = obs_lst, nsamples = 1000, nparticles = minParticles, nthreads = ncores, proposal = 'model',seed=12) %>% 
   adapt_particles(min = minParticles, max = minParticles*200) %>%
   adapt_proposal(min = 0.05, max = 0.4) %>%
-  sample(nsamples = 100, thin = 1) %>% # burn in 
+  sample(nsamples = 1000, thin = 1) %>% # burn in 
   sample(nsamples = 2000, thin = 5)
 
 bi_lst <- bi_read(bi %>% sample_obs)
@@ -160,17 +161,16 @@ plot_df <- bi_lst$x %>%
   ) 
 write.csv(plot_df,"../data/covid365_beta1.csv")
 
-# plot_df1 <- bi_lst$x %>% mutate(value = exp(value)) %>%
-#   group_by(np) %>% mutate(value = value - value[1]) %>%
-#   group_by(time) %>%
-#   mutate(
-#     q025 = quantile(value, 0.025),
-#     q25 = quantile(value, 0.25),
-#     q50 = quantile(value, 0.5),
-#     q75 = quantile(value, 0.75),
-#     q975 = quantile(value, 0.975)
-#   ) %>% ungroup()
-# write.csv(plot_df1,"covid259_beta02.csv")
+fitmu <-bi_lst$mu %>%
+  group_by(time) %>%
+  mutate(
+    q025 = quantile(value, 0.025),
+    q25 = quantile(value, 0.25),
+    q50 = quantile(value, 0.5),
+    q75 = quantile(value, 0.75),
+    q975 = quantile(value, 0.975)
+  ) 
+write.csv(fitS,"../data/covid365_mu1.csv")
 
 Mmodel <- read.csv("simcovidinter1.csv", header=TRUE, stringsAsFactors=FALSE)
 S<-Mmodel[,4]
