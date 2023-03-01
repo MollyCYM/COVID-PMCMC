@@ -79,7 +79,7 @@ model dureau {
     I <- exp(I0 + log(S))
     S <- S - I
     x<- x0
-    mu<- 1
+    mu<- -0.02
     Z <- 0
   }
 
@@ -122,7 +122,7 @@ end_time <- max(y$time)
 obs_lst <- list(y = y %>% dplyr::filter(time <= end_time))
 init_list <- list(k =7, gamma =5, sigma=sqrt(0.004), a=-0.02, b=-0.2, tau=0.8)
 
-bi <- sample(bi_model, end_time = end_time, input = input_lst, init=init_list, obs = obs_lst, nsamples = 1000, nparticles = minParticles, nthreads = ncores, proposal = 'model',seed=12345) %>% 
+bi <- sample(bi_model, end_time = end_time, input = input_lst, init=init_list, obs = obs_lst, nsamples = 1000, nparticles = minParticles, nthreads = ncores, proposal = 'model',seed=12) %>% 
   adapt_particles(min = minParticles, max = minParticles*200) %>%
   adapt_proposal(min = 0.05, max = 0.4) %>%
   sample(nsamples = 1000, thin = 1) %>% # burn in 
