@@ -10,7 +10,7 @@ library(rbi.helpers)
 library(readr)
 
 # Load the data
-v <- read.csv("covidinter2.csv", header=FALSE, stringsAsFactors=FALSE) 
+v <- read.csv("covidinter1.csv", header=FALSE, stringsAsFactors=FALSE) 
 y <- data.frame(value = v) %>%
   mutate(time = seq(1, by = 1, length.out = n())) %>%
   dplyr::select(time, V1)
@@ -33,7 +33,7 @@ model dureau {
   obs y
   
   const h = 1
-  const x0 = log(0.8)
+  const x0 = 1
   const theta = 0
   state S
   state E
@@ -132,7 +132,7 @@ bi_lst <- bi_read(bi %>% sample_obs)
 #dx/dt = theta*(a+b*Forcing-x)+sigma*e/h
 
 
-write.csv(bi_lst, "../data/covid365_2.csv")
+write.csv(bi_lst, "../data/covid365_3.csv")
 fitY <- bi_lst$y %>%
   group_by(time) %>%
   mutate(
@@ -143,7 +143,7 @@ fitY <- bi_lst$y %>%
     q975 = quantile(value, 0.975)
   ) %>% ungroup() %>%
   left_join(y %>% rename(Y = value))
-write.csv(fitY,"../data/covid365_y2.csv")
+write.csv(fitY,"../data/covid365_y3.csv")
 
 
 plot_df <- bi_lst$x %>%
@@ -155,7 +155,7 @@ plot_df <- bi_lst$x %>%
     q75 = quantile(value, 0.75),
     q975 = quantile(value, 0.975)
   ) 
-write.csv(plot_df,"../data/covid365_beta2.csv")
+write.csv(plot_df,"../data/covid365_beta3.csv")
 
 fitmu <-bi_lst$mu %>%
   group_by(time) %>%
@@ -166,9 +166,9 @@ fitmu <-bi_lst$mu %>%
     q75 = quantile(value, 0.75),
     q975 = quantile(value, 0.975)
   ) 
-write.csv(fitmu,"../data/covid365_mu2.csv")
+write.csv(fitmu,"../data/covid365_mu3.csv")
 
-Mmodel <- read.csv("simcovidinter2.csv", header=TRUE, stringsAsFactors=FALSE)
+Mmodel <- read.csv("simcovidinter1.csv", header=TRUE, stringsAsFactors=FALSE)
 S<-Mmodel[,4]
 E<-Mmodel[,5]
 I<-Mmodel[,6]
@@ -187,7 +187,7 @@ fitS <-bi_lst$S %>%
     q975 = quantile(value, 0.975)
   ) %>% ungroup() %>%
   left_join(S %>% rename(S = value))
-write.csv(fitS,"../data/covid365_S2.csv")
+write.csv(fitS,"../data/covid365_S3.csv")
 
 E <- data.frame(value = E) %>%
   mutate(time = seq(1, by = 1, length.out = n())) %>%
@@ -202,7 +202,7 @@ fitE <-bi_lst$E %>%
     q975 = quantile(value, 0.975)
   ) %>% ungroup() %>%
   left_join(E %>% rename(E = value))
-write.csv(fitE,"../data/covid365_E2.csv")
+write.csv(fitE,"../data/covid365_E3.csv")
 
 I <- data.frame(value = I) %>%
   mutate(time = seq(1, by = 1, length.out = n())) %>%
@@ -217,7 +217,7 @@ fitI <-bi_lst$I %>%
     q975 = quantile(value, 0.975)
   ) %>% ungroup() %>%
   left_join(I %>% rename(I = value))
-write.csv(fitI,"../data/covid365_I2.csv")
+write.csv(fitI,"../data/covid365_I3.csv")
 
 R <- data.frame(value = R) %>%
   mutate(time = seq(1, by = 1, length.out = n())) %>%
@@ -232,11 +232,11 @@ fitR <-bi_lst$R %>%
     q975 = quantile(value, 0.975)
   ) %>% ungroup() %>%
   left_join(R %>% rename(R = value))
-write.csv(fitR,"../data/covid365_R2.csv")
+write.csv(fitR,"../data/covid365_R3.csv")
 
 
 
-write.csv(bi_lst$k$value,"../data/covid365_alpha2.csv")
-write.csv(bi_lst$gamma$value,"../data/covid365_gamma2.csv")
-write.csv(bi_lst$sigma$value,"../data/covid365_sigma2.csv")
+write.csv(bi_lst$k$value,"../data/covid365_alpha3.csv")
+write.csv(bi_lst$gamma$value,"../data/covid365_gamma3.csv")
+write.csv(bi_lst$sigma$value,"../data/covid365_sigma3.csv")
 #write.csv(bi_lst$theta$value,"../data/covid365_theta1.csv")
