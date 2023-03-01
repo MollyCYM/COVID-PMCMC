@@ -29,7 +29,7 @@ ornstein_uhlenbeck <- function(n,theta,sigma,x0){
 }
 
 x<- ornstein_uhlenbeck(365,0.05,sqrt(0.004),1)
-plot(exp(x),type='l',xlab="time")
+plot(x,type='l',xlab="time")
 abline(v=121, col="red")
 lines(exp(mu+0.02),col="blue")
 write.csv(x,"covidintex1.csv")

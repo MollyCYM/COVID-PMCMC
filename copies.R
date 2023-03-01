@@ -80,20 +80,6 @@ model dureau {
     S <- S - E
     I <- exp(I0 + log(S))
     S <- S - I
-    
-    R0 <-0.03
-S <- N
-R <- S*R0
-S <- S - R
-
-E0 <- -15
-E <- exp(E0 + log(S))
-S <- S - E
-
-I0 <- -10
-I <- exp(I0 + log(S))
-S <- S - I
-    
     x<- x0
     mu<- 1
     Z <- 0
