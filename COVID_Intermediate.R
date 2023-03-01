@@ -15,7 +15,7 @@ for (t in 1:365) {
 }
 mu<-ts(mu)
 
-plot(mu,type='l')
+#plot(mu,type='l')
 #Simulate an O-U Process
 ornstein_uhlenbeck <- function(n,theta,sigma,x0){
   dt  <- 1
@@ -28,11 +28,22 @@ ornstein_uhlenbeck <- function(n,theta,sigma,x0){
   return(x);
 }
 
-x<- ornstein_uhlenbeck(365,0.05,sqrt(0.004),1)
+x<- ornstein_uhlenbeck(365,0.05,sqrt(0.004),log(0.8))
 plot(x,type='l',xlab="time")
 abline(v=121, col="red")
+lines(mu, col="blue")
+tt1 <-expression(mu==-0.02)
+text(30,0.1,tt1,col="green")
+tt2 <-expression(mu==-0.02-0.2)
+text(200,-0.1,tt2,col="green")
+plot(exp(x),type='l',xlab="time",ylab=TeX("$e^{x}=beta$"))
+abline(v=121, col="red")
 lines(exp(mu+0.02),col="blue")
-write.csv(x,"covidintex1.csv")
+tt1 <-expression(mu==1)
+text(30,1.1,tt1,col="green")
+tt2 <-expression(mu==0.81)
+text(200,0.9,tt2,col="green")
+write.csv(x,"covidintex2.csv")
 #Main ODE Model
 COVID_OU <- function(time, current_state, params){
   
@@ -94,8 +105,8 @@ for (i in 1:365){
   Y1[i]<- rlnorm(1,log(Z1[i]/5),tau1)
 }
 plot(Y1,type='l',ylab="Obs Y",xlab="time",col="blue")
-write.csv(Y1,"covidinterY1.csv")
-write.csv(model3,"simcovidinter1.csv")
+write.csv(Y1,"covidinterY2.csv")
+write.csv(model3,"simcovidinter2.csv")
 
 rm(list=ls())
 library(tidyverse)
