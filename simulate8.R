@@ -9,8 +9,6 @@ N=56000000     #England population size in 2023
 #Simulate a Brownian Motion Path
 e <- rnorm(n = length(times) - 1, sd = sqrt(0.01))
 e <- c(0, cumsum(e))
-sigma <- runif(1, min = 0, max = 1)
-beta<- exp(sigma*e)
 
 mu<-vector(length=365) 
 for (t in 1:365) {
