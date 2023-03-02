@@ -86,7 +86,7 @@ write.csv(model1,"simulatestates1.csv")
 #####################################Shorter days###################################
 rm(list=ls())
 require(deSolve)
-set.seed(0035) #0031 #0032 #0035
+set.seed(007) #0031 #0032 #0035
 times <- 1:60
 N=52196381
 sigma <- 0.4
@@ -98,7 +98,7 @@ e <- c(0, cumsum(e))
 
 beta<- exp(sigma*e)
 plot(beta,type='l')
-write.csv(beta,"simulatebeta_1.csv")
+write.csv(beta,"simulatebeta_2.csv")
 
 H1N1 <- function(time, current_state, params){
   
@@ -152,7 +152,7 @@ for (i in 1:60){
   Y1[i]<- rlnorm(1,log(Z1[i]/5),tau1)
 }
 plot(Y1,type='l',ylab="Y obs", xlab = "Time")
-write.csv(Y1,"simY11_1.csv")
-write.csv(model1,"simulatestates1_1.csv")
+write.csv(Y1,"simY11_2.csv")
+write.csv(model1,"simulatestates1_2.csv")
 
 
