@@ -8,7 +8,7 @@ library(latex2exp)
 library(rbi)
 library(rbi.helpers)
 # Load the data
-v <- read.csv("H1N1BM.csv", header=FALSE, stringsAsFactors=FALSE) 
+v <- read.csv("H1N1BM_daily1.csv", header=FALSE, stringsAsFactors=FALSE) 
 y <- data.frame(value = v) %>%
   mutate(time = seq(1, by = 1, length.out = n())) %>%
   dplyr::select(time, V1)
@@ -120,7 +120,7 @@ bi <- sample(bi_model, end_time = end_time, input = input_lst, obs = obs_lst, ns
 
 bi_lst <- bi_read(bi %>% sample_obs)
 
-write.csv(bi_lst,"../data/Exp2_model1.csv")
+write.csv(bi_lst,"../data/Exp2_model2.csv")
 fitY <- bi_lst$y %>%
   group_by(time) %>%
   mutate(
@@ -131,7 +131,7 @@ fitY <- bi_lst$y %>%
     q975 = quantile(value, 0.975)
   ) %>% ungroup() %>%
   left_join(y %>% rename(Y = value))
-write.csv(fitY,"../data/Exp2_y1.csv")
+write.csv(fitY,"../data/Exp2_y2.csv")
 
 plot_df <- bi_lst$x %>% mutate(value = exp(value)) %>%
   group_by(time) %>%
@@ -142,7 +142,7 @@ plot_df <- bi_lst$x %>% mutate(value = exp(value)) %>%
     q75 = quantile(value, 0.75),
     q975 = quantile(value, 0.975)
   ) %>% ungroup()
-write.csv(plot_df,"../data/Exp2_beta1.csv")
+write.csv(plot_df,"../data/Exp2_beta2.csv")
 
 plot_df1 <- bi_lst$x %>% mutate(value = exp(value)) %>%
   group_by(np) %>% mutate(value = value - value[1]) %>%
@@ -154,7 +154,7 @@ plot_df1 <- bi_lst$x %>% mutate(value = exp(value)) %>%
     q75 = quantile(value, 0.75),
     q975 = quantile(value, 0.975)
   ) %>% ungroup()
-write.csv(plot_df1,"../data/Exp2_beta01.csv")
+write.csv(plot_df1,"../data/Exp2_beta02.csv")
 
 fitmu <-bi_lst$mu %>%
   group_by(time) %>%
@@ -165,9 +165,9 @@ fitmu <-bi_lst$mu %>%
     q75 = quantile(value, 0.75),
     q975 = quantile(value, 0.975)
   ) 
-write.csv(fitmu,"../data/Exp2_mu1.csv")
+write.csv(fitmu,"../data/Exp2_mu2.csv")
 
-Mmodel <- read.csv("simulatestates1.csv", header=TRUE, stringsAsFactors=FALSE)
+Mmodel <- read.csv("simulatestates1_2.csv", header=TRUE, stringsAsFactors=FALSE)
 S<-Mmodel[,4]
 E<-Mmodel[,5]
 I<-Mmodel[,6]
@@ -186,7 +186,7 @@ fitS <-bi_lst$S %>%
     q975 = quantile(value, 0.975)
   ) %>% ungroup() %>%
   left_join(S %>% rename(S = value))
-write.csv(fitS,"../data/Exp2_S1.csv")
+write.csv(fitS,"../data/Exp2_S2.csv")
 
 E <- data.frame(value = E) %>%
   mutate(time = seq(1, by = 1, length.out = n())) %>%
@@ -201,7 +201,7 @@ fitE <-bi_lst$E %>%
     q975 = quantile(value, 0.975)
   ) %>% ungroup() %>%
   left_join(E %>% rename(E = value))
-write.csv(fitE,"../data/Exp2_E1.csv")
+write.csv(fitE,"../data/Exp2_E2.csv")
 
 I <- data.frame(value = I) %>%
   mutate(time = seq(1, by = 1, length.out = n())) %>%
@@ -216,7 +216,7 @@ fitI <-bi_lst$I %>%
     q975 = quantile(value, 0.975)
   ) %>% ungroup() %>%
   left_join(I %>% rename(I = value))
-write.csv(fitI,"../data/Exp2_I1.csv")
+write.csv(fitI,"../data/Exp2_I2.csv")
 
 R <- data.frame(value = R) %>%
   mutate(time = seq(1, by = 1, length.out = n())) %>%
@@ -231,8 +231,8 @@ fitR <-bi_lst$R %>%
     q975 = quantile(value, 0.975)
   ) %>% ungroup() %>%
   left_join(R %>% rename(R = value))
-write.csv(fitR,"../data/Exp2_R1.csv")
+write.csv(fitR,"../data/Exp2_R2.csv")
 
-write.csv(1/bi_lst$k$value,"../data/Exp2_alpha1.csv")
-write.csv(1/bi_lst$gamma$value,"../data/Exp2_gamma1.csv")
+write.csv(1/bi_lst$k$value,"../data/Exp2_alpha2.csv")
+write.csv(1/bi_lst$gamma$value,"../data/Exp2_gamma2.csv")
 
