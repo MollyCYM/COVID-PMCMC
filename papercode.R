@@ -113,7 +113,7 @@ input_lst <- list(N = 52196381)
 end_time <- max(y$time)
 obs_lst <- list(y = y %>% dplyr::filter(time <= end_time))
 
-bi <- sample(bi_model, end_time = end_time, input = input_lst, obs = obs_lst, nsamples = 1000, nparticles = minParticles, nthreads = ncores, proposal = 'prior',seed=1111) %>% 
+bi <- sample(bi_model, end_time = end_time, input = input_lst, obs = obs_lst, nsamples = 1000, nparticles = minParticles, nthreads = ncores, proposal = 'model',seed=1111) %>% 
   adapt_particles(min = minParticles, max = minParticles*200) %>%
   adapt_proposal(min = 0.05, max = 0.4) %>%
   sample(nsamples = 1000, thin = 1) %>% # burn in 
@@ -121,7 +121,7 @@ bi <- sample(bi_model, end_time = end_time, input = input_lst, obs = obs_lst, ns
 
 bi_lst <- bi_read(bi %>% sample_obs)
 
-write.csv(bi_lst,"../data/postermodel1.csv")
+write.csv(bi_lst,"../data/postermodel2.csv")
 fitY <- bi_lst$y %>%
   group_by(time) %>%
   mutate(
@@ -132,7 +132,7 @@ fitY <- bi_lst$y %>%
     q975 = quantile(value, 0.975)
   ) %>% ungroup() %>%
   left_join(y %>% rename(Y = value))
-write.csv(fitY,"../data/poster_y1.csv")
+write.csv(fitY,"../data/poster_y2.csv")
 
 plot_df <- bi_lst$x %>% mutate(value = exp(value)) %>%
   group_by(time) %>%
@@ -143,7 +143,7 @@ plot_df <- bi_lst$x %>% mutate(value = exp(value)) %>%
     q75 = quantile(value, 0.75),
     q975 = quantile(value, 0.975)
   ) %>% ungroup()
-write.csv(plot_df,"../data/poster_beta1.csv")
+write.csv(plot_df,"../data/poster_beta2.csv")
 
 plot_df1 <- bi_lst$x %>% mutate(value = exp(value)) %>%
   group_by(np) %>% mutate(value = value - value[1]) %>%
@@ -155,7 +155,7 @@ plot_df1 <- bi_lst$x %>% mutate(value = exp(value)) %>%
     q75 = quantile(value, 0.75),
     q975 = quantile(value, 0.975)
   ) %>% ungroup()
-write.csv(plot_df1,"../data/poster_beta01.csv")
+write.csv(plot_df1,"../data/poster_beta02.csv")
 
 fitmu <-bi_lst$mu %>%
   group_by(time) %>%
@@ -166,7 +166,7 @@ fitmu <-bi_lst$mu %>%
     q75 = quantile(value, 0.75),
     q975 = quantile(value, 0.975)
   ) 
-write.csv(fitmu,"../data/poster_mu1.csv")
+write.csv(fitmu,"../data/poster_mu2.csv")
 
 Mmodel <- read.csv("Covidou1.csv", header=TRUE, stringsAsFactors=FALSE)
 S<-Mmodel[,4]
@@ -187,7 +187,7 @@ fitS <-bi_lst$S %>%
     q975 = quantile(value, 0.975)
   ) %>% ungroup() %>%
   left_join(S %>% rename(S = value))
-write.csv(fitS,"../data/poster_S1.csv")
+write.csv(fitS,"../data/poster_S2.csv")
 
 E <- data.frame(value = E) %>%
   mutate(time = seq(1, by = 1, length.out = n())) %>%
@@ -202,7 +202,7 @@ fitE <-bi_lst$E %>%
     q975 = quantile(value, 0.975)
   ) %>% ungroup() %>%
   left_join(E %>% rename(E = value))
-write.csv(fitE,"../data/poster_E1.csv")
+write.csv(fitE,"../data/poster_E2.csv")
 
 I <- data.frame(value = I) %>%
   mutate(time = seq(1, by = 1, length.out = n())) %>%
@@ -217,7 +217,7 @@ fitI <-bi_lst$I %>%
     q975 = quantile(value, 0.975)
   ) %>% ungroup() %>%
   left_join(I %>% rename(I = value))
-write.csv(fitI,"../data/poster_I1.csv")
+write.csv(fitI,"../data/poster_I2.csv")
 
 R <- data.frame(value = R) %>%
   mutate(time = seq(1, by = 1, length.out = n())) %>%
@@ -232,11 +232,11 @@ fitR <-bi_lst$R %>%
     q975 = quantile(value, 0.975)
   ) %>% ungroup() %>%
   left_join(R %>% rename(R = value))
-write.csv(fitR,"../data/poster_R1.csv")
+write.csv(fitR,"../data/poster_R2.csv")
 
-write.csv(1/bi_lst$k$value,"../data/poster_alpha1.csv")
-write.csv(1/bi_lst$gamma$value,"../data/poster_gamma1.csv")
-write.csv(bi_lst$sigma$value,"../data/poster_sigma1.csv")
-write.csv(bi_lst$theta$value,"../data/poster_theta1.csv")
+write.csv(1/bi_lst$k$value,"../data/poster_alpha2.csv")
+write.csv(1/bi_lst$gamma$value,"../data/poster_gamma2.csv")
+write.csv(bi_lst$sigma$value,"../data/poster_sigma2.csv")
+write.csv(bi_lst$theta$value,"../data/poster_theta2.csv")
 
 
