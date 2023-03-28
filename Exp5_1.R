@@ -35,6 +35,7 @@ model dureau {
   state Z
 
   input N
+  input Forcing
   
   param k
   param gamma
