@@ -39,6 +39,8 @@ model dureau {
   param k
   param gamma
   param sigma // Noise driver
+  param a
+  param b
   param E0
   param I0
   param R0
@@ -54,6 +56,8 @@ model dureau {
     E0 ~ uniform(-16, -9)
     R0 ~ truncated_gaussian(0.15, 0.15, lower = 0, upper = 1)
     tau ~ uniform(0, 1)
+    a ~ gaussian(-0.02, 0.01)
+    b ~ gaussian(-0.2, 0.01)
   }
 
   sub initial {
