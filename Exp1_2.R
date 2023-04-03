@@ -72,7 +72,7 @@ model dureau {
   }
 
   sub observation {
-    y ~ binomial(max((E/k),0), 0.2)
+    y ~ log_normal(log(max((E/k)/5, 0)), tau)
   }
   
   sub proposal_parameter {
