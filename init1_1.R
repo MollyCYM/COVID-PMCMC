@@ -95,16 +95,16 @@ model dureau {
   }
 
   sub proposal_parameter {
-    k ~ truncated_gaussian(k, 0.1, lower = 0) 
-    gamma ~ truncated_gaussian(gamma, 0.1, lower = 0) 
-    sigma ~ truncated_gaussian(sigma, 0.01, lower = 0)
-    theta ~ truncated_gaussian(theta, 0.01, lower = 0)
+    k ~ truncated_gaussian(k, 0.0001, lower = 0) 
+    gamma ~ truncated_gaussian(gamma, 0.0001, lower = 0) 
+    sigma ~ truncated_gaussian(sigma, 0.0001, lower = 0)
+    theta ~ truncated_gaussian(theta, 0.0001, lower = 0)
     E0 ~ gaussian(E0, 0.05)
     I0 ~ gaussian(I0, 0.05)
     R0 ~ gaussian(R0, 0.05)
     tau ~ gaussian(tau, 0.05)
-    a ~ gaussian(a, 0.01)
-    b ~ gaussian(b, 0.01)
+    a ~ gaussian(a, 0.001)
+    b ~ gaussian(b, 0.001)
   }
 }"
 model <- bi_model(lines = stringi::stri_split_lines(model_str)[[1]])
