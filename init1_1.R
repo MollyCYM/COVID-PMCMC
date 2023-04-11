@@ -115,7 +115,7 @@ obs_lst <- list(y = y %>% dplyr::filter(time <= end_time))
 init_list <- list(sigma=sqrt(0.004), gamma=5, k=7, theta=0.05, tau=0.8)
 
 bi <- sample(bi_model, end_time = end_time, input = input_lst, init=init_list, obs = obs_lst, nsamples = 1000, nparticles = minParticles, nthreads = ncores, proposal = 'model',seed=0121212) %>% 
-  adapt_particles(min = minParticles, max = minParticles*300) %>%
+  adapt_particles(min = minParticles, max = minParticles*400) %>%
   adapt_proposal(min = 0.1, max = 0.4) %>%
   sample(nsamples = 1, thin = 1) %>% # burn in 
   sample(nsamples = 5000, thin = 5)
