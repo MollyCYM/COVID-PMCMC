@@ -114,7 +114,6 @@ input_lst <- list(N = 52196381)
 end_time <- max(y$time)
 obs_lst <- list(y = y %>% dplyr::filter(time <= end_time))
 init_list <- list(sigma=sqrt(0.008), gamma=8, k=8, theta=0.08, tau=0.9)
-
 bi <- sample(bi_model, end_time = end_time, input = input_lst, init=init_list, obs = obs_lst, nsamples = 1000, nparticles = minParticles, nthreads = ncores, proposal = 'model',seed=111123) %>% 
   adapt_particles(min = minParticles, max = minParticles*500) %>%
   adapt_proposal(min = 0.1, max = 0.4) %>%
