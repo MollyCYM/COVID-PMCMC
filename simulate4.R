@@ -12,7 +12,7 @@ e <- c(0, cumsum(e))
 
 beta<- exp(sigma*e)
 plot(beta,type='l')
-write.csv(beta,"simulatebeta.csv")
+#write.csv(beta,"simulatebeta.csv")
 
 
 # H1N1 <- function(time, current_state, params){
@@ -80,8 +80,8 @@ for (i in 1:365){
   Y1[i]<- rlnorm(1,log(Z1[i]/5),tau1)
 }
 plot(Y1,type='l',ylab="Y obs", xlab = "Time")
-write.csv(Y1,"simY11.csv")
-write.csv(model1,"simulatestates1.csv")
+# write.csv(Y1,"simY11.csv")
+# write.csv(model1,"simulatestates1.csv")
 
 #####################################Shorter days###################################
 rm(list=ls())
@@ -187,14 +187,14 @@ ornstein_uhlenbeck <- function(n,theta,sigma,x0){
 }
 
 x<- ornstein_uhlenbeck(365,0.05,sqrt(0.004),log(0.8))
-plot(x,type='l',xlab="time")
+plot(x,type='l',xlab="time",main = "Simulate x-ou process")
 abline(v=121, col="red")
 lines(mu, col="blue")
 tt1 <-expression(mu==-0.02)
 text(30,0.1,tt1,col="green")
 tt2 <-expression(mu==-0.02-0.2)
 text(200,-0.1,tt2,col="green")
-plot(exp(x),type='l',xlab="time",ylab=TeX("$e^{x}=beta$"))
+plot(exp(x),type='l',xlab="time",ylab=TeX("$e^{x}=beta$"),main = "Simulate beta process ")
 abline(v=121, col="red")
 lines(exp(mu+0.02),col="blue")
 tt1 <-expression(mu==1)

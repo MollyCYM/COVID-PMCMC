@@ -8,7 +8,7 @@ library(latex2exp)
 library(rbi)
 library(rbi.helpers)
 # Load the data
-v <- read.csv("60w.csv", header=FALSE, stringsAsFactors=FALSE) %>%
+v <- read.csv("andre_estimates_21_02.txt", sep  = "\t") %>%
   rowSums()
 y <- data.frame(value = v) %>%
   mutate(time = seq(7, by = 7, length.out = n())) %>%
@@ -62,7 +62,6 @@ model dureau {
   }
 
   sub transition(delta = 1) {
-    Z <- ((t_now) % 7 == 0 ? 0 : Z)
     noise e
     e ~ wiener()
     ode(alg = 'RK4(3)', h = 1.0, atoler = 1.0e-3, rtoler = 1.0e-8) {
@@ -76,7 +75,8 @@ model dureau {
   }
 
   sub observation {
-    y ~ log_normal(log(max(Z/10.0, 0)), tau)
+  if (t_now % 7 == 0){
+    y ~ log_normal(log(max(Z/10.0, 0)), tau)}
   }
 
   sub proposal_parameter {
@@ -92,19 +92,19 @@ model dureau {
 }"
 model <- bi_model(lines = stringi::stri_split_lines(model_str)[[1]])
 bi_model <- libbi(model)
-input_lst <- list(N = 55977178)
+input_lst <- list(N = 52196381)
 end_time <- max(y$time)
 obs_lst <- list(y = y %>% dplyr::filter(time <= end_time))
 
 bi <- sample(bi_model, end_time = end_time, input = input_lst, obs = obs_lst, nsamples = 1000, nparticles = minParticles, nthreads = ncores, proposal = 'prior') %>% 
   adapt_particles(min = minParticles, max = minParticles*200) %>%
   adapt_proposal(min = 0.05, max = 0.4) %>%
-  sample(nsamples = 5000, thin = 5) %>% # burn in 
-  sample(nsamples = 5000, thin = 5)
+  sample(nsamples = 100, thin = 5) %>% # burn in 
+  sample(nsamples = 1000, thin = 5)
 
 bi_lst <- bi_read(bi %>% sample_obs)
 
-write.csv(bi_lst,"37weeksresults.csv")
+write.csv(bi_lst,"../data/37weeksresults.csv")
 fitY <- bi_lst$y %>%
   group_by(time) %>%
   mutate(
@@ -115,7 +115,7 @@ fitY <- bi_lst$y %>%
     q975 = quantile(value, 0.975)
   ) %>% ungroup() %>%
   left_join(y %>% rename(Y = value))
-write.csv(fitY,"60wky.csv")
+write.csv(fitY,"../data/37wky.csv")
 
 plot_df <- bi_lst$x %>% mutate(value = exp(value)) %>%
   group_by(time) %>%
@@ -126,7 +126,7 @@ plot_df <- bi_lst$x %>% mutate(value = exp(value)) %>%
     q75 = quantile(value, 0.75),
     q975 = quantile(value, 0.975)
   ) %>% ungroup()
-write.csv(plot_df,"60wkbeta.csv")
+write.csv(plot_df,"../data/37wkbeta.csv")
 
 plot_df1 <- bi_lst$x %>% mutate(value = exp(value)) %>%
   group_by(np) %>% mutate(value = value - value[1]) %>%
@@ -138,10 +138,8 @@ plot_df1 <- bi_lst$x %>% mutate(value = exp(value)) %>%
     q75 = quantile(value, 0.75),
     q975 = quantile(value, 0.975)
   ) %>% ungroup()
-write.csv(plot_df1,"60wkbeta1.csv")
+write.csv(plot_df1,"../data/37wkbeta1.csv")
 
-write.csv(bi_lst$k$value,"60wkpalpha.csv")
-write.csv(1/bi_lst$k$value,"60wkalpha.csv")
-write.csv(bi_lst$gamma$value,"60wkpgamma.csv")
-write.csv(1/bi_lst$gamma$value,"60wkgamma.csv")
+write.csv(1/bi_lst$k$value,"../data/37wkwalpha.csv")
+write.csv(1/bi_lst$gamma$value,"../data/37wkgamma.csv")
 

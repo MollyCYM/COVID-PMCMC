@@ -1,6 +1,11 @@
 rm(list=ls())
 require(deSolve)
-set.seed(1218) #125 1217 1231 1218 1237 1240 1247
+set.seed(125)   #125 1217 1231 1218 1237 1240 1247 theta=0.03 sigma=0.1
+                #12501 theta=0.03 sigma=0.01
+                #12502 theta=0.5 sigma=0.1
+                #12503 theta=0.5 sigma=0.01
+                #12504 theta=0.03
+                #121 theta=0.1 sigma=0.02
 times <- 1:259
 N=52196381
 #Simulate a Brownian Motion Path
@@ -41,7 +46,13 @@ tt2 <-expression(mu==0.85)
 text(100,1.05,tt2,col="green")
 tt3 <-expression(mu==1.2)
 text(230,1.4,tt3,col="green")
-#write.csv(beta,"covidoubeta2.csv")
+# tt1 <-expression(mu==4)
+# text(20,4.2,tt1,col="green")
+# tt2 <-expression(mu==1.5)
+# text(100,1.7,tt2,col="green")
+# tt3 <-expression(mu==2.2)
+# text(230,2.4,tt3,col="green")
+write.csv(beta,"covidoubeta3.csv")
 #Main ODE Model
 COVID_OU <- function(time, current_state, params){
   
@@ -103,6 +114,6 @@ for (i in 1:259){
   Y1[i]<- rlnorm(1,log(Z1[i]/5),tau1)
 }
 plot(Y1,type='l',ylab="Obs Y",xlab="time",col="blue")
-write.csv(Y1,"covidouY2.csv")
-write.csv(model1,"simcovidou2.csv")
+write.csv(Y1,"covidouY3.csv")
+write.csv(model1,"simcovidou3.csv")
 

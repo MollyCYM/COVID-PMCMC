@@ -8,12 +8,15 @@ fitY$q025
 #  write.csv(x,"x.csv")
 write.csv(bi_lst,"5weeksresults.csv")
 # 提取 出  1 60 
-
+bimodel <- read.csv("covid2592.csv", header=TRUE, stringsAsFactors=FALSE)
+likelihood<- bimodel$loglikelihood.value
+likelihood1<- mymean(likelihood)
+likelihood2<-likelihood[4001:6000]
 cul <- function(x) {
    res = list()
    # n = length(x) / 60
-   for (i in  1:366) {
-     res[[i]] = as.numeric(x[seq(i,73200,366)])
+   for (i in  1:259) {
+     res[[i]] = as.numeric(x[seq(i,74000,259)])
    } 
    return(res)
   

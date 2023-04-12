@@ -8,7 +8,7 @@ library(latex2exp)
 library(rbi)
 library(rbi.helpers)
 # Load the data
-v <- read.csv("H1N1BM_daily1.csv", header=FALSE, stringsAsFactors=FALSE) 
+v <- read.csv("H1N1BM.csv", header=FALSE, stringsAsFactors=FALSE) 
 y <- data.frame(value = v) %>%
   mutate(time = seq(1, by = 1, length.out = n())) %>%
   dplyr::select(time, V1)

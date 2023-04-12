@@ -37,10 +37,21 @@ sub observation {
 }
 }
 '
+flu_model <- bi_model(lines = stri_split_lines(model_str)[[1]]) %>%
+  fix(mu_R1 = 1/(sum(bsflu$B)/512))
+
 obs <- bsflu %>%
   select(time=date, value=B) %>%
   list(Incidence=.) %>%
   time_to_numeric(origin=as.Date("1978-01-21"), unit="day")
 
 bi <- libbi(model=flu_model, obs=obs, end_time=nrow(bsflu))
+
 rewrite(bi)
+flu_model
+
+params <- c(Beta=2,mu_I=1,rho=0.9,mu_R1=1/3,mu_R2=1/2)
+sim <- rbi::simulate(bi, init=as.list(params), nsamples=10)
+
+
+

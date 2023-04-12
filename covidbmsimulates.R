@@ -52,7 +52,7 @@ model4 <- ode(initial_state, times, Covid_OU, params)
 
 summary(model4)
 
-matplot(model4, type="l", lty=1, main="COVID—OU Model",ylab="counts", xlab="Time")
+matplot(model4, type="l", lty=1, main="COVID—BM Model",ylab="counts", xlab="Time")
 legend <- colnames(model4)[3:6]
 legend("right", legend=legend, col=3:6, lty = 1)
 Z1 <-model4[,4]/7

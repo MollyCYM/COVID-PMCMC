@@ -1,6 +1,6 @@
 
 
-fitY <- read.csv("60wy2.csv", header=TRUE, stringsAsFactors=FALSE)
+fitY <- read.csv("covid365_y1.csv", header=TRUE, stringsAsFactors=FALSE)
 g1 <- ggplot(data = fitY) +
   geom_ribbon(aes(x = time, ymin = q25, ymax = q75), alpha = 0.3) +
   geom_ribbon(aes(x = time, ymin = q025, ymax = q975), alpha = 0.3) +
@@ -8,30 +8,34 @@ g1 <- ggplot(data = fitY) +
   geom_point(aes(x = time, y = Y), colour = "Red") +
   ylab("Daily new confirmed cases") +
   xlab("Time-Day")
-fitS <- read.csv("longdays_S1.csv", header=TRUE, stringsAsFactors=FALSE)
+fitS <- read.csv("covid365_S1.csv", header=TRUE, stringsAsFactors=FALSE)
 g2 <- ggplot(data = fitS) +
   geom_ribbon(aes(x = time, ymin = q25, ymax = q75), alpha = 0.3) +
   geom_ribbon(aes(x = time, ymin = q025, ymax = q975), alpha = 0.3) +
   geom_line(aes(x = time, y = q50)) +
-  geom_point(aes(x = time, y = S), colour = "Red") 
-fitE <- read.csv("ME.csv", header=TRUE, stringsAsFactors=FALSE)
+  geom_point(aes(x = time, y = S), colour = "Red")  +
+  ylab("S")
+fitE <- read.csv("covid259_E2.csv", header=TRUE, stringsAsFactors=FALSE)
 g3 <- ggplot(data = fitE) +
   geom_ribbon(aes(x = time, ymin = q25, ymax = q75), alpha = 0.3) +
   geom_ribbon(aes(x = time, ymin = q025, ymax = q975), alpha = 0.3) +
   geom_line(aes(x = time, y = q50)) +
-  geom_point(aes(x = time, y = E), colour = "Red") 
-fitI <- read.csv("MI.csv", header=TRUE, stringsAsFactors=FALSE)
+  geom_point(aes(x = time, y = E), colour = "Red") +
+  ylab("E")
+fitI <- read.csv("covid259_I2.csv", header=TRUE, stringsAsFactors=FALSE)
 g4 <- ggplot(data = fitI) +
   geom_ribbon(aes(x = time, ymin = q25, ymax = q75), alpha = 0.3) +
   geom_ribbon(aes(x = time, ymin = q025, ymax = q975), alpha = 0.3) +
   geom_line(aes(x = time, y = q50)) +
-  geom_point(aes(x = time, y = I), colour = "Red") 
-fitR <- read.csv("MR.csv", header=TRUE, stringsAsFactors=FALSE)
+  geom_point(aes(x = time, y = I), colour = "Red")  +
+  ylab("I")
+fitR <- read.csv("covid259_R2.csv", header=TRUE, stringsAsFactors=FALSE)
 g5 <- ggplot(data = fitR) +
   geom_ribbon(aes(x = time, ymin = q25, ymax = q75), alpha = 0.3) +
   geom_ribbon(aes(x = time, ymin = q025, ymax = q975), alpha = 0.3) +
   geom_line(aes(x = time, y = q50)) +
-  geom_point(aes(x = time, y = R), colour = "Red") 
+  geom_point(aes(x = time, y = R), colour = "Red")  +
+  ylab("R")
 fitM <- read.csv("MM.csv", header=TRUE, stringsAsFactors=FALSE)
 g6 <- ggplot(data = fitM) +
   geom_ribbon(aes(x = time, ymin = q25, ymax = q75), alpha = 0.3) +
@@ -42,12 +46,13 @@ g6 <- ggplot(data = fitM) +
 
 
 
- plot_df <- read.csv("60wbeta2.csv", header=TRUE, stringsAsFactors=FALSE)
+ plot_df <- read.csv("covid259_beta2.csv", header=TRUE, stringsAsFactors=FALSE)
 
- g2 <- ggplot(data = plot_df) +
+ g6 <- ggplot(data = plot_df) +
    geom_ribbon(aes(x = time, ymin = q25, ymax = q75), alpha = 0.3) +
   geom_ribbon(aes(x = time, ymin = q025, ymax = q975), alpha = 0.3) +
   geom_line(aes(x = time, y = q50)) +
+  geom_point(aes(x = time, y = B), colour = "Red")  +
   ylab(TeX("Transmissibility ($\\beta(t)$)")) +
   xlab("Time-Day")
 
@@ -60,6 +65,15 @@ g3 <- ggplot(data = plot_df1) +
   ylab(TeX("Relative trans. ($\\beta(t)-\\beta(0)$)")) +
   xlab("Time-Day")
 
+alpha<-read.csv("covid259_alpha2.csv", header=TRUE, stringsAsFactors=FALSE)
+gamma<-read.csv("covid259_gamma2.csv", header=TRUE, stringsAsFactors=FALSE)
+par(mfrow=c(2,1))
+plot(alpha,type='l',main=TeX("Trace plot of ($\\alpha$)"),xlab="PMCMC iterations after first 1000 burn-in and following 10000 thinning by 5",ylab="sigma")
+abline(h=0.3, col="red")
+abline(h=mean(alpha[,2]),col="blue")
+plot(gamma,type='l',main=TeX("Trace plot of ($\\gamma$)"),xlab="PMCMC iterations after first 1000 burn-in and following 10000 thinning by 5",ylab="gamma")
+abline(h=7, col="red")
+abline(h=mean(gamma[,2]),col="blue")
 
 
 ggarrange(g1, g2, g3, ncol = 1, nrow = 3, align = "v")
