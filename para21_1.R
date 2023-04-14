@@ -31,25 +31,30 @@ model dureau {
   state I
   state R
   state x
-  state mu
 
   state Z
 
   input N
-  input Forcing
   
   param k
+  param gamma
+  param Forcing
+  param mu
   
   sub parameter {
-  k ~ truncated_gaussian(5, 0.01, lower = 0) 
+    k ~ truncated_gaussian(5, 0.01, lower = 0) 
+    gamma ~ truncated_gaussian(5, 0.01, lower = 0) 
   }
 
   sub initial {
-    S <- 39464523.5322776
-    E <- 15.01817
-    I <- 457.2302035
-    R <- 12731385.2193479
-    mu <- 0
+    S <- N
+    R <- 0.2439*S
+    S <- S - R
+
+    E <- exp(-14.7816 + log(S))
+    S <- S - E
+    I <- exp(-11.3657 + log(S))
+    S <- S - I
     x <- log(0.8)
     Z <- 0
   }
@@ -62,9 +67,9 @@ model dureau {
     ode(alg = 'RK4(3)', h = 1.0, atoler = 1.0e-3, rtoler = 1.0e-8) {
       dx/dt = 0.05*(mu-x)+sqrt(0.004)*e
       dS/dt = -exp(x)*S*(0.1*I+E)/N
-      dE/dt = exp(x)*S*(0.1*I+E)/N - E*(1/k+1/5)
-      dI/dt = E/k-I*(1/5+0.0087)
-      dR/dt = (I+E)/5+0.0087*I
+      dE/dt = exp(x)*S*(0.1*I+E)/N - E*(1/k+1/gamma)
+      dI/dt = E/k-I*(1/gamma+0.0087)
+      dR/dt = (I+E)/gamma+0.0087*I
       dZ/dt = E/k
     }
   }
@@ -75,15 +80,16 @@ model dureau {
 
   sub proposal_parameter {
     k ~ truncated_gaussian(k, 0.0001, lower = 0) 
+    gamma ~ truncated_gaussian(gamma, 0.0001, lower = 0) 
+
   }
 }"
 model <- bi_model(lines = stringi::stri_split_lines(model_str)[[1]])
 bi_model <- libbi(model)
-rewrite(bi_model)
 input_lst <- list(N = 52196381)
 end_time <- max(y$time)
 obs_lst <- list(y = y %>% dplyr::filter(time <= end_time))
-init_list <- list(k=3)
+init_list <- list(k=3, gamma=3)
 
 bi <- sample(bi_model, end_time = end_time, input = input_lst, init=init_list, obs = obs_lst, nsamples = 1000, nparticles = minParticles, nthreads = ncores, proposal = 'model',seed=111123) %>% 
   adapt_particles(min = minParticles, max = minParticles*500) %>%
@@ -93,7 +99,7 @@ bi <- sample(bi_model, end_time = end_time, input = input_lst, init=init_list, o
 
 bi_lst <- bi_read(bi %>% sample_obs)
 
-write.csv(bi_lst,"../data/para21_model1.csv")
+write.csv(bi_lst,"../data/para21_model2.csv")
 fitY <- bi_lst$y %>%
   group_by(time) %>%
   mutate(
@@ -104,7 +110,7 @@ fitY <- bi_lst$y %>%
     q975 = quantile(value, 0.975)
   ) %>% ungroup() %>%
   left_join(y %>% rename(Y = value))
-write.csv(fitY,"../data/para21_y1.csv")
+write.csv(fitY,"../data/para21_y2.csv")
 
 plot_df <- bi_lst$x %>% mutate(value = exp(value)) %>%
   group_by(time) %>%
@@ -115,7 +121,7 @@ plot_df <- bi_lst$x %>% mutate(value = exp(value)) %>%
     q75 = quantile(value, 0.75),
     q975 = quantile(value, 0.975)
   ) %>% ungroup()
-write.csv(plot_df,"../data/para21_beta1.csv")
+write.csv(plot_df,"../data/para21_beta2.csv")
 
 Mmodel <- read.csv("Covidou1.csv", header=TRUE, stringsAsFactors=FALSE)
 S<-Mmodel[,4]
@@ -136,7 +142,7 @@ fitS <-bi_lst$S %>%
     q975 = quantile(value, 0.975)
   ) %>% ungroup() %>%
   left_join(S %>% rename(S = value))
-write.csv(fitS,"../data/para21_S1.csv")
+write.csv(fitS,"../data/para21_S2.csv")
 
 E <- data.frame(value = E) %>%
   mutate(time = seq(1, by = 1, length.out = n())) %>%
@@ -151,7 +157,7 @@ fitE <-bi_lst$E %>%
     q975 = quantile(value, 0.975)
   ) %>% ungroup() %>%
   left_join(E %>% rename(E = value))
-write.csv(fitE,"../data/para21_E1.csv")
+write.csv(fitE,"../data/para21_E2.csv")
 
 I <- data.frame(value = I) %>%
   mutate(time = seq(1, by = 1, length.out = n())) %>%
@@ -166,7 +172,7 @@ fitI <-bi_lst$I %>%
     q975 = quantile(value, 0.975)
   ) %>% ungroup() %>%
   left_join(I %>% rename(I = value))
-write.csv(fitI,"../data/para21_I1.csv")
+write.csv(fitI,"../data/para21_I2.csv")
 
 R <- data.frame(value = R) %>%
   mutate(time = seq(1, by = 1, length.out = n())) %>%
@@ -181,8 +187,9 @@ fitR <-bi_lst$R %>%
     q975 = quantile(value, 0.975)
   ) %>% ungroup() %>%
   left_join(R %>% rename(R = value))
-write.csv(fitR,"../data/para21_R1.csv")
+write.csv(fitR,"../data/para21_R2.csv")
 
-write.csv(1/bi_lst$k$value,"../data/para21_alpha1.csv")
+write.csv(1/bi_lst$k$value,"../data/para21_alpha2.csv")
+write.csv(1/bi_lst$gamma$value,"../data/para21_gamma2.csv")
 
 
