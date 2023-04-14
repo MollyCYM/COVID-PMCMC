@@ -31,6 +31,7 @@ model dureau {
   state I
   state R
   state x
+  state mu
 
   state Z
 
@@ -38,7 +39,6 @@ model dureau {
   
   param k
   param Forcing
-  param mu
   
   sub parameter {
     k ~ truncated_gaussian(5, 0.01, lower = 0) 
@@ -49,6 +49,7 @@ model dureau {
     E <- 15.01817
     I <- 457.2302035
     R <- 12731385.2193479
+    mu <- 0
     x <- log(0.8)
     Z <- 0
   }
@@ -78,6 +79,7 @@ model dureau {
 }"
 model <- bi_model(lines = stringi::stri_split_lines(model_str)[[1]])
 bi_model <- libbi(model)
+rewrite(bi_model)
 input_lst <- list(N = 52196381)
 end_time <- max(y$time)
 obs_lst <- list(y = y %>% dplyr::filter(time <= end_time))
