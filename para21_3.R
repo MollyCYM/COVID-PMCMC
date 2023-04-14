@@ -14,10 +14,10 @@ v <- read.csv("covidposter_wk.csv", header=FALSE, stringsAsFactors=FALSE) %>%
 y <- data.frame(value = v) %>%
   mutate(time = seq(7, by = 7, length.out = n())) %>%
   dplyr::select(time, value)
-L <- read.csv("poster1_mu1.csv", header=FALSE, stringsAsFactors=FALSE)
+L <- read.csv("poster1_mu1.csv", header=TRUE, stringsAsFactors=FALSE)
 mu <- data.frame(value = L) %>%
   mutate(time = seq(1, by = 1, length.out = n())) %>%
-  dplyr::select(time,V1 )
+  dplyr::select(time,value.x )
 colnames(mu) <- c("time","value")
 
 ncores <- 8
