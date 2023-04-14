@@ -37,11 +37,13 @@ model dureau {
   input N
   
   param k
+  param I0
   param Forcing
   param mu
   
   sub parameter {
     k ~ truncated_gaussian(5, 0.01, lower = 0) 
+    I0 ~ truncated_gaussian(-11.3657, 0.001, lower = -11.38) 
   }
 
   sub initial {
@@ -51,7 +53,7 @@ model dureau {
 
     E <- exp(-14.7816 + log(S))
     S <- S - E
-    I <- exp(-11.3657 + log(S))
+    I <- exp(I0 + log(S))
     S <- S - I
     x <- log(0.8)
     Z <- 0
@@ -78,7 +80,7 @@ model dureau {
 
   sub proposal_parameter {
     k ~ truncated_gaussian(k, 0.0001, lower = 0) 
-
+    I0 ~ gaussian(I0, 0.005)
   }
 }"
 model <- bi_model(lines = stringi::stri_split_lines(model_str)[[1]])
