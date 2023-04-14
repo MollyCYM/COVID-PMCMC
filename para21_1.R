@@ -38,7 +38,6 @@ model dureau {
   input N
   
   param k
-  param Forcing
   
   sub parameter {
     k ~ truncated_gaussian(5, 0.01, lower = 0) 
