@@ -1,5 +1,6 @@
 rm(list=ls())
 require(deSolve)
+library(latex2exp)
 set.seed(012)   #random seed 01 03 012
 times <- 1:365
 N=52196381
@@ -14,6 +15,7 @@ for (t in 1:365) {
   else {mu[t]=-0.2-0.02 }                 #Lock-down policy
 }
 mu<-ts(mu)
+write.csv(mu,"poster1_mu1.csv")
 
 #plot(mu,type='l')
 #Simulate an O-U Process
@@ -36,7 +38,7 @@ tt1 <-expression(mu==-0.02)
 text(30,-0.1,tt1,col="green")
 tt2 <-expression(mu==-0.02-0.2)
 text(210,-0.3,tt2,col="green")
-plot(exp(x),type='l',xlab="time",ylab=TeX("$e^{x}=beta$"),ylim=c(0.2,1.2))
+plot(exp(x),type='l',xlab="time",ylab=TeX("$\\e^{x}=beta$"),ylim=c(0.2,1.2))
 abline(v=121, col="red")
 lines(exp(mu+0.02),col="blue")
 axis(1, at=121,labels=121, col.axis="red", las=2)
@@ -46,7 +48,7 @@ tt2 <-expression(mu[beta]==0.81)
 text(220,0.9,tt2,col="green")
 tt3 <-expression('lockdown policy start')
 text(120,0.4,tt3,col="red")
-write.csv(x,"poster1_x1.csv")
+# write.csv(x,"poster1_x1.csv")
 #Main ODE Model
 Covid_OU <- function(time, current_state, params){
   
@@ -108,5 +110,5 @@ for (i in 1:365){
   Y1[i]<- rlnorm(1,log(Z1[i]/5),tau1)
 }
 plot(Y1,type='l',ylab="Obs Y",xlab="time",col="blue")
-write.csv(Y1,"Covidou_Y1.csv")
-write.csv(model4,"Covidou1.csv")
+# write.csv(Y1,"Covidou_Y1.csv")
+# write.csv(model4,"Covidou1.csv")
