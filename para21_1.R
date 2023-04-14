@@ -36,11 +36,12 @@ model dureau {
   state Z
 
   input N
+  input Forcing
   
   param k
   
   sub parameter {
-    k ~ truncated_gaussian(5, 0.01, lower = 0) 
+  k ~ truncated_gaussian(5, 0.01, lower = 0) 
   }
 
   sub initial {
