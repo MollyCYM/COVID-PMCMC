@@ -123,16 +123,16 @@ fitY <- bi_lst$y %>%
   left_join(y %>% rename(Y = value))
 write.csv(fitY,"../data/para21_y4.csv")
 
-plot_df <- bi_lst$x %>% mutate(value = exp(value)) %>%
-  group_by(time) %>%
-  mutate(
-    q025 = quantile(value, 0.025),
-    q25 = quantile(value, 0.25),
-    q50 = quantile(value, 0.5),
-    q75 = quantile(value, 0.75),
-    q975 = quantile(value, 0.975)
-  ) %>% ungroup()
-write.csv(plot_df,"../data/para21_beta4.csv")
+# plot_df <- bi_lst$x %>% mutate(value = exp(value)) %>%
+#   group_by(time) %>%
+#   mutate(
+#     q025 = quantile(value, 0.025),
+#     q25 = quantile(value, 0.25),
+#     q50 = quantile(value, 0.5),
+#     q75 = quantile(value, 0.75),
+#     q975 = quantile(value, 0.975)
+#   ) %>% ungroup()
+# write.csv(plot_df,"../data/para21_beta4.csv")
 
 Mmodel <- read.csv("Covidou1.csv", header=TRUE, stringsAsFactors=FALSE)
 S<-Mmodel[,4]
