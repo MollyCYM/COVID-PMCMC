@@ -14,22 +14,28 @@ v <- read.csv("covidposter_wk.csv", header=FALSE, stringsAsFactors=FALSE) %>%
 y <- data.frame(value = v) %>%
   mutate(time = seq(7, by = 7, length.out = n())) %>%
   dplyr::select(time, value)
-L <- read.csv("poster1_mu1.csv", header=TRUE, stringsAsFactors=FALSE)
-mu <- data.frame(value = L) %>%
+xread <- read.csv("para21_4x.csv", header=FALSE, stringsAsFactors=FALSE)
+x <- data.frame(value = xread) %>%
   mutate(time = seq(1, by = 1, length.out = n())) %>%
-  dplyr::select(time,value.x )
-colnames(mu) <- c("time","value")
+  dplyr::select(time,V1 )
+colnames(x) <- c("time","value")
 
-ornstein_uhlenbeck <- function(n,theta,sigma,x0){
-  dt  <- 1
-  x<-vector(length=366)
-  for (i in 1:(n+1)) {
-    if (i==1){x[i]=x0}
-    else{
-      x[i]  <-  x[i-1] + theta*(mu[i-1]-x[i-1])*dt + sigma*e[i-1]}
-  }
-  return(x);
-}
+# L <- read.csv("poster1_mu1.csv", header=TRUE, stringsAsFactors=FALSE)
+# mu <- data.frame(value = L) %>%
+#   mutate(time = seq(1, by = 1, length.out = n())) %>%
+#   dplyr::select(time,value.x )
+# colnames(mu) <- c("time","value")
+# 
+# ornstein_uhlenbeck <- function(n,theta,sigma,x0){
+#   dt  <- 1
+#   x<-vector(length=366)
+#   for (i in 1:(n+1)) {
+#     if (i==1){x[i]=x0}
+#     else{
+#       x[i]  <-  x[i-1] + theta*(mu[i-1]-x[i-1])*dt + sigma*e[i-1]}
+#   }
+#   return(x);
+# }
 
 ncores <- 8
 minParticles <- max(ncores, 16)
@@ -41,7 +47,6 @@ model dureau {
   state E
   state I
   state R
-  state x
 
   state Z
 
@@ -49,7 +54,7 @@ model dureau {
   
   param k
   param I0
-  param mu
+  param x
   
   sub parameter {
     k ~ truncated_gaussian(5, 0.01, lower = 0) 
@@ -72,7 +77,6 @@ model dureau {
   Z <- ((t_now) % 7 == 0 ? 0 : Z)
     noise e
     e ~ wiener()
-    x<- ornstein_uhlenbeck(365,0.05,sqrt(0.004),log(0.8))
     ode(alg = 'RK4(3)', h = 1.0, atoler = 1.0e-3, rtoler = 1.0e-8) {
       dS/dt = -exp(x)*S*(0.1*I+E)/N
       dE/dt = exp(x)*S*(0.1*I+E)/N - E*(1/k+1/5)
