@@ -37,6 +37,7 @@ model dureau {
   input N
   
   param k
+  param E0
   param Forcing
   param mu
   
