@@ -61,7 +61,7 @@ model dureau {
   }
 
   sub observation {
-    y ~ log_normal(log(max(Z/5, 0)), tau)
+    y ~ log_normal(log(max(Z/5, 0)), 0.8)
   }
   
   sub proposal_parameter {
