@@ -14,11 +14,6 @@ v <- read.csv("covidbm_wk1.csv", header=FALSE, stringsAsFactors=FALSE) %>%
 y <- data.frame(value = v) %>%
   mutate(time = seq(7, by = 7, length.out = n())) %>%
   dplyr::select(time, value)
-L <- read.csv("Forcing.csv", header=FALSE, stringsAsFactors=FALSE)
-Forcing <- data.frame(value = L) %>%
-  mutate(time = seq(1, by = 1, length.out = n())) %>%
-  dplyr::select(time,V1 )
-colnames(Forcing) <- c("time","value")
 
 ncores <- 8
 minParticles <- max(ncores, 16)
@@ -56,7 +51,7 @@ model dureau {
     noise e
     e ~ wiener()
     ode(alg = 'RK4(3)', h = 1.0, atoler = 1.0e-3, rtoler = 1.0e-8) {
-      dx/dt = sigma*e
+      dx/dt = sqrt(0.004)*e
       dS/dt = -exp(x)*S*(0.1*I+E)/N
       dE/dt = exp(x)*S*(0.1*I+E)/N - E*(1/k+1/5)
       dI/dt = E/k-I*(1/5+0.0087)
