@@ -438,3 +438,65 @@ plot(Y21,type='l',ylab="Y obs", xlab = "Time")
 write.csv(Y21,"simY21.csv")
 write.csv(model21,"simulatestates21.csv")
 
+###############################################################################
+#HINIBM New Simulation for parameter experiments-return to the same value
+rm(list=ls())
+require(deSolve)
+set.seed(007) #015
+times <- 1:365
+N=52196381
+sigma <- 0.4
+## first, simulate a set of random deviates
+e <- rnorm(n = length(times) - 1, sd = sqrt(0.01))
+## now compute their cumulative sum
+e <- c(0, cumsum(e))
+
+
+beta<- exp(sigma*e)
+plot(beta,type='l')
+write.csv(beta,"simulatebeta22.csv")
+
+H1N1 <- function(time, current_state, params){
+  
+  with(as.list(c(current_state, params)),{
+    
+    N <- S+E+I+R
+    dt <- 1
+    dS <- -beta[t]*S*I/N
+    dE <- beta[t]*S*I/N - E/k
+    dI <- E/k - I/gamma
+    dR <- I/gamma
+    
+    return(list(c(dt, dS, dE, dI, dR)))
+  })
+}
+
+
+params <- c(k=1.59, gamma=1.08)
+
+S <- N-1
+E <- 1
+R <- 0
+I <- 0
+initial_state<- c(t=1, S=S, E=E, I=I, R=R)
+#initial_state <- c(t=1,S=52196380, E=1, I=0, R=0)
+model22 <- ode(initial_state, times, H1N1, params)
+
+summary(model22)
+
+matplot(model22, type="l", lty=1, main="H1N1-BM SEIR model", xlab="Time",ylab = "Counts")
+legend <- colnames(model22)[3:6]
+legend("right", legend=legend, col=3:6, lty = 1)
+
+Z22 <-model22[,4]/1.59
+
+tau22 <- 0.8#runif(1,0,1)
+Y22 <-vector(length = 365)
+for (i in 1:365){
+  #Y1[i]<- rlnorm(1,log(Z1[i,]/5),tau1)
+  Y22[i]<- rlnorm(1,log(Z22[i]/5),tau22)
+}
+plot(Y22,type='l',ylab="Y obs", xlab = "Time")
+write.csv(Y22,"simY22.csv")
+write.csv(model22,"simulatestates22.csv")
+
