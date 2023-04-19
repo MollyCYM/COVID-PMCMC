@@ -25,6 +25,7 @@ model dureau {
   state I
   state R
   state x
+  state Z
 
   input N
   
