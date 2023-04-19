@@ -50,7 +50,7 @@ model dureau {
     noise e
     e ~ wiener()
     ode(alg = 'RK4(3)', h = 1.0, atoler = 1.0e-3, rtoler = 1.0e-8) {
-      dx/dt = sigma*e
+      dx/dt = 0.4*e
       dS/dt = -exp(x)*S*I/N
       dE/dt = exp(x)*S*I/N - E/k
       dI/dt = E/k-I/1.08
@@ -73,8 +73,9 @@ bi_model <- libbi(model)
 input_lst <- list(N = 52196381)
 end_time <- max(y$time)
 obs_lst <- list(y = y %>% dplyr::filter(time <= end_time))
+init_list <- list(k=1.59)
 
-bi <- sample(bi_model, end_time = end_time, input = input_lst, obs = obs_lst, nsamples = 1000, nparticles = minParticles, nthreads = ncores, proposal = 'model',seed=123) %>% 
+bi <- sample(bi_model, end_time = end_time, input = input_lst, init=init_list, obs = obs_lst, nsamples = 1000, nparticles = minParticles, nthreads = ncores, proposal = 'model',seed=123) %>% 
   adapt_particles(min = minParticles, max = minParticles*500) %>%
   adapt_proposal(min = 0.1, max = 0.4) %>%
   sample(nsamples = 1, thin = 1) %>% # burn in 
