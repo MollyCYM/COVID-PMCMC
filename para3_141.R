@@ -63,7 +63,7 @@ model dureau {
     noise e
     e ~ wiener()
     ode(alg = 'RK4(3)', h = 1.0, atoler = 1.0e-3, rtoler = 1.0e-8) {
-      dx/dt = 0.8*e
+      dx/dt = 0.06*e
       dS/dt = -exp(x)*S*I/N
       dE/dt = exp(x)*S*I/N - E/k
       dI/dt = E/k-I/gamma
