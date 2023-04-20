@@ -37,7 +37,7 @@ model dureau {
   sub parameter {
     k ~ truncated_gaussian(1.59, 0.02, lower = 0) // k is the period here, not the rate, i.e. 1/k is the rate
     gamma ~ truncated_gaussian(1.08, 0.075, lower = 0) // gamma is the period, not the rate
-    sigma ~ uniform(0,0.1)
+    sigma ~ truncated_gaussian(0.05, 0.002, lower = 0, upper=0.1)
     x0 ~ uniform(-5,2)
   }
 
