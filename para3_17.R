@@ -187,4 +187,5 @@ write.csv(fitR,"../data/para3_R17.csv")
 
 write.csv(1/bi_lst$k$value,"../data/para3_alpha17.csv")
 write.csv(1/bi_lst$gamma$value,"../data/para3_gamma17.csv")
+write.csv(bi_lst$sigma$value,"../data/para3_sigma17.csv")
 
