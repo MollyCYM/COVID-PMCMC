@@ -195,4 +195,4 @@ write.csv(fitR,"../data/para3_R12.csv")
 
 write.csv(1/bi_lst$k$value,"../data/para3_alpha12.csv")
 write.csv(1/bi_lst$gamma$value,"../data/para3_gamma12.csv")
-
+write.csv(bi_lst$sigma$value,"../data/para3_sigma12.csv")
