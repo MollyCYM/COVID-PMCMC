@@ -39,7 +39,8 @@ model covidbm {
     k ~ truncated_gaussian(5, 0.01, lower = 0) 
     gamma ~ truncated_gaussian(5, 0.01, lower = 0) // gamma is the period, not the rate
     sigma ~ truncated_gaussian(0.3, 0.01, lower = 0)
-    tau ~ uniform(0, 0.5)
+    tau ~ truncated_gaussian(0.5, 0.01, lower = 0)
+
   }
 
   sub initial {
