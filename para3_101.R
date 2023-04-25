@@ -97,13 +97,13 @@ input_lst <- list(N = 52196381)
 end_time <- max(y$time)
 obs_lst <- list(y = y %>% dplyr::filter(time <= end_time))
 
-bi <- sample(bi_model, end_time = end_time, input = input_lst, obs = obs_lst, nsamples = 2000, nparticles = minParticles, nthreads = ncores, proposal = 'prior',seed=123) %>% 
+bi <- sample(bi_model, end_time = end_time, input = input_lst, obs = obs_lst, nsamples = 2000, nparticles = minParticles, nthreads = ncores, proposal = 'model',seed=123) %>% 
   adapt_particles(min = minParticles, max = minParticles*500) %>%
   sample(nsamples =10000, thin = 1)
 
 bi_lst <- bi_read(bi %>% sample_obs)
 
-write.csv(bi_lst,"../data/para3_model10.csv")
+write.csv(bi_lst,"../data/para3_model101.csv")
 fitY <- bi_lst$y %>%
   group_by(time) %>%
   mutate(
@@ -114,7 +114,7 @@ fitY <- bi_lst$y %>%
     q975 = quantile(value, 0.975)
   ) %>% ungroup() %>%
   left_join(y %>% rename(Y = value))
-write.csv(fitY,"../data/para3_y10.csv")
+write.csv(fitY,"../data/para3_y101.csv")
 
 plot_df <- bi_lst$x %>% mutate(value = exp(value)) %>%
   group_by(time) %>%
@@ -125,7 +125,7 @@ plot_df <- bi_lst$x %>% mutate(value = exp(value)) %>%
     q75 = quantile(value, 0.75),
     q975 = quantile(value, 0.975)
   ) %>% ungroup()
-write.csv(plot_df,"../data/para3_beta10.csv")
+write.csv(plot_df,"../data/para3_beta101.csv")
 
 Mmodel <- read.csv("simulatestates1.csv", header=TRUE, stringsAsFactors=FALSE)
 S<-Mmodel[,4]
@@ -146,7 +146,7 @@ fitS <-bi_lst$S %>%
     q975 = quantile(value, 0.975)
   ) %>% ungroup() %>%
   left_join(S %>% rename(S = value))
-write.csv(fitS,"../data/para3_S10.csv")
+write.csv(fitS,"../data/para3_S101.csv")
 
 E <- data.frame(value = E) %>%
   mutate(time = seq(1, by = 1, length.out = n())) %>%
@@ -161,7 +161,7 @@ fitE <-bi_lst$E %>%
     q975 = quantile(value, 0.975)
   ) %>% ungroup() %>%
   left_join(E %>% rename(E = value))
-write.csv(fitE,"../data/para3_E10.csv")
+write.csv(fitE,"../data/para3_E101.csv")
 
 I <- data.frame(value = I) %>%
   mutate(time = seq(1, by = 1, length.out = n())) %>%
@@ -176,7 +176,7 @@ fitI <-bi_lst$I %>%
     q975 = quantile(value, 0.975)
   ) %>% ungroup() %>%
   left_join(I %>% rename(I = value))
-write.csv(fitI,"../data/para3_I10.csv")
+write.csv(fitI,"../data/para3_I101.csv")
 
 R <- data.frame(value = R) %>%
   mutate(time = seq(1, by = 1, length.out = n())) %>%
@@ -191,12 +191,12 @@ fitR <-bi_lst$R %>%
     q975 = quantile(value, 0.975)
   ) %>% ungroup() %>%
   left_join(R %>% rename(R = value))
-write.csv(fitR,"../data/para3_R10.csv")
+write.csv(fitR,"../data/para3_R101.csv")
 
 
-write.csv(1/bi_lst$k$value,"../data/para3_alpha10.csv")
-write.csv(1/bi_lst$gamma$value,"../data/para3_gamma10.csv")
-write.csv(bi_lst$sigma$value,"../data/para3_sigma10.csv")
-write.csv(bi_lst$tau$value,"../data/para3_tau10.csv")
+write.csv(1/bi_lst$k$value,"../data/para3_alpha101.csv")
+write.csv(1/bi_lst$gamma$value,"../data/para3_gamma101.csv")
+write.csv(bi_lst$sigma$value,"../data/para3_sigma101.csv")
+write.csv(bi_lst$tau$value,"../data/para3_tau101.csv")
 
 
