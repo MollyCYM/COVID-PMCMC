@@ -80,7 +80,7 @@ bi_model <- libbi(model)
 input_lst <- list(N = 52196381)
 end_time <- max(y$time)
 obs_lst <- list(y = y %>% dplyr::filter(time <= end_time))
-init_list <- list(k=3,gamma=3,sigma=sqrt(0.003),tau=0.8)
+init_list <- list(k=3,gamma=3,sigma=0.3,tau=0.8)
 
 bi <- sample(bi_model, end_time = end_time, input = input_lst, init=init_list, obs = obs_lst, nsamples = 2000, nparticles = minParticles, nthreads = ncores, proposal = 'model',seed=0123112) %>% 
   adapt_particles(min = minParticles, max = minParticles*500) %>%
