@@ -17,7 +17,7 @@ y <- data.frame(value = v) %>%
 ncores <- 8
 minParticles <- max(ncores, 16)
 model_str <- "
-model dureau {
+model h1n1bm {
   obs y
 
   state S

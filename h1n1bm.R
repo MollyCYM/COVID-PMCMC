@@ -97,14 +97,13 @@ input_lst <- list(N = 52196381)
 end_time <- max(y$time)
 obs_lst <- list(y = y %>% dplyr::filter(time <= end_time))
 
-bi <- sample(bi_model, end_time = end_time, input = input_lst, obs = obs_lst, nsamples = 1000, nparticles = minParticles, nthreads = ncores, proposal = 'prior',seed=123) %>% 
-  adapt_particles(min = minParticles, max = minParticles*200) %>%
-  adapt_proposal(min = 0.05, max = 0.4) %>%
-  sample(nsamples = 1000, thin = 1) %>% # burn in 
-  sample(nsamples = 4000, thin = 5)
+bi <- sample(bi_model, end_time = end_time, input = input_lst, obs = obs_lst, nsamples = 2000, nparticles = minParticles, nthreads = ncores, proposal = 'prior',seed=123) %>% 
+  adapt_particles(min = minParticles, max = minParticles*500) %>%
+  sample(nsamples =10000, thin = 1)
 
 bi_lst <- bi_read(bi %>% sample_obs)
 
+#Data save command
 write.csv(bi_lst,"../data/para3_model10.csv")
 fitY <- bi_lst$y %>%
   group_by(time) %>%
