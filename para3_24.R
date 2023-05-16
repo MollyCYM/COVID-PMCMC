@@ -35,6 +35,8 @@ model dureau {
   state Z
 
   input N
+  input beta
+  
   param k
   param gamma
   param sigma // Noise driver
