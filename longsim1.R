@@ -80,10 +80,10 @@ obs_lst <- list(y = y %>% dplyr::filter(time <= end_time))
 init_list <- list(sigma =0.19, gamma =0.2, beta=0.53, mu =0.0015)
 
 bi <- sample(bi_model, end_time = end_time, input = input_lst, init=init_list, obs = obs_lst, nsamples = 1000, nparticles = minParticles, nthreads = ncores, proposal = 'model') %>% 
-  adapt_particles(min = minParticles, max = minParticles*200) %>%
-  adapt_proposal(min = 0.05, max = 0.4) %>%
-  sample(nsamples = 100, thin = 1) %>% # burn in 
-  sample(nsamples = 1000, thin = 5)
+  #adapt_particles(min = minParticles, max = minParticles*200) %>%
+  #adapt_proposal(min = 0.05, max = 0.4) %>%
+ # sample(nsamples = 100, thin = 1) %>% # burn in 
+  sample(nsamples = 1000, thin = 1)
 
 bi_lst <- bi_read(bi %>% sample_obs)
 write.csv(bi_lst, "../data/MSEIR1.csv")
