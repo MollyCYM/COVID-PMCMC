@@ -53,5 +53,16 @@ flu_model
 params <- c(Beta=2,mu_I=1,rho=0.9,mu_R1=1/3,mu_R2=1/2)
 sim <- rbi::simulate(bi, init=as.list(params), nsamples=10)
 
+particles_adapted <- bi %>%
+  sample(proposal="prior", nsamples=2000, nparticles=1024) %>%
+  adapt_particles(max=2**20)
+nparticles <- particles_adapted$options$nparticles
+nparticles
 
+proposal_adapted <- particles_adapted %>%
+  sample(proposal="prior", nsamples=2000) %>%
+  adapt_proposal(min=0.1, max=0.3, adapt="both")
+
+posterior <- proposal_adapted %>%
+  sample(nsamples=10000)
 

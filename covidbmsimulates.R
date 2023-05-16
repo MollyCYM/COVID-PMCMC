@@ -82,7 +82,7 @@ e <- c(0, cumsum(e))
 
 beta<- exp(sigma*e)
 plot(beta,type='l')
-write.csv(beta,"simulatecovidbeta1.csv")
+# write.csv(beta,"simulatecovidbeta1.csv")
 
 
 #Main ODE Model
@@ -125,8 +125,8 @@ for (i in 1:365){
   Y11[i]<- rlnorm(1,log(Z11[i]/5),tau11)
 }
 plot(Y11,type='l',ylab="Obs Y",xlab="time",col="blue")
-write.csv(Y11,"Covidbm_Y11.csv")
-write.csv(model11,"Covidbm11.csv")
+# write.csv(Y11,"Covidbm_Y11.csv")
+# write.csv(model11,"Covidbm11.csv")
 ######################################################################################
 #Resimulate Covid-BM data with replaced sigma value
 rm(list=ls())
@@ -143,7 +143,7 @@ e <- c(0, cumsum(e))
 
 beta<- exp(sigma*e)
 plot(beta,type='l')
-write.csv(beta,"simulatecovidbeta2.csv")
+#write.csv(beta,"simulatecovidbeta2.csv")
 
 
 #Main ODE Model
@@ -186,5 +186,5 @@ for (i in 1:365){
   Y12[i]<- rlnorm(1,log(Z12[i]/5),tau12)
 }
 plot(Y12,type='l',ylab="Obs Y",xlab="time",col="blue")
-write.csv(Y12,"Covidbm_Y12.csv")
-write.csv(model12,"Covidbm12.csv")
+# write.csv(Y12,"Covidbm_Y12.csv")
+# write.csv(model12,"Covidbm12.csv")
