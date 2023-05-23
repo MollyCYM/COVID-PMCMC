@@ -15,7 +15,7 @@ v <- read.csv("H1N1BM_wk3.csv", header=FALSE, stringsAsFactors=FALSE) %>%
 y <- data.frame(value = v) %>%
   mutate(time = seq(7, by = 7, length.out = n())) %>%
   dplyr::select(time, value)
-beta1 <- read.csv("simulateh1n1beta.csv", header=FALSE, stringsAsFactors=FALSE)
+beta1 <- read.csv("simulateh1n1beta1.csv", header=FALSE, stringsAsFactors=FALSE)
 beta <- data.frame(value = beta1) %>%
   mutate(time = seq(1, by = 1, length.out = n())) %>%
   dplyr::select(time,V1 )
