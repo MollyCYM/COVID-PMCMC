@@ -94,7 +94,7 @@ e <- rnorm(n = length(times) - 1, sd = sqrt(0.01))
 ## now compute their cumulative sum
 e <- c(0, cumsum(e))
 
-write.csv(e,"simulateh1n1x1.csv")
+# write.csv(e,"simulateh1n1x1.csv")
 beta<- exp(sigma*e)
 plot(beta,type='l')
 # write.csv(beta,"simulateh1n1beta1.csv")
@@ -103,7 +103,7 @@ H1N1 <- function(time, current_state, params){
   
   with(as.list(c(current_state, params)),{
     
-    N <- S+E+I+R
+    #N <- S+E+I+R
     dt <- 1
     dS <- -beta[t]*S*I/N
     dE <- beta[t]*S*I/N - E/k
@@ -151,8 +151,9 @@ for (i in 1:365){
   Y1[i]<- rlnorm(1,log(Z1[i]/5),tau1)
 }
 plot(Y1,type='l',ylab="Y obs", xlab = "Time")
-write.csv(Y1,"simh1n1Y1.csv")
-write.csv(model1,"simulateh1n1states1.csv")
+lines(Z1)
+# write.csv(Y1,"simh1n1Y1.csv")
+# write.csv(model1,"simulateh1n1states1.csv")
 #####################################Shorter days###################################
 rm(list=ls())
 require(deSolve)

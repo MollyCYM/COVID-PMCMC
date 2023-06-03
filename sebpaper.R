@@ -39,14 +39,11 @@ sub observation {
 '
 flu_model <- bi_model(lines = stri_split_lines(model_str)[[1]]) %>%
   fix(mu_R1 = 1/(sum(bsflu$B)/512))
-
 obs <- bsflu %>%
   select(time=date, value=B) %>%
   list(Incidence=.) %>%
   time_to_numeric(origin=as.Date("1978-01-21"), unit="day")
-
 bi <- libbi(model=flu_model, obs=obs, end_time=nrow(bsflu))
-
 rewrite(bi)
 flu_model
 

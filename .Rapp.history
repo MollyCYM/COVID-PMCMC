@@ -1,0 +1,32 @@
+install.packages("devtools")
+devtools::install_github("nickpoison/astsa")
+install.packages("rlang")
+Yes
+install.packages("rlang")
+devtools::install_github("nickpoison/astsa")
+library(astsa)
+devtools::install_github("nickpoison/astsa")
+install.packages("dplyr")
+devtools::install_github("nickpoison/astsa")
+install.packages("devtools")
+devtools::install_github("nickpoison/astsa")
+library(astsa)
+install.packages("devtools")
+devtools::install_github("nickpoison/astsa")
+install.packages("rlang")
+devtools::install_github("nickpoison/astsa")
+devtools::install_github
+install.packages("dplyr")
+devtools::install_github("nickpoison/astsa")
+pbinom(348,365,0.2,lower.tail = F)
+getwd()
+setwd("/Users/mollycui/Desktop/R script/Research 10-Epid PMCMC")
+library('rbi')library(ggplot2)
+model_file_name <- "Lorenz.bi"
+Lorenz <- bi_model(model_file_name)
+T <- 0.2
+nObs <- 100
+init_parameters <- list(X = 1, Y = 1, Z = 1)
+synthetic_dataset <- bi_generate_dataset(end_time=T, model=Lorenz,                                         init=init_parameters,                                         noutputs = nObs)
+synthetic_dataset <- rbi::bi_generate_dataset(end_time=T, model=Lorenz,                                         init=init_parameters,                                         noutputs = nObs)
+synthetic_dataset <- rbi::bi_generate_dataset(end_time=T, model=Lorenz,                                         noutputs = nObs)
