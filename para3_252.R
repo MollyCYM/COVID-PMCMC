@@ -19,14 +19,12 @@ minParticles <- max(ncores, 16)
 model_str <- "
 model h1n1bm {
   obs y
-  const h = 1
 
   state S
   state E
   state I
   state R
   state x
-  state e
 
   state Z
 
@@ -50,6 +48,7 @@ model h1n1bm {
     E0 ~ uniform(-16, -9)
     R0 ~ truncated_gaussian(0.15, 0.15, lower = 0, upper = 1)
     tau ~ uniform(0, 1)
+    eta ~ gaussian(0,0.1)
   }
 
   sub initial {
@@ -63,14 +62,13 @@ model h1n1bm {
     S <- S - I
     x <- x0
     Z <- 0
-    e <- 0
   }
 
-  sub transition(delta = h) {
+  sub transition(delta = 1) {
   Z <- ((t_now) % 7 == 0 ? 0 : Z)
-    eta ~ gaussian(0,0.1*sqrt(h))
-    e <- e+eta
+    noise e
     ode(alg = 'RK4(3)', h = 1.0, atoler = 1.0e-3, rtoler = 1.0e-8) {
+      de/dt = e+eta
       dx/dt = sigma*e
       dS/dt = -exp(x)*S*I/N
       dE/dt = exp(x)*S*I/N - E/k
@@ -88,10 +86,15 @@ model h1n1bm {
     k ~ gaussian(k, 0.005)
     sigma ~ gaussian(sigma, 0.01)
     gamma ~ gaussian(gamma, 0.01)
+    x0 ~ gaussian(x0, 0.05)
+    E0 ~ gaussian(E0, 0.05)
+    I0 ~ gaussian(I0, 0.05)
+    R0 ~ gaussian(R0, 0.05)
     tau ~ gaussian(tau, 0.05)
   }
 }"
 model <- bi_model(lines = stringi::stri_split_lines(model_str)[[1]])
+rewrite(model)
 bi_model <- libbi(model)
 input_lst <- list(N = 52196381)
 end_time <- max(y$time)
@@ -99,7 +102,7 @@ obs_lst <- list(y = y %>% dplyr::filter(time <= end_time))
 init_list <- list(sigma=0.07, gamma=1.08, k=1.59, tau=0.1)
 
 
-bi <- sample(bi_model, end_time = end_time, input = input_lst, init=init_list, obs = obs_lst, nsamples = 2000, nparticles = minParticles, nthreads = ncores, proposal = 'model',seed=123) %>% 
+bi <- sample(bi_model, end_time = end_time, input = input_lst, init=init_list,target="posterior", obs = obs_lst, nsamples = 2000, nparticles = minParticles, nthreads = ncores, proposal = 'model',seed=123) %>% 
   adapt_particles(min = minParticles, max = minParticles*500) %>%
   adapt_proposal(min = 0.1, max = 0.4) %>%
   sample(nsamples =10000, thin = 1)
