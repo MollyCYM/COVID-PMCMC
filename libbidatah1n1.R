@@ -23,19 +23,14 @@ model h1n1bm {
   param E0
   param I0
   param R0
-  param x0
-  param eta
   
   state S
   state E
   state I
   state R
   state x
-  state Z
-  state e
   
   sub parameter {
-    x0 ~ uniform(-5,2)
     I0 ~ uniform(-16, -9)
     E0 ~ uniform(-16, -9)
     R0 ~ truncated_gaussian(0.15, 0.15, lower = 0, upper = 1)
@@ -50,27 +45,22 @@ model h1n1bm {
     S <- S - E
     I <- exp(I0 + log(S))
     S <- S - I
-    //x <- x0
-    Z <- 0
-    e <- 0
   }
 
   sub transition(delta = h) {
-    
-    eta ~ gaussian(0,0.1*sqrt(h))
-    e <- e+eta
+    noise e
+    e ~ wiener()
     ode {
-      dx/dt = sigma*eta
+      dx/dt = sigma*e
       dS/dt = -exp(x)*S*I/N
       dE/dt = exp(x)*S*I/N - E/k
       dI/dt = E/k-I/gamma
       dR/dt = I/gamma
-      dZ/dt = E/k
     }
   }
 
   sub observation {
-    y ~ log_normal(log(max(Z/5, 0)), tau)
+    y ~ log_normal(log(max((E/k)/5, 0)), tau)
   }
 
 }"
@@ -80,8 +70,9 @@ rewrite(h1n1)
 T <- 365
 nObs <- 365
 synthetic_dataset <- bi_generate_dataset(model=h1n1, end_time=T,
-                                         noutputs = nObs, seed="53")
-##Good seeds: 06 08 13 15 24-25 28 32 36-37 46
+                                         noutputs = nObs, seed="63")
+##Good seeds: 61
+
 synthetic_data <- bi_read(synthetic_dataset)
 synthetic_df <- as.data.frame(synthetic_data)
 # write.csv(synthetic_df$y.value,"libbih1n1_Y1.csv")
@@ -98,7 +89,7 @@ ggplot(synthetic_df, aes(y.time)) +
 
 ggplot(synthetic_df, aes(y.time)) +
   geom_path(aes(y = y.value, colour="y.value")) +
-  #geom_path(aes(y = Z.value, colour="Z.value")) +
+  # geom_path(aes(y = Z.value, colour="Z.value")) +
   theme(legend.position="bottom") +
   ggtitle("H1N1") +
   theme(plot.title = element_text(hjust = 0.5)) +

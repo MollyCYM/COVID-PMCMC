@@ -85,7 +85,7 @@ plot(Y1,type='l',ylab="Y obs", xlab = "Time")
 #####################################Biostats paper#################################
 rm(list=ls())
 require(deSolve)
-set.seed(00033) #00033 #00036 #00043 #00048
+set.seed(00033) #00033 #00036 #00043 #00048 previous:00033 #remove N= 00093
 times <- 1:365
 N=52196381
 sigma <- 0.07
@@ -103,7 +103,7 @@ H1N1 <- function(time, current_state, params){
   
   with(as.list(c(current_state, params)),{
     
-    #N <- S+E+I+R
+    # N <- S+E+I+R
     dt <- 1
     dS <- -beta[t]*S*I/N
     dE <- beta[t]*S*I/N - E/k
@@ -151,7 +151,7 @@ for (i in 1:365){
   Y1[i]<- rlnorm(1,log(Z1[i]/5),tau1)
 }
 plot(Y1,type='l',ylab="Y obs", xlab = "Time")
-lines(Z1)
+# lines(Z1)
 # write.csv(Y1,"simh1n1Y1.csv")
 # write.csv(model1,"simulateh1n1states1.csv")
 #####################################Shorter days###################################
