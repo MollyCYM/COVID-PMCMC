@@ -15,6 +15,7 @@ sigma <- 0.07
 e <- rnorm(n = length(times)-1 , sd = 1)
 ## now compute their cumulative sum
 e <- c(0, cumsum(e))
+plot(e,type='l')
 
 write.csv(e,"simulateh1n1x2.csv")
 beta<- exp(sigma*e)
