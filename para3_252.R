@@ -8,7 +8,7 @@ library(latex2exp)
 library(rbi)
 library(rbi.helpers)
 # Load the data
-v <- read.csv("H1N1BM_wk3.csv", header=FALSE, stringsAsFactors=FALSE) %>%
+v <- read.csv("h1n1bm_wk5.csv", header=FALSE, stringsAsFactors=FALSE) %>%
   rowSums()
 
 y <- data.frame(value = v) %>%
@@ -37,7 +37,6 @@ model h1n1bm {
   param R0
   param x0
   param tau
-  param eta
 
   sub parameter {
     k ~ truncated_gaussian(1.59, 0.02, lower = 0) // k is the period here, not the rate, i.e. 1/k is the rate
@@ -48,7 +47,6 @@ model h1n1bm {
     E0 ~ uniform(-16, -9)
     R0 ~ truncated_gaussian(0.15, 0.15, lower = 0, upper = 1)
     tau ~ uniform(0, 1)
-    eta ~ gaussian(0,0.1)
   }
 
   sub initial {
@@ -67,8 +65,8 @@ model h1n1bm {
   sub transition(delta = 1) {
   Z <- ((t_now) % 7 == 0 ? 0 : Z)
     noise e
+    e ~ wiener()
     ode(alg = 'RK4(3)', h = 1.0, atoler = 1.0e-3, rtoler = 1.0e-8) {
-      de/dt = e+eta
       dx/dt = sigma*e
       dS/dt = -exp(x)*S*I/N
       dE/dt = exp(x)*S*I/N - E/k
@@ -100,7 +98,6 @@ input_lst <- list(N = 52196381)
 end_time <- max(y$time)
 obs_lst <- list(y = y %>% dplyr::filter(time <= end_time))
 init_list <- list(sigma=0.07, gamma=1.08, k=1.59, tau=0.1)
-
 
 bi <- sample(bi_model, end_time = end_time, input = input_lst, init=init_list,target="posterior", obs = obs_lst, nsamples = 2000, nparticles = minParticles, nthreads = ncores, proposal = 'model',seed=123) %>% 
   adapt_particles(min = minParticles, max = minParticles*500) %>%
