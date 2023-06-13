@@ -76,13 +76,13 @@ library(pomp) ## for the bsflu data set
 library(tidyverse)
 set.seed(296825852)
 head(bsflu)
-mu_R1 = 1/(sum(bsflu$B)/512)
+mu_R1=1/(sum(bsflu$B)/512)
 model_str <- '
 model bsflu {
  const N = 763
  const timestep = 1/12
  input mu_R1
- param Beta, mu_I,  rho
+ param Beta, mu_I, rho
  state S, I, R1
  noise infection, recovery, leave_bed
  obs Incidence
@@ -109,12 +109,14 @@ sub observation {
 }
 }
 '
-flu_model <- bi_model(lines = stri_split_lines(model_str)[[1]]) 
+flu_model <- bi_model(lines = stri_split_lines(model_str)[[1]])
 obs <- bsflu %>%
   select(time=date, value=B) %>%
   list(Incidence=.) %>%
   time_to_numeric(origin=as.Date("1978-01-21"), unit="day")
+input_lst <- list(mu_R1)
 bi <- libbi(model=flu_model, obs=obs, end_time=nrow(bsflu))
+bi <- attach_data(bi, "input", input_lst)
 rewrite(bi)
 flu_model
 
@@ -124,4 +126,9 @@ sim_res <- bi_read(sim, type="state")
 ggplot(sim_res$R1, aes(x=time, group=np))+
   geom_line(aes(y=value)) +
   ylab("R1")
-
+ggplot(sim_res$S, aes(x=time, group=np))+
+  geom_line(aes(y=value)) +
+  ylab("S")
+ggplot(sim_res$I, aes(x=time, group=np))+
+  geom_line(aes(y=value)) +
+  ylab("I")

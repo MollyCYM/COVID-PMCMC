@@ -15,9 +15,9 @@ for (t in 1:365) {
   else {mu[t]=-0.2-0.02 }                 #Lock-down policy
 }
 mu<-ts(mu)
-write.csv(mu,"poster1_mu1.csv")
+# write.csv(mu,"poster1_mu1.csv")
 
-#plot(mu,type='l')
+plot(mu,type='l')
 #Simulate an O-U Process
 ornstein_uhlenbeck <- function(n,theta,sigma,x0){
   dt  <- 1
