@@ -46,7 +46,6 @@ model covidbm {
     E <- 1
     I <- 0
     R <- 0
-    Z <- 0
     x <- 0
   }
 
