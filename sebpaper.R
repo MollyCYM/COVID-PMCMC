@@ -116,7 +116,7 @@ obs <- bsflu %>%
   time_to_numeric(origin=as.Date("1978-01-21"), unit="day")
 input_lst <- list(mu_R1)
 bi <- libbi(model=flu_model, obs=obs, end_time=nrow(bsflu))
-bi <- attach_data(bi, "input", input_lst)
+# bi <- attach_data(bi, "input", input_lst)
 rewrite(bi)
 flu_model
 

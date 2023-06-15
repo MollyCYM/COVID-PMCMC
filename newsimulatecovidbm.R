@@ -11,11 +11,13 @@ sigma <- 0.07
 e <- rnorm(n = length(times)-1, sd = 1)
 ## now compute their cumulative sum
 e <- c(0, cumsum(e))
-write.csv(e,"rsimcovidbm_e1.csv")
+# write.csv(e,"rsimcovidbm_e1.csv")
 
 beta<- exp(sigma*e)
-plot(beta,type='l')
-write.csv(beta,"rsimcovidbm_beta1.csv")
+plot(beta,type='l',)
+plot(beta,type='p',ylab="Transmission rate beta",xlab="time",col="darkred",main="Covid_BM model generated transmission rate")
+lines(beta,col="darkblue")
+# write.csv(beta,"rsimcovidbm_beta1.csv")
 
 
 #Main ODE Model
@@ -45,7 +47,7 @@ model11 <- ode(initial_state, times, Covid_OU, params)
 
 summary(model11)
 
-matplot(model11, type="l", lty=1, main="COVID—BM Model",ylab="counts", xlab="Time")
+matplot(model11, type="l", lty=1, main="Generated COVID_BM Model Trajectories",ylab="Counts", xlab="Time")
 legend <- colnames(model11)[3:6]
 legend("right", legend=legend, col=3:6, lty = 1)
 Z11 <-model11[,4]/2
@@ -55,6 +57,8 @@ Y11 <-vector(length = 365)
 for (i in 1:365){
   Y11[i]<- rlnorm(1,log(Z11[i]/5),tau11)
 }
-plot(Y11,type='l',ylab="Obs Y",xlab="time",col="blue")
-write.csv(Y11,"rsimcovidbm_Y1.csv")
-write.csv(model11,"rsimcovidbm_model1.csv")
+plot(Y11,type='p',ylab="Daily incidence Y",xlab="time",col="darkred",main="Covid_BM model generated observation")
+lines(Y11,col="darkblue")
+
+# write.csv(Y11,"rsimcovidbm_Y1.csv")
+# write.csv(model11,"rsimcovidbm_model1.csv")
