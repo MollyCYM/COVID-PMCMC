@@ -371,7 +371,7 @@ beta<- exp(x)
 
 plot(beta,type='p',ylab=TeX(r"(Transmission rate $\beta$)"),xlab="time",col="darkred",main="H1N1_BM model generated transmission rate")
 lines(beta,col="darkblue")
-
+write.csv(beta,"h1n1bmdg_beta1.csv")
 H1N1 <- function(time, current_state, params){
   
   with(as.list(c(current_state, params)),{
@@ -424,7 +424,8 @@ for (i in 1:365){
 }
 plot(Y1,type='p',ylab="Daily incidence Y",xlab="time",col="darkred",main="H1N1_BM model generated observation")
 lines(Y1,col="darkblue")
-
+write.csv(Y1,"h1n1bmdg_y1.csv")
+write.csv(model1,"h1n1bmdg_model1.csv")
 
 ```
 ```{r}
@@ -444,7 +445,7 @@ beta<- exp(sigma*x)
 
 plot(beta,type='p',ylab=TeX(r"(Transmission rate $\beta$)"),xlab="time",col="darkred",main="H1N1_BM model generated transmission rate")
 lines(beta,col="darkblue")
-
+write.csv(beta,"h1n1bmdg_beta2.csv")
 H1N1 <- function(time, current_state, params){
   
   with(as.list(c(current_state, params)),{
@@ -498,7 +499,8 @@ for (i in 1:365){
 }
 plot(Y1,type='p',ylab="Daily incidence Y",xlab="time",col="darkred",main="H1N1_BM model generated observation")
 lines(Y1,col="darkblue")
-
+write.csv(Y1,"h1n1bmdg_y2.csv")
+write.csv(model1,"h1n1bmdg_model2.csv")
 
 ```
 
@@ -533,7 +535,7 @@ beta<- exp(x)
 
 plot(beta,type='p',ylab=TeX(r"(Transmission rate $\beta$)"),xlab="time",col="darkred",main="H1N1_BM model generated transmission rate")
 lines(beta,col="darkblue")
-
+write.csv(beta,"h1n1bmdg_beta3.csv")
 H1N1 <- function(time, current_state, params){
   
   with(as.list(c(current_state, params)),{
@@ -587,6 +589,8 @@ for (i in 1:365){
 }
 plot(Y1,type='p',ylab="Daily incidence Y",xlab="time",col="darkred",main="H1N1_BM model generated observation")
 lines(Y1,col="darkblue")
+write.csv(Y1,"h1n1bmdg_y3.csv")
+write.csv(model1,"h1n1bmdg_model3.csv")
 ```
 
 ```{r}
@@ -606,7 +610,7 @@ beta<- exp(sigma*x)
 
 plot(beta,type='p',ylab=TeX(r"(Transmission rate $\beta$)"),xlab="time",col="darkred",main="H1N1_BM model generated transmission rate")
 lines(beta,col="darkblue")
-
+write.csv(beta,"h1n1bmdg_beta4.csv")
 H1N1 <- function(time, current_state, params){
   
   with(as.list(c(current_state, params)),{
@@ -659,7 +663,8 @@ for (i in 1:365){
 }
 plot(Y1,type='p',ylab="Daily incidence Y",xlab="time",col="darkred",main="H1N1_BM model generated observation")
 lines(Y1,col="darkblue")
-
+write.csv(Y1,"h1n1bmdg_y4.csv")
+write.csv(model1,"h1n1bmdg_model4.csv")
 
 ```
 

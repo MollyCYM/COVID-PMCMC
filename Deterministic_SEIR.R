@@ -7,22 +7,21 @@ SEIR <- function(time, current_state, params){
     dS <- -(beta*S*I)/N
     dE <- (beta*S*I)/N - sigma*E
     dI <- sigma*E - gamma*I - mu*I
-    dR <- gamma*I
-    dM <- mu*I
+    dR <- (gamma+mu)*I
     
-    return(list(c(dS, dE, dI, dR, dM)))
+    return(list(c(dS, dE, dI, dR)))
   })
 }
 params <- c(beta=0.5, sigma=0.25, gamma=0.2, mu=0.001)
-initial_state <- c(S=999999, E=1, I=0, R=0, M=0)
-times <- 0:365
+initial_state <- c(S=999999, E=1, I=0, R=0)
+times <- 1:365
 model <- ode(initial_state, times, SEIR, params)
 
 summary(model)
 
 matplot(model, type="l", lty=1, main="SEIR model", xlab="Time")
-legend <- colnames(model)[2:6]
-legend("right", legend=legend, col=2:6, lty = 1)
+legend <- colnames(model)[2:5]
+legend("right", legend=legend, col=2:5, lty = 1)
 write.csv(model,"simulatestates3.csv")
 
 Z <-as.vector(model[,3])
