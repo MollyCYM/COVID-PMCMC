@@ -1,0 +1,982 @@
+---
+title: "COVIDOU Model data generation"
+author: "Molly Cui"
+date: "2023-06-28"
+output: html_document
+---
+```{r}
+#Generating OU process-method 1
+rm(list=ls())
+require(deSolve)
+set.seed(533)
+
+
+#Simulate an O-U Process
+ornstein_uhlenbeck <- function(n,theta,sigma,x0,lens,mu,e){
+  dt <- 1
+  x<-vector(length=lens)
+  for (i in 1:n) {
+    if (i==1){x[i]=x0}
+    else{
+      x[i]  <-  x[i-1] + theta*(mu[i-1]-x[i-1])*dt + sigma*e[i-1]}
+  }
+  
+  return(x)
+}
+tims=365
+times = 1:tims
+  
+  mu = vector(length=tims) 
+  for (t in 1:tims) {
+    if (t <= 120){
+      mu[t]=-0.02      }                    #No lock-down policy
+    else {mu[t]=-0.2-0.02 }                 #Lock-down policy
+  }
+  mu = ts(mu)
+  plot(mu,type='l')
+  e = rnorm(n = length(times) , sd = 1)
+  plot(e,type='l')
+  x = ornstein_uhlenbeck(tims, theta=0.05, sigma=sqrt(0.004), x0=0, tims,mu,e)
+  plot(x,type='p',ylab=TeX(r"(OU process $X_{t}$)"),xlab="Time",col="darkred",main=TeX(r"(Generated OU process: $\theta=0.05$, $sigma=sqrt(0.004)$, $x_{0}=0$)"))
+  lines(x,col="darkblue")
+beta<- exp(x)
+plot(beta,type='p',ylab=TeX(r"(Transmission rate $\beta$)"),xlab="time",col="darkred",main="COVIDOU model generated transmission rate")
+lines(beta,col="darkblue")
+  
+```
+
+
+
+```{r}
+#OU generation method 1-web check 1
+#simulate 10 paths on interval [0,1] with 100 ts points
+rm(list=ls())
+require(deSolve)
+# set.seed(541)
+tims=1
+times<-seq(0.01,1,1/100) 
+
+e <- rnorm(n = 100 ,mean=0, sd = sqrt(1/100))
+plot(e,type='l')
+
+ornstein_uhlenbeck <- function(T,n,theta,sigma,x0,lens,mu,e){
+  dt <- T/n
+  x<-vector(length=lens)
+  for (i in 1:n) {
+    if (i==1){x[i]=x0}
+    else{
+      x[i]  <-  x[i-1] + theta*(mu-x[i-1])*dt + sigma*e[i-1]}
+  }
+  
+  return(x)
+}
+
+ou<-replicate(n=10, ornstein_uhlenbeck(T=1,n=100,theta=1,sigma=0.5, x0=2, lens=100,mu=10,rnorm(n = 100 , sd = sqrt(1/100))))
+tim<-replicate(n=10,times)
+ous = ncol(ou)
+
+for (i in 1:ous) {
+  if (i == 1){
+    plot(ou[,1], col=rainbow(1)[1], type = "l",
+         ylim = c(min(ou), max(ou)),
+         xlab = 'Time points', ylab = expression(X(t)),main="Ornstein Uhlenbeck process Monte Carlo tirals")
+  }
+  else{
+    lines(ou[,i], col=rainbow(9)[i-1])
+  }
+}
+
+```
+```{r}
+#OU generation method 1-web check 2
+#simulate 50 paths on interval [0,5] with 100 ts points
+rm(list=ls())
+require(deSolve)
+# set.seed(541)
+tims=5
+times<-seq(0.05,5,5/100) 
+
+e <- rnorm(n = 100 ,mean=0, sd = sqrt(5/100))
+plot(e,type='l')
+
+ornstein_uhlenbeck <- function(T,n,theta,sigma,x0,lens,mu,e){
+  dt <- T/n
+  x<-vector(length=lens)
+  for (i in 1:n) {
+    if (i==1){x[i]=x0}
+    else{
+      x[i]  <-  x[i-1] + theta*(mu-x[i-1])*dt + sigma*e[i-1]}
+  }
+  
+  return(x)
+}
+
+ou<-replicate(n=50, ornstein_uhlenbeck(T=5,n=100,theta=1,sigma=0.5, x0=2, lens=100,mu=10,rnorm(n = 100 , sd = sqrt(5/100))))
+tim<-replicate(n=50,times)
+ous = ncol(ou)
+
+for (i in 1:ous) {
+  if (i == 1){
+    plot(ou[,1], col=rainbow(1)[1], type = "l",
+         ylim = c(min(ou), max(ou)),
+         xlab = 'Time points', ylab = expression(X(t)),main="Ornstein Uhlenbeck process Monte Carlo tirals")
+  }
+  else{
+    lines(ou[,i], col = rainbow(49)[i-1])
+  }
+}
+# for (i in 1:ous) {
+#   if (i == 1){
+#     plot(ou[,1], col="darkseagreen", type = "l",
+#          ylim = c(min(ou), max(ou)),
+#          xlab = 'Time points', ylab = expression(X(t)),main="Ornstein Uhlenbeck process Monte Carlo tirals")
+#   }
+#   else{
+#     lines(ou[,i], col="darkseagreen")
+#   }
+# }
+```
+```{r}
+#OU generation method 1-web check 3-long term behaviour
+#simulate 100 paths on interval [0,1] with 100 ts points
+rm(list=ls())
+require(deSolve)
+# set.seed(541)
+tims=1
+times<-seq(0.01,1,1/100) 
+
+e <- rnorm(n = 100 ,mean=0, sd = sqrt(1/100))
+plot(e,type='l')
+
+ornstein_uhlenbeck <- function(T,n,theta,sigma,x0,lens,mu,e){
+  dt <- T/n
+  x<-vector(length=lens)
+  for (i in 1:n) {
+    if (i==1){x[i]=x0}
+    else{
+      x[i]  <-  x[i-1] + theta*(mu-x[i-1])*dt + sigma*e[i-1]}
+  }
+  
+  return(x)
+}
+
+ou<-replicate(n=100, ornstein_uhlenbeck(T=1,n=100,theta=1,sigma=2, x0=1, lens=100,mu=10,rnorm(n = 100 , sd = sqrt(1/100))))
+tim<-replicate(n=10,times)
+ous = ncol(ou)
+ou_mean=apply(ou,1,mean)
+for (i in 1:ous) {
+  if (i == 1){
+    plot(ou[,1], col=rainbow(1)[1], type = "l",
+         ylim = c(min(ou), max(ou)),
+         xlab = 'Time points', ylab = expression(X(t)),main="Ornstein Uhlenbeck process Monte Carlo tirals")
+  }
+  else{
+    lines(ou[,i], col=rainbow(99)[i-1])
+  }
+  lines(ou_mean,col="black",type="l")
+  # lines(ou_mean,col="black",lty="dotdash")
+}
+
+#OU generation method 1-web check 3.continue-long term behaviour
+#simulate 100 paths on interval [0,15] with 100 ts points
+tims=15
+times<-seq(0.15,15,15/100) 
+
+e <- rnorm(n = 100 ,mean=0, sd = sqrt(15/100))
+plot(e,type='l')
+
+ornstein_uhlenbeck <- function(T,n,theta,sigma,x0,lens,mu,e){
+  dt <- T/n
+  x<-vector(length=lens)
+  for (i in 1:n) {
+    if (i==1){x[i]=x0}
+    else{
+      x[i]  <-  x[i-1] + theta*(mu-x[i-1])*dt + sigma*e[i-1]}
+  }
+  
+  return(x)
+}
+
+ou<-replicate(n=100, ornstein_uhlenbeck(T=15,n=100,theta=1,sigma=2, x0=1, lens=100,mu=10,rnorm(n = 100 , sd = sqrt(15/100))))
+ous = ncol(ou)
+ou_mean=apply(ou,1,mean)
+for (i in 1:ous) {
+  if (i == 1){
+    plot(ou[,1], col=rainbow(1)[1], type = "l",
+         ylim = c(min(ou), max(ou)),
+         xlab = 'Time points', ylab = expression(X(t)),main="Ornstein Uhlenbeck process Monte Carlo tirals")
+  }
+  else{
+    lines(ou[,i], col=rainbow(99)[i-1])
+  }
+  lines(ou_mean,col="black",type="l")
+  # lines(ou_mean,col="black",lty="dotdash")
+}
+```
+
+```{r}
+#OU generation method 1-web check 4-Parameter theta impact on the speed of convergence
+#exp1: fast converging 
+#simulate 100 paths on interval [0,1] with 100 ts points: theta=5
+rm(list=ls())
+require(deSolve)
+# set.seed(541)
+tims=1
+times<-seq(0.01,1,1/100) 
+
+e <- rnorm(n = 100 ,mean=0, sd = sqrt(1/100))
+plot(e,type='l')
+
+ornstein_uhlenbeck <- function(T,n,theta,sigma,x0,lens,mu,e){
+  dt <- T/n
+  x<-vector(length=lens)
+  for (i in 1:n) {
+    if (i==1){x[i]=x0}
+    else{
+      x[i]  <-  x[i-1] + theta*(mu-x[i-1])*dt + sigma*e[i-1]}
+  }
+  
+  return(x)
+}
+
+ou<-replicate(n=100, ornstein_uhlenbeck(T=1,n=100,theta=5,sigma=2, x0=1, lens=100,mu=10,rnorm(n = 100 , sd = sqrt(1/100))))
+ous = ncol(ou)
+ou_mean=apply(ou,1,mean)
+for (i in 1:ous) {
+  if (i == 1){
+    plot(ou[,1], col=rainbow(1)[1], type = "l",
+         ylim = c(min(ou), max(ou)),
+         xlab = 'Time points', ylab = expression(X(t)),main=TeX(r"(Fast converging OU process with $\theta=5, T=1)"))
+  }
+  else{
+    lines(ou[,i], col=rainbow(99)[i-1])
+  }
+  lines(ou_mean,col="black",type="l")
+  # lines(ou_mean,col="black",lty="dotdash")
+}
+
+#exp2: slow converging 
+#simulate 100 paths on interval [0,1] with 100 ts points: theta=0.1
+
+tims=50
+times<-seq(0.5,50,50/100) 
+
+ornstein_uhlenbeck <- function(T,n,theta,sigma,x0,lens,mu,e){
+  dt <- T/n
+  x<-vector(length=lens)
+  for (i in 1:n) {
+    if (i==1){x[i]=x0}
+    else{
+      x[i]  <-  x[i-1] + theta*(mu-x[i-1])*dt + sigma*e[i-1]}
+  }
+  
+  return(x)
+}
+
+ou<-replicate(n=100, ornstein_uhlenbeck(T=50,n=100,theta=0.1,sigma=2, x0=1, lens=100,mu=10,rnorm(n = 100 , sd = sqrt(50/100))))
+ous = ncol(ou)
+ou_mean=apply(ou,1,mean)
+for (i in 1:ous) {
+  if (i == 1){
+    plot(ou[,1], col=rainbow(1)[1], type = "l",
+         ylim = c(min(ou), max(ou)),
+         xlab = 'Time points', ylab = expression(X(t)),main=TeX(r"(Slow converging OU process with $\theta=0.1, T=50)"))
+  }
+  else{
+    lines(ou[,i], col=rainbow(99)[i-1])
+  }
+  lines(ou_mean,col="black",type="l")
+  # lines(ou_mean,col="black",lty="dotdash")
+}
+
+```
+
+```{r}
+#OU generation method 1-web check 5-Parameter sigma impact on the simulation volatility
+#exp1: smaller variability
+#simulate 100 paths on interval [0,1] with 100 ts points: sigma=0.5
+rm(list=ls())
+require(deSolve)
+# set.seed(541)
+tims=1
+times<-seq(0.01,1,1/100) 
+
+e <- rnorm(n = 100 ,mean=0, sd = sqrt(1/100))
+plot(e,type='l')
+
+ornstein_uhlenbeck <- function(T,n,theta,sigma,x0,lens,mu,e){
+  dt <- T/n
+  x<-vector(length=lens)
+  for (i in 1:n) {
+    if (i==1){x[i]=x0}
+    else{
+      x[i]  <-  x[i-1] + theta*(mu-x[i-1])*dt + sigma*e[i-1]}
+  }
+  
+  return(x)
+}
+
+ou<-replicate(n=100, ornstein_uhlenbeck(T=1,n=100,theta=1,sigma=0.5, x0=1, lens=100,mu=10,rnorm(n = 100 , sd = sqrt(1/100))))
+ous = ncol(ou)
+ou_mean=apply(ou,1,mean)
+for (i in 1:ous) {
+  if (i == 1){
+    plot(ou[,1], col=rainbow(1)[1], type = "l",
+         ylim = c(min(ou), max(ou)),
+         xlab = 'Time points', ylab = expression(X(t)),main=TeX(r"(Smaller volatility OU process with $\sigma=0.5)"))
+  }
+  else{
+    lines(ou[,i], col=rainbow(99)[i-1])
+  }
+  lines(ou_mean,col="black",type="l")
+  # lines(ou_mean,col="black",lty="dotdash")
+}
+
+#exp2: larger variability
+#simulate 100 paths on interval [0,1] with 100 ts points: sigma=5
+# set.seed(541)
+tims=1
+
+ornstein_uhlenbeck <- function(T,n,theta,sigma,x0,lens,mu,e){
+  dt <- T/n
+  x<-vector(length=lens)
+  for (i in 1:n) {
+    if (i==1){x[i]=x0}
+    else{
+      x[i]  <-  x[i-1] + theta*(mu-x[i-1])*dt + sigma*e[i-1]}
+  }
+  
+  return(x)
+}
+
+ou<-replicate(n=100, ornstein_uhlenbeck(T=1,n=100,theta=1,sigma=5, x0=1, lens=100,mu=10,rnorm(n = 100 , sd = sqrt(1/100))))
+ous = ncol(ou)
+ou_mean=apply(ou,1,mean)
+for (i in 1:ous) {
+  if (i == 1){
+    plot(ou[,1], col=rainbow(1)[1], type = "l",
+         ylim = c(min(ou), max(ou)),
+         xlab = 'Time points', ylab = expression(X(t)),main=TeX(r"(Larger volatility OU process with $\sigma=5)"))
+  }
+  else{
+    lines(ou[,i], col=rainbow(99)[i-1])
+  }
+  lines(ou_mean,col="black",type="l")
+  # lines(ou_mean,col="black",lty="dotdash")
+}
+
+```
+```{r}
+#OU generation method 1-web further visualisation 
+rm(list=ls())
+require(deSolve)
+# set.seed(541)
+tims=20
+times<-seq(0.1,20,20/200) 
+
+e <- rnorm(n = 200 ,mean=0, sd = sqrt(20/200))
+plot(e,type='l')
+
+ornstein_uhlenbeck <- function(T,n,theta,sigma,x0,lens,mu,e){
+  dt <- T/n
+  x<-vector(length=lens)
+  for (i in 1:n) {
+    if (i==1){x[i]=x0}
+    else{
+      x[i]  <-  x[i-1] + theta*(mu-x[i-1])*dt + sigma*e[i-1]}
+  }
+  
+  return(x)
+}
+
+ou<-replicate(n=200, ornstein_uhlenbeck(T=20,n=200,theta=0.5,sigma=2, x0=1, lens=200,mu=-10,rnorm(n = 200 , sd = sqrt(20/200))))
+ous = ncol(ou)
+ou_mean=apply(ou,1,mean)
+for (i in 1:ous) {
+  if (i == 1){
+    plot(ou[,1], col=rainbow(1)[1], type = "l",
+         ylim = c(min(ou), max(ou)),
+         xlab = 'Time points', ylab = expression(X(t)),main=TeX(r"(Negative mean reversion OU process with $\mu=-10)"))
+  }
+  else{
+    lines(ou[,i], col=rainbow(199)[i-1])
+  }
+  lines(ou_mean,col="black",type="l")
+  # lines(ou_mean,col="black",lty="dotdash")
+}
+```
+
+
+```{r}
+#Generating OU process-method 2: use sde solution to construct OU process
+
+rm(list=ls())
+set.seed(533)
+ornstein_uhlenbeck2<- function(T,x0,theta,mu,sigma,dt){
+  
+  x<-vector(length=T)
+  for (i in 1:T){
+    if (i==1){x[i]=x0*exp(-theta*dt*i)+mu[dt*i]*(1-exp(-theta*dt*i))+
+    sigma*sqrt((1-exp(-2*theta*dt*i))/(2*theta))*rnorm(1,0,1)}
+    else{
+  x[i] = x[i-1]*exp(-theta*dt)+mu[dt*i]*(1-exp(-theta*dt))+
+    sigma*sqrt((1-exp(-2*theta*dt))/(2*theta))*rnorm(1,0,1)
+    }
+  }
+  return(x)
+}
+
+tims=365
+times = 1:tims
+  
+  mu = vector(length=tims) 
+  for (t in 1:tims) {
+    if (t <= 120){
+      mu[t]=-0.02      }                    #No lock-down policy
+    else {mu[t]=-0.2-0.02 }                 #Lock-down policy
+  }
+mu = ts(mu)
+plot(mu,type='l')
+# ornstein_uhlenbeck2(x0=0,theta=0.05,mu,sigma=sqrt(0.004),dt=1)
+
+x = ornstein_uhlenbeck2(T=tims,x0=0,theta=0.05,mu,sigma=sqrt(0.004),dt=1)
+
+plot(x,type='p',ylab=TeX(r"(OU process $X_{t}$)"),xlab="Time",col="darkred",main=TeX(r"(Generated OU process: $\theta=0.05$, $sigma=sqrt(0.004)$, $x_{0}=0$)"))
+  lines(x,col="darkblue")
+beta<- exp(x)
+plot(beta,type='p',ylab=TeX(r"(Transmission rate $\beta$)"),xlab="time",col="darkred",main="COVIDOU model generated transmission rate")
+lines(beta,col="darkblue")
+
+```
+
+```{r}
+#OU generation method 2-general case web check 1
+#simulate 10 paths on interval [0,1] with 100 ts points
+rm(list=ls())
+require(deSolve)
+# set.seed(541)
+tims=1
+times<-seq(0.01,1,1/100) 
+
+#Now mu is fixed and T represents the time series points number n, in this case n=100
+ornstein_uhlenbeck2<- function(T,x0,theta,mu,sigma,dt){
+  
+  x<-vector(length=T)
+  for (i in 1:T){
+    if (i==1){x[i]=x0*exp(-theta*dt*i)+mu*(1-exp(-theta*dt*i))+
+    sigma*sqrt((1-exp(-2*theta*dt*i))/(2*theta))*rnorm(1,0,1)}
+    else{
+  x[i] = x[i-1]*exp(-theta*dt)+mu*(1-exp(-theta*dt))+
+    sigma*sqrt((1-exp(-2*theta*dt))/(2*theta))*rnorm(1,0,1)
+    }
+  }
+  return(x)
+}
+
+
+ou<-replicate(n=10, ornstein_uhlenbeck2(T=100,x0=2,theta=1,mu=10,sigma=0.5,dt=0.01))
+ous = ncol(ou)
+
+for (i in 1:ous) {
+  if (i == 1){
+    plot(ou[,1], col=rainbow(1)[1], type = "l",
+         ylim = c(min(ou), max(ou)),
+         xlab = 'Time points', ylab = expression(X(t)),main="Ornstein Uhlenbeck process Monte Carlo tirals")
+  }
+  else{
+    lines(ou[,i], col=rainbow(9)[i-1])
+  }
+}
+```
+
+```{r}
+#OU generation method 2-general case web check 2
+#simulate 50 paths on interval [0,5] with 100 ts points
+rm(list=ls())
+require(deSolve)
+# set.seed(541)
+tims=5
+times<-seq(0.05,5,5/100) 
+
+#Now mu is fixed and T represents the time series points number n, in this case n=100
+ornstein_uhlenbeck2<- function(T,x0,theta,mu,sigma,dt){
+  
+  x<-vector(length=T)
+  for (i in 1:T){
+    if (i==1){x[i]=x0*exp(-theta*dt*i)+mu*(1-exp(-theta*dt*i))+
+    sigma*sqrt((1-exp(-2*theta*dt*i))/(2*theta))*rnorm(1,0,1)}
+    else{
+  x[i] = x[i-1]*exp(-theta*dt)+mu*(1-exp(-theta*dt))+
+    sigma*sqrt((1-exp(-2*theta*dt))/(2*theta))*rnorm(1,0,1)
+    }
+  }
+  return(x)
+}
+
+
+ou<-replicate(n=50, ornstein_uhlenbeck2(T=100,x0=2,theta=1,mu=10,sigma=0.5,dt=0.05))
+ous = ncol(ou)
+
+for (i in 1:ous) {
+  if (i == 1){
+    plot(ou[,1], col=rainbow(1)[1], type = "l",
+         ylim = c(min(ou), max(ou)),
+         xlab = 'Time points', ylab = expression(X(t)),main="Ornstein Uhlenbeck process Monte Carlo tirals")
+  }
+  else{
+    lines(ou[,i], col=rainbow(49)[i-1])
+  }
+}
+```
+
+```{r}
+#OU generation method 2-web check 3: long term behaviour
+#simulate 100 paths on interval [0,1] with 100 ts points
+rm(list=ls())
+require(deSolve)
+# set.seed(541)
+tims=1
+times<-seq(0.01,1,1/100) 
+#Now mu is fixed and T represents the time series points number n, in this case n=100
+ornstein_uhlenbeck2<- function(T,x0,theta,mu,sigma,dt){
+  
+  x<-vector(length=T)
+  for (i in 1:T){
+    if (i==1){x[i]=x0*exp(-theta*dt*i)+mu*(1-exp(-theta*dt*i))+
+    sigma*sqrt((1-exp(-2*theta*dt*i))/(2*theta))*rnorm(1,0,1)}
+    else{
+  x[i] = x[i-1]*exp(-theta*dt)+mu*(1-exp(-theta*dt))+
+    sigma*sqrt((1-exp(-2*theta*dt))/(2*theta))*rnorm(1,0,1)
+    }
+  }
+  return(x)
+}
+
+
+ou<-replicate(n=100, ornstein_uhlenbeck2(T=100,x0=2,theta=1,mu=10,sigma=2,dt=0.01))
+ous = ncol(ou)
+ou_mean=apply(ou,1,mean)
+for (i in 1:ous) {
+  if (i == 1){
+    plot(ou[,1], col=rainbow(1)[1], type = "l",
+         ylim = c(min(ou), max(ou)),
+         xlab = 'Time points', ylab = expression(X(t)),main="Ornstein Uhlenbeck process Monte Carlo tirals")
+  }
+  else{
+    lines(ou[,i], col=rainbow(99)[i-1])
+  }
+  lines(ou_mean,col="black",type="l")
+  # lines(ou_mean,col="black",lty="dotdash")
+}
+#OU generation method 1-web check 3.continue-long term behaviour
+#simulate 100 paths on interval [0,15] with 100 ts points
+tims=15
+times<-seq(0.15,15,15/100) 
+ornstein_uhlenbeck2<- function(T,x0,theta,mu,sigma,dt){
+  
+  x<-vector(length=T)
+  for (i in 1:T){
+    if (i==1){x[i]=x0*exp(-theta*dt*i)+mu*(1-exp(-theta*dt*i))+
+    sigma*sqrt((1-exp(-2*theta*dt*i))/(2*theta))*rnorm(1,0,1)}
+    else{
+  x[i] = x[i-1]*exp(-theta*dt)+mu*(1-exp(-theta*dt))+
+    sigma*sqrt((1-exp(-2*theta*dt))/(2*theta))*rnorm(1,0,1)
+    }
+  }
+  return(x)
+}
+
+
+ou<-replicate(n=100, ornstein_uhlenbeck2(T=100,x0=2,theta=1,mu=10,sigma=2,dt=0.15))
+ous = ncol(ou)
+ou_mean=apply(ou,1,mean)
+for (i in 1:ous) {
+  if (i == 1){
+    plot(ou[,1], col=rainbow(1)[1], type = "l",
+         ylim = c(min(ou), max(ou)),
+         xlab = 'Time points', ylab = expression(X(t)),main="Ornstein Uhlenbeck process Monte Carlo tirals")
+  }
+  else{
+    lines(ou[,i], col=rainbow(99)[i-1])
+  }
+  lines(ou_mean,col="black",type="l")
+  # lines(ou_mean,col="black",lty="dotdash")
+}
+
+```
+
+```{r}
+#OU generation method 1-web further visualisation 
+rm(list=ls())
+require(deSolve)
+# set.seed(541)
+tims=20
+times<-seq(0.1,20,20/200) 
+#Now mu is fixed and T represents the time series points number n, in this case n=100
+ornstein_uhlenbeck2<- function(T,x0,theta,mu,sigma,dt){
+  
+  x<-vector(length=T)
+  for (i in 1:T){
+    if (i==1){x[i]=x0*exp(-theta*dt*i)+mu*(1-exp(-theta*dt*i))+
+    sigma*sqrt((1-exp(-2*theta*dt*i))/(2*theta))*rnorm(1,0,1)}
+    else{
+  x[i] = x[i-1]*exp(-theta*dt)+mu*(1-exp(-theta*dt))+
+    sigma*sqrt((1-exp(-2*theta*dt))/(2*theta))*rnorm(1,0,1)
+    }
+  }
+  return(x)
+}
+
+
+ou<-replicate(n=200, ornstein_uhlenbeck2(T=200,x0=1,theta=0.5,mu=-10,sigma=2,dt=0.1))
+ous = ncol(ou)
+ou_mean=apply(ou,1,mean)
+for (i in 1:ous) {
+  if (i == 1){
+    plot(ou[,1], col=rainbow(1)[1], type = "l",
+         ylim = c(min(ou), max(ou)),
+         xlab = 'Time points', ylab = expression(X(t)),main=TeX(r"(Negative mean reversion OU process with $\mu=-10)"))
+  }
+  else{
+    lines(ou[,i], col=rainbow(199)[i-1])
+  }
+  lines(ou_mean,col="black",type="l")
+  # lines(ou_mean,col="black",lty="dotdash")
+}
+```
+
+
+```{r}
+#Covid OU full model data generation-method 1-lognormal distribution
+rm(list=ls())
+require(deSolve)
+set.seed(533) #533 536
+
+N=52196381
+
+#Simulate an O-U Process
+ornstein_uhlenbeck <- function(n,theta,sigma,x0,lens,mu,e){
+  dt <- 1
+  x<-vector(length=lens)
+  for (i in 1:n) {
+    if (i==1){x[i]=x0}
+    else{
+      x[i]  <-  x[i-1] + theta*(mu[i-1]-x[i-1])*dt + sigma*e[i-1]}
+  }
+  
+  return(x)
+}
+tims=365
+times = 1:tims
+  
+  mu = vector(length=tims) 
+  for (t in 1:tims) {
+    if (t <= 120){
+      mu[t]=-0.02      }                    #No lock-down policy
+    else {mu[t]=-0.2-0.02 }                 #Lock-down policy
+  }
+  mu = ts(mu)
+  plot(mu,type='l')
+  e = rnorm(n = length(times) , sd = 1)
+  plot(e,type='l')
+  x = ornstein_uhlenbeck(tims, theta=0.05, sigma=sqrt(0.004), x0=0, tims,mu,e)
+  plot(x,type='p',ylab=TeX(r"(OU process $X_{t}$)"),xlab="Time",col="darkred",main=TeX(r"(Generated OU process: $\theta=0.05$, $sigma=sqrt(0.004)$, $x_{0}=0$)"))
+  lines(x,col="darkblue")
+beta<- exp(x)
+plot(beta,type='p',ylab=TeX(r"(Transmission rate $\beta$)"),xlab="time",col="darkred",main="COVIDOU model generated transmission rate")
+lines(beta,col="darkblue")
+abline(v=121, col="red")
+axis(1, at=121,labels=121, col.axis="red", las=2)
+tt1 <-expression('lockdown policy start')
+text(80,0.6,tt1,col="red")
+#Main ODE Model
+  Covid_OU <- function(time, current_state, params){
+    
+    with(as.list(c(current_state, params)),{
+      
+      N <- S+E+I+R
+      dt <- 1
+      dS <- -exp(x[t])*S*(E+0.1*I)/N
+      dE <- exp(x[t])*S*(E+0.1*I)/N - E*(1/k+1/gamma)
+      dI <- E/k-I*(1/gamma+0.0087)
+      dR <- (I+E)/gamma+0.0087*I
+      
+      return(list(c( dt, dS, dE, dI, dR)))
+    })
+  }
+params <- c(k=2, gamma=9,x=x)   #Trial: k=5 & gamma=5; k=7 & gamma=5
+
+# initial_state<- c(t=1, S=S, E=E, I=I, R=R)
+initial_state <- c(t=1,S=N-1, E=1, I=0, R=0)
+model4 <- ode(initial_state, times, Covid_OU, params)
+
+summary(model4)
+
+
+matplot(model4, type="l", lty=1, main="Generated COVID_OU Model Trajectories",ylab="Counts", xlab="Time")
+legend <- colnames(model4)[3:6]
+legend("right", legend=legend, col=3:6, lty = 1)
+Z1 <-model4[,4]/2
+
+tau1 <- 0.1
+Y1 <-vector(length = 365)
+for (i in 1:365){
+  #Y1[i]<- rlnorm(1,log(Z1[i,]/5),tau1)
+  Y1[i]<- rlnorm(1,log(Z1[i]/5),tau1)
+}
+
+plot(Y1,type='p',ylab="Daily incidence Y",xlab="time",col="darkred",main="Covid_OU model generated observation with Lognormal distribution")
+lines(Y1,col="darkblue")  
+```
+
+
+```{r}
+#Covid OU full model data generation-method 1-Poisson distribution
+rm(list=ls())
+require(deSolve)
+set.seed(533) #533 536
+
+N=52196381
+
+#Simulate an O-U Process
+ornstein_uhlenbeck <- function(n,theta,sigma,x0,lens,mu,e){
+  dt <- 1
+  x<-vector(length=lens)
+  for (i in 1:n) {
+    if (i==1){x[i]=x0}
+    else{
+      x[i]  <-  x[i-1] + theta*(mu[i-1]-x[i-1])*dt + sigma*e[i-1]}
+  }
+  
+  return(x)
+}
+tims=365
+times = 1:tims
+  
+  mu = vector(length=tims) 
+  for (t in 1:tims) {
+    if (t <= 120){
+      mu[t]=-0.02      }                    #No lock-down policy
+    else {mu[t]=-0.2-0.02 }                 #Lock-down policy
+  }
+  mu = ts(mu)
+  plot(mu,type='l')
+  e = rnorm(n = length(times) , sd = 1)
+  plot(e,type='l')
+  x = ornstein_uhlenbeck(tims, theta=0.05, sigma=sqrt(0.004), x0=0, tims,mu,e)
+  plot(x,type='p',ylab=TeX(r"(OU process $X_{t}$)"),xlab="Time",col="darkred",main=TeX(r"(Generated OU process: $\theta=0.05$, $sigma=sqrt(0.004)$, $x_{0}=0$)"))
+  lines(x,col="darkblue")
+beta<- exp(x)
+plot(beta,type='p',ylab=TeX(r"(Transmission rate $\beta$)"),xlab="time",col="darkred",main="COVIDOU model generated transmission rate")
+lines(beta,col="darkblue")
+abline(v=121, col="red")
+axis(1, at=121,labels=121, col.axis="red", las=2)
+tt1 <-expression('lockdown policy start')
+text(80,0.6,tt1,col="red")
+#Main ODE Model
+  Covid_OU <- function(time, current_state, params){
+    
+    with(as.list(c(current_state, params)),{
+      
+      N <- S+E+I+R
+      dt <- 1
+      dS <- -exp(x[t])*S*(E+0.1*I)/N
+      dE <- exp(x[t])*S*(E+0.1*I)/N - E*(1/k+1/gamma)
+      dI <- E/k-I*(1/gamma+0.0087)
+      dR <- (I+E)/gamma+0.0087*I
+      
+      return(list(c( dt, dS, dE, dI, dR)))
+    })
+  }
+params <- c(k=2, gamma=9,x=x)   #Trial: k=5 & gamma=5; k=7 & gamma=5
+
+# initial_state<- c(t=1, S=S, E=E, I=I, R=R)
+initial_state <- c(t=1,S=N-1, E=1, I=0, R=0)
+model4 <- ode(initial_state, times, Covid_OU, params)
+
+summary(model4)
+
+
+matplot(model4, type="l", lty=1, main="Generated COVID_OU Model Trajectories",ylab="Counts", xlab="Time")
+legend <- colnames(model4)[3:6]
+legend("right", legend=legend, col=3:6, lty = 1)
+Z1 <-model4[,4]/2
+
+
+Y1 <-vector(length = 365)
+for (i in 1:365){
+ Y1[i]<- rpois(1,Z1[i]/5)
+}
+
+plot(Y1,type='p',ylab="Daily incidence Y",xlab="time",col="darkred",main="Covid_OU model generated observation with Poisson distribution")
+lines(Y1,col="darkblue")  
+```
+
+```{r}
+#Covid OU full model data generation-method 2-lognormal distribution
+rm(list=ls())
+require(deSolve)
+set.seed(533) #533 536
+
+N=52196381
+
+#Simulate an O-U Process
+ornstein_uhlenbeck2<- function(T,x0,theta,mu,sigma,dt){
+  
+  x<-vector(length=T)
+  for (i in 1:T){
+    if (i==1){x[i]=x0*exp(-theta*dt*i)+mu[dt*i]*(1-exp(-theta*dt*i))+
+    sigma*sqrt((1-exp(-2*theta*dt*i))/(2*theta))*rnorm(1,0,1)}
+    else{
+  x[i] = x[i-1]*exp(-theta*dt)+mu[dt*i]*(1-exp(-theta*dt))+
+    sigma*sqrt((1-exp(-2*theta*dt))/(2*theta))*rnorm(1,0,1)
+    }
+  }
+  return(x)
+}
+tims=365
+times = 1:tims
+  
+  mu = vector(length=tims) 
+  for (t in 1:tims) {
+    if (t <= 120){
+      mu[t]=-0.02      }                    #No lock-down policy
+    else {mu[t]=-0.2-0.02 }                 #Lock-down policy
+  }
+  mu = ts(mu)
+  plot(mu,type='l')
+  e = rnorm(n = length(times) , sd = 1)
+  plot(e,type='l')
+  x = ornstein_uhlenbeck2(T=tims,x0=0,theta=0.05,mu,sigma=sqrt(0.004),dt=1)
+  plot(x,type='p',ylab=TeX(r"(OU process $X_{t}$)"),xlab="Time",col="darkred",main=TeX(r"(Generated OU process: $\theta=0.05$, $sigma=sqrt(0.004)$, $x_{0}=0$)"))
+  lines(x,col="darkblue")
+beta<- exp(x)
+plot(beta,type='p',ylab=TeX(r"(Transmission rate $\beta$)"),xlab="time",col="darkred",main="COVIDOU model generated transmission rate")
+lines(beta,col="darkblue")
+abline(v=121, col="red")
+axis(1, at=121,labels=121, col.axis="red", las=2)
+tt1 <-expression('lockdown policy start')
+text(80,0.6,tt1,col="red")
+#Main ODE Model
+  Covid_OU <- function(time, current_state, params){
+    
+    with(as.list(c(current_state, params)),{
+      
+      N <- S+E+I+R
+      dt <- 1
+      dS <- -exp(x[t])*S*(E+0.1*I)/N
+      dE <- exp(x[t])*S*(E+0.1*I)/N - E*(1/k+1/gamma)
+      dI <- E/k-I*(1/gamma+0.0087)
+      dR <- (I+E)/gamma+0.0087*I
+      
+      return(list(c( dt, dS, dE, dI, dR)))
+    })
+  }
+params <- c(k=2, gamma=9,x=x)   #Trial: k=5 & gamma=5; k=7 & gamma=5
+
+# initial_state<- c(t=1, S=S, E=E, I=I, R=R)
+initial_state <- c(t=1,S=N-1, E=1, I=0, R=0)
+model4 <- ode(initial_state, times, Covid_OU, params)
+
+summary(model4)
+
+
+matplot(model4, type="l", lty=1, main="Generated COVID_OU Model Trajectories",ylab="Counts", xlab="Time")
+legend <- colnames(model4)[3:6]
+legend("right", legend=legend, col=3:6, lty = 1)
+Z1 <-model4[,4]/2
+
+tau1 <- 0.1
+Y1 <-vector(length = 365)
+for (i in 1:365){
+  #Y1[i]<- rlnorm(1,log(Z1[i,]/5),tau1)
+  Y1[i]<- rlnorm(1,log(Z1[i]/5),tau1)
+}
+
+plot(Y1,type='p',ylab="Daily incidence Y",xlab="time",col="darkred",main="Covid_OU model generated observation with Lognormal distribution")
+lines(Y1,col="darkblue")  
+```
+
+```{r}
+#Covid OU full model data generation-method 2-Poisson distribution
+rm(list=ls())
+require(deSolve)
+set.seed(533) #533 536
+
+N=52196381
+
+#Simulate an O-U Process
+ornstein_uhlenbeck2<- function(T,x0,theta,mu,sigma,dt){
+  
+  x<-vector(length=T)
+  for (i in 1:T){
+    if (i==1){x[i]=x0*exp(-theta*dt*i)+mu[dt*i]*(1-exp(-theta*dt*i))+
+    sigma*sqrt((1-exp(-2*theta*dt*i))/(2*theta))*rnorm(1,0,1)}
+    else{
+  x[i] = x[i-1]*exp(-theta*dt)+mu[dt*i]*(1-exp(-theta*dt))+
+    sigma*sqrt((1-exp(-2*theta*dt))/(2*theta))*rnorm(1,0,1)
+    }
+  }
+  return(x)
+}
+tims=365
+times = 1:tims
+  
+  mu = vector(length=tims) 
+  for (t in 1:tims) {
+    if (t <= 120){
+      mu[t]=-0.02      }                    #No lock-down policy
+    else {mu[t]=-0.2-0.02 }                 #Lock-down policy
+  }
+  mu = ts(mu)
+  plot(mu,type='l')
+  e = rnorm(n = length(times) , sd = 1)
+  plot(e,type='l')
+  x = ornstein_uhlenbeck2(T=tims,x0=0,theta=0.05,mu,sigma=sqrt(0.004),dt=1)
+  plot(x,type='p',ylab=TeX(r"(OU process $X_{t}$)"),xlab="Time",col="darkred",main=TeX(r"(Generated OU process: $\theta=0.05$, $sigma=sqrt(0.004)$, $x_{0}=0$)"))
+  lines(x,col="darkblue")
+beta<- exp(x)
+plot(beta,type='p',ylab=TeX(r"(Transmission rate $\beta$)"),xlab="time",col="darkred",main="COVIDOU model generated transmission rate")
+lines(beta,col="darkblue")
+abline(v=121, col="red")
+axis(1, at=121,labels=121, col.axis="red", las=2)
+tt1 <-expression('lockdown policy start')
+text(80,0.6,tt1,col="red")
+#Main ODE Model
+  Covid_OU <- function(time, current_state, params){
+    
+    with(as.list(c(current_state, params)),{
+      
+      N <- S+E+I+R
+      dt <- 1
+      dS <- -exp(x[t])*S*(E+0.1*I)/N
+      dE <- exp(x[t])*S*(E+0.1*I)/N - E*(1/k+1/gamma)
+      dI <- E/k-I*(1/gamma+0.0087)
+      dR <- (I+E)/gamma+0.0087*I
+      
+      return(list(c( dt, dS, dE, dI, dR)))
+    })
+  }
+params <- c(k=2, gamma=9,x=x)   #Trial: k=5 & gamma=5; k=7 & gamma=5
+
+# initial_state<- c(t=1, S=S, E=E, I=I, R=R)
+initial_state <- c(t=1,S=N-1, E=1, I=0, R=0)
+model4 <- ode(initial_state, times, Covid_OU, params)
+
+summary(model4)
+
+
+matplot(model4, type="l", lty=1, main="Generated COVID_OU Model Trajectories",ylab="Counts", xlab="Time")
+legend <- colnames(model4)[3:6]
+legend("right", legend=legend, col=3:6, lty = 1)
+Z1 <-model4[,4]/2
+
+Y1 <-vector(length = 365)
+for (i in 1:365){
+  #Y1[i]<- rlnorm(1,log(Z1[i,]/5),tau1)
+  Y1[i]<- rpois(1,Z1[i]/5)
+}
+
+plot(Y1,type='p',ylab="Daily incidence Y",xlab="time",col="darkred",main="Covid_OU model generated observation with Lognormal distribution")
+lines(Y1,col="darkblue")  
+```

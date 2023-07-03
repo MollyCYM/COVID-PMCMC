@@ -1,4 +1,20 @@
+---
+title: "Untitled"
+author: "-"
+date: "2023-06-14"
+output: 
+  word_document: 
+    fig_width: 8
+    fig_height: 6
+    fig_caption: yes
+---
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
 
 rm(list=ls())
 require(deSolve)
@@ -10,7 +26,7 @@ gen_ode_model <- function(rep_time = 200, ori_seed = 2023, tims = 365,
   
   times = 1:tims
   N = n
-  sigma <- 0.07
+  sigma <- 0.03 #tune sigma to 0: see if convergence or not
   
   H1N1 <- function(time, current_state, params){
     
@@ -33,6 +49,11 @@ gen_ode_model <- function(rep_time = 200, ori_seed = 2023, tims = 365,
   dIs = setNames(Zs, paste0("dI", 1:rep_time))
   dRs = setNames(Zs, paste0("dR", 1:rep_time)) 
   
+  ## add beta
+  betas = setNames(Zs, paste0("beta", 1:rep_time)) 
+  ## add e
+  es = setNames(Zs, paste0("e", 1:rep_time)) 
+  
   params = pars   
   initial_state = ini_state
   tau1 = tau
@@ -41,7 +62,7 @@ gen_ode_model <- function(rep_time = 200, ori_seed = 2023, tims = 365,
   ## rep 200 times 
   for (rep_i in 1:rep_time) {
     set.seed(ori_seed + 1000*rep_i)
-    beta = vector(length = tims)
+    
     e = rnorm(n = length(times)-1 , sd = 1)
     ## now compute their cumulative sum
     e = c(0, cumsum(e))
@@ -60,14 +81,22 @@ gen_ode_model <- function(rep_time = 200, ori_seed = 2023, tims = 365,
     dEi = model1[,4]
     dIi = model1[,5]
     dRi = model1[,6]
-    # print(Z1)
+    
+    
     Zs[, rep_i] = Z1
     Ys[, rep_i] = Y1
     dSs[, rep_i] = dSi
     dEs[, rep_i] = dEi
     dIs[, rep_i] = dIi
     dRs[, rep_i] = dRi
-    # beta[,rep_i] = beta
+    
+    ## add beta
+    
+    betas[, rep_i] = beta
+    
+    ## add e
+    
+    es[,rep_i] = e
   }
   
   # output
@@ -77,7 +106,9 @@ gen_ode_model <- function(rep_time = 200, ori_seed = 2023, tims = 365,
     dS = dSs,
     dE = dEs,
     dI = dIs,
-    dR = dRs))
+    dR = dRs,
+    beta = betas,
+    e = es))
 }
 
 ## simulation
@@ -100,27 +131,9 @@ initial_state <- c(t=1, S=S, E=E, I=I, R=R)
 ode_example <- gen_ode_model(rep_time = 200, ini_state = initial_state)
 
 
-set.seed(ori_seed + 1000*rep_i)
-beta = vector(length = tims)
-e = rnorm(n = length(times)-1 , sd = 1)
-## now compute their cumulative sum
-e = c(0, cumsum(e))
-beta = exp(sigma*e)
-matplot(xt_prior,type="l",lty=1,ylim=c(-3,3),ylab="hidden state",xlab="time")
-xt_prior<-apply(rbind(0,matrix(rnorm(10000,0,sig),4)),2,cumsum) #prior samples of xt
 
-## for beta
-# betas = ncol(ode_example$beta)
-# for (i in 1:betas) {
-#   if (i == 1){
-#     plot(ode_example$beta[,1], col="darkblue", type = "l", 
-#          ylim = c(0, max(ode_example$beta)),
-#          xlab = 'Times', ylab = 'beta')
-#   }
-#   else{
-#     lines(ode_example$beta[,i], col="darkblue")
-#   }
-# }
+
+
 
 ## for z
 
@@ -129,8 +142,8 @@ zs = ncol(ode_example$Z)
 for (i in 1:zs) {
   if (i == 1){
     plot(ode_example$Z[,1], col="darkblue", type = "l", 
-         ylim = c(0, max(ode_example$Z)),
-         xlab = 'Times', ylab = 'Z')
+         ylim = c(min(ode_example$Z), max(ode_example$Z)),
+         xlab = 'Times', ylab = 'Z',main="H1N1_bm model Monte Carlo tirals")
   }
   else{
     lines(ode_example$Z[,i], col="darkblue")
@@ -144,8 +157,8 @@ ys = ncol(ode_example$Y)
 for (i in 1:ys) {
   if (i == 1){
     plot(ode_example$Y[,1], col="darkred", type = "l", 
-         ylim = c(0, max(ode_example$Y)),
-         xlab = 'Times', ylab = 'Y')
+         ylim = c(min(ode_example$Y), max(ode_example$Y)),
+         xlab = 'Times', ylab = 'Y',main="H1N1_bm model Monte Carlo tirals")
   }
   else{
     lines(ode_example$Y[,i], col="darkred")
@@ -159,8 +172,8 @@ ss = ncol(ode_example$dS)
 for (i in 1:ss) {
   if (i == 1){
     plot(ode_example$dS[,1], col="skyblue", type = "l", 
-         ylim = c(0, max(ode_example$dS)),
-         xlab = 'Times', ylab = 'S')
+         ylim = c(min(ode_example$dS), max(ode_example$dS)),
+         xlab = 'Times', ylab = 'S',main="H1N1_bm model Monte Carlo tirals")
   }
   else{
     lines(ode_example$dS[,i], col="skyblue")
@@ -175,8 +188,8 @@ es = ncol(ode_example$dE)
 for (i in 1:es) {
   if (i == 1){
     plot(ode_example$dE[,1], col="yellow3", type = "l", 
-         ylim = c(0, max(ode_example$dE)),
-         xlab = 'Times', ylab = 'E')
+         ylim = c(min(ode_example$dE), max(ode_example$dE)),
+         xlab = 'Times', ylab = 'E',main="H1N1_bm model Monte Carlo tirals")
   }
   else{
     lines(ode_example$dE[,i], col="yellow3")
@@ -191,8 +204,8 @@ is = ncol(ode_example$dI)
 for (i in 1:is) {
   if (i == 1){
     plot(ode_example$dI[,1], col="pink3", type = "l", 
-         ylim = c(0, max(ode_example$dI)),
-         xlab = 'Times', ylab = 'I')
+         ylim = c(min(ode_example$dI), max(ode_example$dI)),
+         xlab = 'Times', ylab = 'I',main="H1N1_bm model Monte Carlo tirals")
   }
   else{
     lines(ode_example$dI[,i], col="pink3")
@@ -207,8 +220,8 @@ rs = ncol(ode_example$dR)
 for (i in 1:rs) {
   if (i == 1){
     plot(ode_example$dR[,1], col="darkgreen", type = "l", 
-         ylim = c(0, max(ode_example$dR)),
-         xlab = 'Times', ylab = 'R')
+         ylim = c(min(ode_example$dR), max(ode_example$dR)),
+         xlab = 'Times', ylab = 'R',main="H1N1_bm model Monte Carlo tirals")
   }
   else{
     lines(ode_example$dR[,i], col="darkgreen")
@@ -216,6 +229,40 @@ for (i in 1:rs) {
 }
 
 
+
+### add plot for beta
+
+
+
+## for beta
+
+betas = ncol(ode_example$beta)
+
+for (i in 1:betas) {
+  if (i == 1){
+    plot(ode_example$beta[,1], col="orange", type = "l", 
+         ylim = c(min(ode_example$beta), max(ode_example$beta)),
+         xlab = 'Times', ylab = expression(beta),main="H1N1_bm model Monte Carlo tirals")
+  }
+  else{
+    lines(ode_example$beta[,i], col="orange")
+  }
+}
+
+## for e=log(beta)=x
+
+es = ncol(ode_example$e)
+
+for (i in 1:es) {
+  if (i == 1){
+    plot(ode_example$e[,1], col="brown4", type = "l", 
+         ylim = c(min(ode_example$e), max(ode_example$e)),
+         xlab = 'Times', ylab = 'x',main="H1N1_bm model Monte Carlo tirals")
+  }
+  else{
+    lines(ode_example$e[,i], col="brown4")
+  }
+}
 
 ## for all
 
@@ -240,6 +287,21 @@ for (i in 1:ss) {
   lines(ode_example$dI[,i], col="pink")
   lines(ode_example$dR[,i], col="green")
 }
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

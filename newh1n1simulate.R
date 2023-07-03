@@ -20,6 +20,8 @@ plot(e,type='l')
 # write.csv(e,"simulateh1n1x2.csv")
 beta<- exp(sigma*e)
 plot(beta,type='l')
+plot(beta,type='p',ylab="Transmission rate beta",xlab="time",col="darkred",main="H1N1_BM model generated transmission rate")
+lines(beta,col="darkblue")
 # write.csv(beta,"simulateh1n1beta2.csv")
 
 H1N1 <- function(time, current_state, params){
@@ -61,7 +63,7 @@ model1 <- ode(initial_state, times, H1N1, params)
 
 summary(model1)
 
-matplot(model1, type="l", lty=1, main="H1N1-BM SEIR model", xlab="Time",ylab = "Counts")
+matplot(model1, type="l", lty=1, main="Generated H1N1_BM Model Trajectories", xlab="Time",ylab = "Counts")
 legend <- colnames(model1)[3:6]
 legend("right", legend=legend, col=3:6, lty = 1)
 
@@ -74,6 +76,7 @@ for (i in 1:365){
   Y1[i]<- rlnorm(1,log(Z1[i]/5),tau1)
 }
 plot(Y1,type='l',ylab="Y obs", xlab = "Time")
-lines(Z1)
-write.csv(Y1,"simh1n1Y2.csv")
-write.csv(model1,"simulateh1n1states2.csv")
+plot(Y1,type='p',ylab="Daily incidence Y",xlab="time",col="darkred",main="H1N1_BM model generated observation")
+lines(Y1,col="darkblue")
+# write.csv(Y1,"simh1n1Y2.csv")
+# write.csv(model1,"simulateh1n1states2.csv")

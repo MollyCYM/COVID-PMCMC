@@ -1,0 +1,755 @@
+---
+title: "H1N1_BM Model Data Generation"
+author: "Molly Cui"
+date: "2023-06-26"
+output: html_document
+---
+
+
+```{r}
+#Use log_normal obs dis-method 1
+rm(list=ls())
+require(deSolve)
+set.seed(5204) 
+times <- 1:365
+sigma=0.07
+## first, simulate a set of random deviates
+# e <- rnorm(n = length(times) , sd = 1)
+e <- rnorm(n = length(times) ,mean=0, sd = 1)
+plot(e,type='l')
+ornstein_uhlenbeck <- function(n,x0,lens,e){
+  dt <- 1
+  x<-vector(length=lens)
+  for (i in 1:n) {
+    if (i==1){x[i]=x0}
+    else{
+      x[i]  <-  x[i-1] + e[i-1]}
+  }
+  
+  return(x)
+}
+tims=365
+times = 1:tims
+x = ornstein_uhlenbeck(tims, x0=0, tims,e)
+# write.csv(e,"simulateh1n1x2.csv")
+beta<- exp(sigma*x)
+# plot(beta,type='l')
+plot(beta,type='p',ylab="Transmission rate beta",xlab="time",col="darkred",main="H1N1_BM model generated transmission rate")
+lines(beta,col="darkblue")
+# write.csv(beta,"simulateh1n1beta2.csv")
+```
+```{r}
+#Use log_normal obs dis-method 2: correct
+rm(list=ls())
+require(deSolve)
+set.seed(5204)
+## first, simulate a set of random deviates
+tims=365
+times = 1:tims
+e <- rnorm(n = length(times) ,mean=0, sd = 1)
+plot(e,type='l')
+ornstein_uhlenbeck <- function(n,sigma,x0,lens,e){
+  dt <- 1
+  x<-vector(length=lens)
+  for (i in 1:n) {
+    if (i==1){x[i]=x0}
+    else{
+      x[i]  <-  x[i-1] + sigma*e[i-1]}
+  }
+  
+  return(x)
+}
+# e = rnorm(n = length(times) , sd = 1)
+x = ornstein_uhlenbeck(tims, sigma=0.07,x0=0, tims,e)
+e<-replicate(n=50, ornstein_uhlenbeck(tims, sigma=0.1,x0=0, tims,rnorm(n = length(times) , sd = 1)))
+tim<-replicate(n=50,times)
+es = ncol(e)
+
+for (i in 1:es) {
+  if (i == 1){
+    plot(e[,1], col="pink3", type = "l",
+         ylim = c(min(e), max(e)),
+         xlab = 'Times', ylab = expression(B(t)),main="Brownian Motion Monte Carlo tirals")
+  }
+  else{
+    lines(e[,i], col="pink3")
+  }
+}
+
+beta<- exp(x)
+
+plot(beta,type='p',ylab="Transmission rate beta",xlab="time",col="darkred",main="H1N1_BM model generated transmission rate")
+lines(beta,col="darkblue")
+
+```
+
+```{r}
+#Use log_normal obs dis-method 2: general case-web check 1
+rm(list=ls())
+set.seed(531)
+## first, simulate a set of random deviates: Time=1, n=lens=100 partitions, delta t=1/100
+tims=1
+times<-seq(0.01,1,1/100)
+e <- rnorm(n = 100 ,mean=0, sd = sqrt(1/100))
+plot(e,type='l')
+ornstein_uhlenbeck <- function(T,n,x0,lens,e){
+  dt <- T/n
+  x<-vector(length=lens)
+  for (i in 1:n) {
+    if (i==1){x[i]=x0}
+    else{
+      x[i]  <-  x[i-1] + e[i-1]}
+  }
+  
+  return(x)
+}
+
+# e = rnorm(n = length(times) , sd = 1)
+# x = ornstein_uhlenbeck(tims, sigma=0.07,x0=0, tims,e)
+e<-replicate(n=10, ornstein_uhlenbeck(T=1,n=100, x0=0, 100,rnorm(n = 100 , sd = sqrt(1/100))))
+tim<-replicate(n=10,times)
+es = ncol(e)
+
+for (i in 1:es) {
+  if (i == 1){
+    plot(e[,1], col="darkseagreen", type = "l",
+         ylim = c(min(e), max(e)),
+         xlab = 'Time points', ylab = expression(B(t)),main="Brownian Motion Monte Carlo tirals")
+  }
+  else{
+    lines(e[,i], col="darkseagreen")
+  }
+}
+```
+
+
+```{r}
+#Use log_normal obs dis-method 2: general case-web check 2
+rm(list=ls())
+set.seed(531)
+## first, simulate a set of random deviates: Time=10, n=lens=100 partitions, delta t=10/100
+tims=10
+times<-seq(0.1,10,10/100) 
+
+e <- rnorm(n = 100 ,mean=0, sd = sqrt(10/100))
+plot(e,type='l')
+ornstein_uhlenbeck <- function(T,n,x0,lens,e){
+  dt <- T/n
+  x<-vector(length=lens)
+  for (i in 1:n) {
+    if (i==1){x[i]=x0}
+    else{
+      x[i]  <-  x[i-1] + e[i-1]}
+  }
+  
+  return(x)
+}
+
+# e = rnorm(n = length(times) , sd = 1)
+# x = ornstein_uhlenbeck(tims, sigma=0.07,x0=0, tims,e)
+e<-replicate(n=50, ornstein_uhlenbeck(T=10,n=100, x0=0, 100,rnorm(n = 100 , sd = sqrt(10/100))))
+tim<-replicate(n=50,times)
+es = ncol(e)
+
+for (i in 1:es) {
+  if (i == 1){
+    plot(e[,1], col="darkseagreen", type = "l",
+         ylim = c(min(e), max(e)),
+         xlab = 'Time points', ylab = expression(B(t)),main="Brownian Motion Monte Carlo tirals")
+  }
+  else{
+    lines(e[,i], col="darkseagreen")
+  }
+}
+for (i in 1:es) {
+  if (i == 1){
+    plot(e[,1]/tim[,1], col="cornflowerblue", type = "l",
+         ylim = c(min(e), max(e)),
+         xlab = 'Time points', ylab = expression(B(t)/t),main="Brownian Motion long-time behaviour ")
+  }
+  else{
+    lines(e[,i]/tim[,i], col="cornflowerblue")
+  }
+}
+```
+
+```{r}
+#Use log_normal obs dis-method 2: general case-web check 3
+rm(list=ls())
+set.seed(531)
+## first, simulate a set of random deviates: Time=500, n=lens=5000 partitions, delta t=500/5000
+tims=500
+times<-seq(0.1,500,500/5000)
+
+e <- rnorm(n = 5000 ,mean=0, sd = sqrt(500/5000))
+plot(e,type='l')
+ornstein_uhlenbeck <- function(T,n,x0,lens,e){
+  dt <- T/n
+  x<-vector(length=lens)
+  for (i in 1:n) {
+    if (i==1){x[i]=x0}
+    else{
+      x[i]  <-  x[i-1] + e[i-1]}
+  }
+  
+  return(x)
+}
+
+# e = rnorm(n = length(times) , sd = 1)
+# x = ornstein_uhlenbeck(tims, sigma=0.07,x0=0, tims,e)
+e<-replicate(n=100, ornstein_uhlenbeck(T=500,n=5000, x0=0, lens=5000,e=rnorm(n = 5000 , sd = sqrt(500/5000))))
+tim<-replicate(n=100,times)
+es = ncol(e)
+
+for (i in 1:es) {
+  if (i == 1){
+    plot(e[,1], col="darkseagreen", type = "l",
+         ylim = c(min(e), max(e)),
+         xlab = 'Time points', ylab = expression(B(t)),main="Brownian Motion Monte Carlo tirals")
+  }
+  else{
+    lines(e[,i], col="darkseagreen")
+  }
+}
+for (i in 1:es) {
+  if (i == 1){
+    plot(e[,1]/tim[,1], col="cornflowerblue", type = "l",
+         ylim = c(min(e), max(e)),
+         xlab = 'Time points', ylab = expression(B(t)/t),main="Brownian Motion long-time behaviour ")
+  }
+  else{
+    lines(e[,i]/tim[,i], col="cornflowerblue")
+  }
+}
+```
+
+
+
+
+```{r}
+#Use log_normal obs dis-method 3: cumsum questionable
+set.seed(5204)
+rm(list=ls())
+require(deSolve)
+times <- 1:365
+sigma <- 0.07
+# first, simulate a set of random deviates
+e <- rnorm(n = length(times) , sd = 1)
+# # now compute their cumulative sum
+# e <- c(0, cumsum(e))
+e <- cumsum(e)
+plot(e,type='l')
+beta<- exp(sigma*e)
+plot(beta,type='p',ylab="Transmission rate beta",xlab="time",col="darkred",main="H1N1_BM model generated transmission rate")
+lines(beta,col="darkblue")
+```
+```{r}
+#Use log_normal obs dis-method 3: general case-web check 1
+rm(list=ls())
+# set.seed(531)
+## first, simulate a set of random deviates: Time=1, n=lens=100 partitions, delta t=1/100
+tims=1
+times<-seq(0.01,1,1/100)
+e <- rnorm(n = 100 ,mean=0, sd = sqrt(1/100))
+plot(e,type='l')
+
+e<-replicate(n=10,cumsum(rnorm(n = 100 , sd = sqrt(1/100))))
+tim<-replicate(n=10,times)
+es = ncol(e)
+
+for (i in 1:es) {
+  if (i == 1){
+    plot(e[,1], col="darkseagreen", type = "l",
+         ylim = c(min(e), max(e)),
+         xlab = 'Time points', ylab = expression(B(t)),main="Brownian Motion Monte Carlo tirals")
+  }
+  else{
+    lines(e[,i], col="darkseagreen")
+  }
+}
+```
+```{r}
+#Use log_normal obs dis-method 3: general case-web check 2
+rm(list=ls())
+set.seed(531)
+## first, simulate a set of random deviates: Time=10, n=lens=100 partitions, delta t=10/100
+tims=10
+times<-seq(0.1,10,10/100) 
+
+e <- rnorm(n = 100 ,mean=0, sd = sqrt(10/100))
+plot(e,type='l')
+e<-replicate(n=50,cumsum(rnorm(n = 100 , sd = sqrt(10/100))))
+tim<-replicate(n=50,times)
+es = ncol(e)
+
+for (i in 1:es) {
+  if (i == 1){
+    plot(e[,1], col="darkseagreen", type = "l",
+         ylim = c(min(e), max(e)),
+         xlab = 'Time points', ylab = expression(B(t)),main="Brownian Motion Monte Carlo tirals")
+  }
+  else{
+    lines(e[,i], col="darkseagreen")
+  }
+}
+for (i in 1:es) {
+  if (i == 1){
+    plot(e[,1]/tim[,1], col="cornflowerblue", type = "l",
+         ylim = c(min(e), max(e)),
+         xlab = 'Time points', ylab = expression(B(t)/t),main="Brownian Motion long-time behaviour ")
+  }
+  else{
+    lines(e[,i]/tim[,i], col="cornflowerblue")
+  }
+}
+```
+```{r}
+#Use log_normal obs dis-method 3: general case-web check 3
+rm(list=ls())
+# set.seed(531)
+## first, simulate a set of random deviates: Time=500, n=lens=5000 partitions, delta t=500/5000
+tims=500
+times<-seq(0.1,500,500/5000)
+
+e <- rnorm(n = 5000 ,mean=0, sd = sqrt(500/5000))
+plot(e,type='l')
+
+e<-replicate(n=5000,cumsum(rnorm(n = 5000 , sd = sqrt(500/5000))))
+tim<-replicate(n=5000,times)
+es = ncol(e)
+
+for (i in 1:es) {
+  if (i == 1){
+    plot(e[,1], col="darkseagreen", type = "l",
+         ylim = c(min(e), max(e)),
+         xlab = 'Time points', ylab = expression(B(t)),main="Brownian Motion Monte Carlo tirals")
+  }
+  else{
+    lines(e[,i], col="darkseagreen")
+  }
+}
+for (i in 1:es) {
+  if (i == 1){
+    plot(e[,1]/tim[,1], col="cornflowerblue", type = "l",
+         ylim = c(min(e), max(e)),
+         xlab = 'Time points', ylab = expression(B(t)/t),main="Brownian Motion long-time behaviour ")
+  }
+  else{
+    lines(e[,i]/tim[,i], col="cornflowerblue")
+  }
+}
+```
+
+
+```{r}
+#Use log_normal obs dis-using method 2
+rm(list=ls())
+require(deSolve)
+set.seed(5216) #5204 5205 5207 5209 5210 5213
+times <- 1:365
+N=52196381
+## first, simulate a set of random deviates
+e <- rnorm(n = length(times) ,mean=0, sd = 1)
+plot(e,type='l')
+ornstein_uhlenbeck <- function(n,sigma,x0,lens,e){
+  dt <- 1
+  x<-vector(length=lens)
+  for (i in 1:n) {
+    if (i==1){x[i]=x0}
+    else{
+      x[i]  <-  x[i-1] + sigma*e[i-1]}
+  }
+  
+  return(x)
+}
+tims=365
+times = 1:tims
+e = rnorm(n = length(times) , sd = 1)
+x = ornstein_uhlenbeck(tims, sigma=0.07,x0=0, tims,e)
+
+beta<- exp(x)
+
+plot(beta,type='p',ylab=TeX(r"(Transmission rate $\beta$)"),xlab="time",col="darkred",main="H1N1_BM model generated transmission rate")
+lines(beta,col="darkblue")
+
+H1N1 <- function(time, current_state, params){
+  
+  with(as.list(c(current_state, params)),{
+    
+    # N <- S+E+I+R
+    dt <- 1
+    dS <- -beta[t]*S*I/N
+    dE <- beta[t]*S*I/N - E/k
+    dI <- E/k - I/gamma
+    dR <- I/gamma
+    
+    return(list(c(dt, dS, dE, dI, dR)))
+  })
+}
+
+
+# params <- c(k=1.59, gamma=1.08)
+params <- c(k=2, gamma=5, beta=beta)       ####parameter tunning step
+library('truncnorm')
+R0 <- rtruncnorm(1, a=0, b=1, mean = 0.15, sd = 0.15)
+E0 <-runif(1,-16, -9)
+I0 <-runif(1,-16, -9)
+#x <-runif(1, -5,2)
+S <- N
+R <- R0*S
+S <- S - R
+
+E <- exp(E0 + log(S))
+S <- S - E
+I <- exp(I0 + log(S))
+S <- S - I
+
+
+initial_state<- c(t=1, S=S, E=E, I=I, R=R)
+#initial_state <- c(t=1,S=52196380, E=1, I=0, R=0)
+model1 <- ode(initial_state, times, H1N1, params)
+
+summary(model1)
+
+matplot(model1, type="l", lty=1, main="Generated H1N1_BM Model Trajectories", xlab="Time",ylab = "Counts")
+legend <- colnames(model1)[3:6]
+legend("right", legend=legend, col=3:6, lty = 1)
+
+Z1 <-model1[,4]/2 #############
+
+tau1 <- 0.1#runif(1,0,1)
+Y1 <-vector(length = 365)
+for (i in 1:365){
+  Y1[i]<- rlnorm(1,log(Z1[i]/5),tau1)
+}
+plot(Y1,type='p',ylab="Daily incidence Y",xlab="time",col="darkred",main="H1N1_BM model generated observation")
+lines(Y1,col="darkblue")
+
+
+```
+```{r}
+#Use log_normal obs dis-using method 3
+rm(list=ls())
+require(deSolve)
+set.seed(5216) #5204 5205 5207 5209 5210 5213
+times <- 1:365
+N=52196381
+## first, simulate a set of random deviates
+e <- rnorm(n = length(times) , sd = 1)
+plot(e,type='l')
+x <- cumsum(e)
+
+sigma = 0.07
+beta<- exp(sigma*x)
+
+plot(beta,type='p',ylab=TeX(r"(Transmission rate $\beta$)"),xlab="time",col="darkred",main="H1N1_BM model generated transmission rate")
+lines(beta,col="darkblue")
+
+H1N1 <- function(time, current_state, params){
+  
+  with(as.list(c(current_state, params)),{
+    
+    # N <- S+E+I+R
+    dt <- 1
+    dS <- -beta[t]*S*I/N
+    dE <- beta[t]*S*I/N - E/k
+    dI <- E/k - I/gamma
+    dR <- I/gamma
+    
+    return(list(c(dt, dS, dE, dI, dR)))
+  })
+}
+
+
+# params <- c(k=1.59, gamma=1.08)
+params <- c(k=2, gamma=5, beta=beta)       ####parameter tunning step
+library('truncnorm')
+R0 <- rtruncnorm(1, a=0, b=1, mean = 0.15, sd = 0.15)
+E0 <-runif(1,-16, -9)
+I0 <-runif(1,-16, -9)
+#x <-runif(1, -5,2)
+S <- N
+R <- R0*S
+S <- S - R
+
+E <- exp(E0 + log(S))
+S <- S - E
+I <- exp(I0 + log(S))
+S <- S - I
+
+
+initial_state<- c(t=1, S=S, E=E, I=I, R=R)
+#initial_state <- c(t=1,S=52196380, E=1, I=0, R=0)
+model1 <- ode(initial_state, times, H1N1, params)
+
+summary(model1)
+
+matplot(model1, type="l", lty=1, main="Generated H1N1_BM Model Trajectories", xlab="Time",ylab = "Counts")
+legend <- colnames(model1)[3:6]
+legend("right", legend=legend, col=3:6, lty = 1)
+
+Z1 <-model1[,4]/2
+
+tau1 <- 0.1#runif(1,0,1)
+Y1 <-vector(length = 365)
+for (i in 1:365){
+  #Y1[i]<- rlnorm(1,log(Z1[i,]/5),tau1)
+  Y1[i]<- rlnorm(1,log(Z1[i]/5),tau1)
+}
+plot(Y1,type='p',ylab="Daily incidence Y",xlab="time",col="darkred",main="H1N1_BM model generated observation")
+lines(Y1,col="darkblue")
+
+
+```
+
+
+```{r}
+#Use Poisson obs dis
+rm(list=ls())
+require(deSolve)
+set.seed(5216) #5204 5205 5207 5209 5210 5213
+times <- 1:365
+N=52196381
+## first, simulate a set of random deviates
+e <- rnorm(n = length(times) ,mean=0, sd = 1)
+plot(e,type='l')
+ornstein_uhlenbeck <- function(n,sigma,x0,lens,e){
+  dt <- 1
+  x<-vector(length=lens)
+  for (i in 1:n) {
+    if (i==1){x[i]=x0}
+    else{
+      x[i]  <-  x[i-1] + sigma*e[i-1]}
+  }
+  
+  return(x)
+}
+tims=365
+times = 1:tims
+e = rnorm(n = length(times) , sd = 1)
+x = ornstein_uhlenbeck(tims, sigma=0.07,x0=0, tims,e)
+
+beta<- exp(x)
+
+plot(beta,type='p',ylab=TeX(r"(Transmission rate $\beta$)"),xlab="time",col="darkred",main="H1N1_BM model generated transmission rate")
+lines(beta,col="darkblue")
+
+H1N1 <- function(time, current_state, params){
+  
+  with(as.list(c(current_state, params)),{
+    
+    N <- S+E+I+R
+    dt <- 1
+    dS <- -beta[t]*S*I/N
+    dE <- beta[t]*S*I/N - E/k
+    dI <- E/k - I/gamma
+    dR <- I/gamma
+    
+    return(list(c(dt, dS, dE, dI, dR)))
+  })
+}
+
+
+# params <- c(k=1.59, gamma=1.08)
+params <- c(k=2, gamma=5,beta=beta)       ####parameter tunning step
+library('truncnorm')
+R0 <- rtruncnorm(1, a=0, b=1, mean = 0.15, sd = 0.15)
+E0 <-runif(1,-16, -9)
+I0 <-runif(1,-16, -9)
+#x <-runif(1, -5,2)
+S <- N
+R <- R0*S
+S <- S - R
+
+E <- exp(E0 + log(S))
+S <- S - E
+I <- exp(I0 + log(S))
+S <- S - I
+
+
+initial_state<- c(t=1, S=S, E=E, I=I, R=R)
+#initial_state <- c(t=1,S=52196380, E=1, I=0, R=0)
+model1 <- ode(initial_state, times, H1N1, params)
+
+summary(model1)
+
+matplot(model1, type="l", lty=1, main="Generated H1N1_BM Model Trajectories", xlab="Time",ylab = "Counts")
+legend <- colnames(model1)[3:6]
+legend("right", legend=legend, col=3:6, lty = 1)
+
+Z1 <-model1[,4]/2
+
+tau1 <- 0.1#runif(1,0,1)
+Y1 <-vector(length = 365)
+for (i in 1:365){
+  #Y1[i]<- rlnorm(1,log(Z1[i,]/5),tau1)
+  Y1[i]<- rpois(1,Z1[i]/5)
+}
+plot(Y1,type='p',ylab="Daily incidence Y",xlab="time",col="darkred",main="H1N1_BM model generated observation")
+lines(Y1,col="darkblue")
+```
+
+```{r}
+#Use Poisson obs dis-using method 3
+rm(list=ls())
+require(deSolve)
+set.seed(5216) #5204 5205 5207 5209 5210 5213
+times <- 1:365
+N=52196381
+## first, simulate a set of random deviates
+e <- rnorm(n = length(times) , sd = 1)
+plot(e,type='l')
+x <- cumsum(e)
+
+sigma = 0.07
+beta<- exp(sigma*x)
+
+plot(beta,type='p',ylab=TeX(r"(Transmission rate $\beta$)"),xlab="time",col="darkred",main="H1N1_BM model generated transmission rate")
+lines(beta,col="darkblue")
+
+H1N1 <- function(time, current_state, params){
+  
+  with(as.list(c(current_state, params)),{
+    
+    # N <- S+E+I+R
+    dt <- 1
+    dS <- -beta[t]*S*I/N
+    dE <- beta[t]*S*I/N - E/k
+    dI <- E/k - I/gamma
+    dR <- I/gamma
+    
+    return(list(c(dt, dS, dE, dI, dR)))
+  })
+}
+
+
+# params <- c(k=1.59, gamma=1.08)
+params <- c(k=2, gamma=5, beta=beta)       ####parameter tunning step
+library('truncnorm')
+R0 <- rtruncnorm(1, a=0, b=1, mean = 0.15, sd = 0.15)
+E0 <-runif(1,-16, -9)
+I0 <-runif(1,-16, -9)
+#x <-runif(1, -5,2)
+S <- N
+R <- R0*S
+S <- S - R
+
+E <- exp(E0 + log(S))
+S <- S - E
+I <- exp(I0 + log(S))
+S <- S - I
+
+
+initial_state<- c(t=1, S=S, E=E, I=I, R=R)
+#initial_state <- c(t=1,S=52196380, E=1, I=0, R=0)
+model1 <- ode(initial_state, times, H1N1, params)
+
+summary(model1)
+
+matplot(model1, type="l", lty=1, main="Generated H1N1_BM Model Trajectories", xlab="Time",ylab = "Counts")
+legend <- colnames(model1)[3:6]
+legend("right", legend=legend, col=3:6, lty = 1)
+
+Z1 <-model1[,4]/2
+
+Y1 <-vector(length = 365)
+for (i in 1:365){
+  #Y1[i]<- rlnorm(1,log(Z1[i,]/5),tau1)
+  Y1[i]<- rpois(1,Z1[i]/5)
+}
+plot(Y1,type='p',ylab="Daily incidence Y",xlab="time",col="darkred",main="H1N1_BM model generated observation")
+lines(Y1,col="darkblue")
+
+
+```
+
+
+
+```{r}
+#Use Binomial obs dis
+rm(list=ls())
+require(deSolve)
+set.seed(5216) #5204 5205 5207 5209 5210 5213
+times <- 1:365
+N=52196381
+## first, simulate a set of random deviates
+# e <- rnorm(n = length(times) , sd = 1)
+e <- rnorm(n = length(times) ,mean=0, sd = 1)
+plot(e,type='l')
+ornstein_uhlenbeck <- function(n,sigma,x0,lens,e){
+  dt <- 1
+  x<-vector(length=lens)
+  for (i in 1:n) {
+    if (i==1){x[i]=x0}
+    else{
+      x[i]  <-  x[i-1] + sigma*e[i-1]}
+  }
+  
+  return(x)
+}
+tims=365
+times = 1:tims
+e = rnorm(n = length(times) , sd = 1)
+x = ornstein_uhlenbeck(tims, sigma=0.07,x0=0, tims,e)
+
+beta<- exp(x)
+
+plot(beta,type='p',ylab=TeX(r"(Transmission rate $\beta$)"),xlab="time",col="darkred",main="H1N1_BM model generated transmission rate")
+lines(beta,col="darkblue")
+
+H1N1 <- function(time, current_state, params){
+  
+  with(as.list(c(current_state, params)),{
+    
+    N <- S+E+I+R
+    dt <- 1
+    dS <- -beta[t]*S*I/N
+    dE <- beta[t]*S*I/N - E/k
+    dI <- E/k - I/gamma
+    dR <- I/gamma
+    
+    return(list(c(dt, dS, dE, dI, dR)))
+  })
+}
+
+
+# params <- c(k=1.59, gamma=1.08)
+params <- c(k=2, gamma=5)       ####parameter tunning step
+library('truncnorm')
+R0 <- rtruncnorm(1, a=0, b=1, mean = 0.15, sd = 0.15)
+E0 <-runif(1,-16, -9)
+I0 <-runif(1,-16, -9)
+#x <-runif(1, -5,2)
+S <- N
+R <- R0*S
+S <- S - R
+
+E <- exp(E0 + log(S))
+S <- S - E
+I <- exp(I0 + log(S))
+S <- S - I
+
+
+initial_state<- c(t=1, S=S, E=E, I=I, R=R)
+#initial_state <- c(t=1,S=52196380, E=1, I=0, R=0)
+model1 <- ode(initial_state, times, H1N1, params)
+
+summary(model1)
+
+matplot(model1, type="l", lty=1, main="Generated H1N1_BM Model Trajectories", xlab="Time",ylab = "Counts")
+legend <- colnames(model1)[3:6]
+legend("right", legend=legend, col=3:6, lty = 1)
+
+Z1 <-model1[,4]/2
+
+tau1 <- 0.1#runif(1,0,1)
+Y1 <-vector(length = 365)
+for (i in 1:365){
+  #Y1[i]<- rlnorm(1,log(Z1[i,]/5),tau1)
+  Y1[i]<- rbinom(1,Z1[i],1/5)
+}
+plot(Y1,type='p',ylab="Daily incidence Y",xlab="time",col="darkred",main="H1N1_BM model generated observation")
+lines(Y1,col="darkblue")
+```
+
+

@@ -22,6 +22,6 @@ synthetic_dataset_PP <- rbi::bi_generate_dataset(endtime=endTime,
                                             seed="42",
                                             verbose=TRUE,
                                             add_options = list(
-                                              noutputs=500))
+                                              noutputs=500),output_every = 1)
 
 rdata_PP <- bi_read(synthetic_dataset_PP)

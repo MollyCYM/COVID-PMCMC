@@ -1,0 +1,47 @@
+---
+title: "Master Student Meeting"
+author: "Molly Cui"
+date: "2023-06-29"
+output: html_document
+---
+```{r}
+require(deSolve)
+
+#First Part: Solve ODE
+
+SEIR <- function(time, current_state, params){
+  
+  with(as.list(c(current_state, params)),{
+    N <- S+E+I+R
+    dS <- -(beta*S*I)/N
+    dE <- (beta*S*I)/N - sigma*E
+    dI <- sigma*E - gamma*I - mu*I
+    dR <- (gamma+mu)*I
+    
+    return(list(c(dS, dE, dI, dR)))
+  })
+}
+params <- c(beta=0.5, sigma=0.25, gamma=0.2, mu=0.001)
+initial_state <- c(S=999999, E=1, I=0, R=0)
+times <- 1:365
+model <- ode(initial_state, times, SEIR, params)
+
+summary(model)
+# write.csv(model,"simulatestates3.csv")
+matplot(model, type="l", lty=1, main="Generated Deterministic SEIR Model Trajectories", xlab="Time",ylab = "Counts")
+legend <- colnames(model)[2:5]
+legend("right", legend=legend, col=2:5, lty = 1)
+
+#Second Part: Likelihood of observation Y: incidence, prevalence data...
+Z <-model[,3]*0.25
+
+tau1 <- 0.1#runif(1,0,1)
+Y <-vector(length = 365)
+for (i in 1:365){
+  Y[i]<- rlnorm(1,log(Z[i]/5),tau1)
+  # Y[i]<- rpois(1,Z1[i]/5)
+}
+plot(Y,type='p',ylab="Daily incidence Y",xlab="time",col="darkred",main="Deterministic SEIR Model generated observation")
+lines(Y,col="darkblue")
+
+```
