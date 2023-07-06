@@ -667,7 +667,93 @@ write.csv(Y1,"h1n1bmdg_y4.csv")
 write.csv(model1,"h1n1bmdg_model4.csv")
 
 ```
+```{r}
+#Use log_normal obs dis-using method 2
+rm(list=ls())
+require(deSolve)
+set.seed(5216) #5204 5205 5207 5209 5210 5213
+times <- 1:365
+N=52196381
+## first, simulate a set of random deviates
+e <- rnorm(n = length(times) ,mean=0, sd = 1)
+plot(e,type='l')
+ornstein_uhlenbeck <- function(n,sigma,x0,lens,e){
+  dt <- 1
+  x<-vector(length=lens)
+  for (i in 1:n) {
+    if (i==1){x[i]=x0}
+    else{
+      x[i]  <-  x[i-1] + sigma*e[i-1]}
+  }
+  
+  return(x)
+}
+tims=365
+times = 1:tims
+e = rnorm(n = length(times) , sd = 1)
+x = ornstein_uhlenbeck(tims, sigma=0.07,x0=0, tims,e)
 
+beta<- exp(x)
+
+plot(beta,type='p',ylab=TeX(r"(Transmission rate $\beta$)"),xlab="time",col="darkred",main="H1N1_BM model generated transmission rate")
+lines(beta,col="darkblue")
+write.csv(beta,"h1n1bmdg_beta5.csv")
+H1N1 <- function(time, current_state, params){
+  
+  with(as.list(c(current_state, params)),{
+    
+    # N <- S+E+I+R
+    dt <- 1
+    dS <- -beta[t]*S*I/N
+    dE <- beta[t]*S*I/N - E/k
+    dI <- E/k - I/gamma
+    dR <- I/gamma
+    
+    return(list(c(dt, dS, dE, dI, dR)))
+  })
+}
+
+
+# params <- c(k=1.59, gamma=1.08)
+params <- c(k=1.59, gamma=1.08, beta=beta)       ####parameter tunning step
+library('truncnorm')
+R0 <- rtruncnorm(1, a=0, b=1, mean = 0.15, sd = 0.15)
+E0 <-runif(1,-16, -9)
+I0 <-runif(1,-16, -9)
+#x <-runif(1, -5,2)
+S <- N
+R <- R0*S
+S <- S - R
+
+E <- exp(E0 + log(S))
+S <- S - E
+I <- exp(I0 + log(S))
+S <- S - I
+
+
+initial_state<- c(t=1, S=S, E=E, I=I, R=R)
+#initial_state <- c(t=1,S=52196380, E=1, I=0, R=0)
+model1 <- ode(initial_state, times, H1N1, params)
+
+summary(model1)
+
+matplot(model1, type="l", lty=1, main="Generated H1N1_BM Model Trajectories", xlab="Time",ylab = "Counts")
+legend <- colnames(model1)[3:6]
+legend("right", legend=legend, col=3:6, lty = 1)
+
+Z1 <-model1[,4]/1.59 #############
+
+tau1 <- 0.1#runif(1,0,1)
+Y1 <-vector(length = 365)
+for (i in 1:365){
+  Y1[i]<- rlnorm(1,log(Z1[i]/5),tau1)
+}
+plot(Y1,type='p',ylab="Daily incidence Y",xlab="time",col="darkred",main="H1N1_BM model generated observation")
+lines(Y1,col="darkblue")
+write.csv(Y1,"h1n1bmdg_y5.csv")
+write.csv(model1,"h1n1bmdg_model5.csv")
+
+```
 
 
 ```{r}

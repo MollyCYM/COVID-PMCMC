@@ -21,37 +21,39 @@ mu<-ts(mu)
 # write.csv(mu,"rsimcovidou_mu1.csv")
 plot(mu,type='l')
 
-#Simulate an O-U Process
+#Simulate an O-U Process 
 ornstein_uhlenbeck <- function(n,theta,sigma,x0){
   dt  <- 1
   x<-vector(length=365)
   for (i in 1:n) {
     if (i==1){x[i]=x0}
     else{
-      x[i]  <-  x[i-1] + theta*(mu[i]-x[i])*dt + sigma*e[i]}
+      x[i]  <-  x[i-1] + theta*(mu[i-1]-x[i-1])*dt + sigma*e[i-1]}
       # x[i]  <-  x[i-1] + sigma*e[i]}
   }
   return(x);
 }
 
 x<- ornstein_uhlenbeck(365,0.05,sqrt(0.004),0)
-plot(x,type='l',xlab="time")
+plot(x,type='l',xlab="time",ylab="OU process x",col="darkblue",main="Covid_OU model generated OU process")
+
 # abline(v=121, col="red")
 # lines(mu, col="blue")
 # tt1 <-expression(mu==-0.02)
 # text(30,-0.1,tt1,col="green")
 # tt2 <-expression(mu==-0.02-0.2)
 # text(210,-0.3,tt2,col="green")
-plot(exp(x),type='l',xlab="time",ylab=TeX("$\\e^{x}=beta$"))
+plot(exp(x),type='p',xlab="time",ylab=TeX("Transmission rate $\\e^{x}=beta$"),col="darkred",main="Covid_OU model generated transmission rate")
+lines(exp(x),col="darkblue")
 abline(v=121, col="red")
-lines(exp(mu+0.02),col="blue")
+# lines(exp(mu+0.02),col="blue")
 axis(1, at=121,labels=121, col.axis="red", las=2)
-tt1 <-expression(mu[beta]==1)
-text(50,1.1,tt1,col="green")
-tt2 <-expression(mu[beta]==0.81)
-text(220,0.9,tt2,col="green")
-tt3 <-expression('lockdown policy start')
-text(120,0.4,tt3,col="red")
+# tt1 <-expression(mu[beta]==1)
+# text(50,1.1,tt1,col="green")
+# tt2 <-expression(mu[beta]==0.81)
+# text(220,0.9,tt2,col="green")
+tt1 <-expression('lockdown policy start')
+text(120,0.4,tt1,col="red")
 # write.csv(x,"rsimcovidou_x1.csv")
 #Main ODE Model
 Covid_OU <- function(time, current_state, params){

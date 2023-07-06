@@ -18,10 +18,7 @@ e <- rnorm(n = length(times) - 1, sd = sqrt(0.01))
 ## now compute their cumulative sum
 e <- c(0, cumsum(e))
 
-write.csv(e,"simulateh1n1x1.csv")
-beta<- exp({{ dxdt }})
-plot(beta,type='l')
-write.csv(beta,"simulateh1n1beta1.csv")
+beta<- exp({{ dxdt }})   ###
 
 H1N1 <- function(time, current_state, params){
   
@@ -79,8 +76,6 @@ for (i in 1:365){
 #Plot and save final observation input data for later simulation experiments
 plot(Y1,type='l',ylab="Y obs", xlab = "Time")
 
-write.csv(Y1,"simh1n1Y1.csv")
-write.csv(model1,"simulateh1n1states1.csv")
 
 ```
 
@@ -175,104 +170,11 @@ bi <- sample(bi_model, end_time = end_time, input = input_lst, init=init_list, o
   adapt_particles(min = minParticles, max = minParticles*500) %>%
   adapt_proposal(min = 0.1, max = 0.4) %>%
   sample(nsamples = 1, thin = 1) %>% # burn in 
-  sample(nsamples = 5000, thin = 5)
+  sample(nsamples = 100, thin = 1)
 
 bi_lst <- bi_read(bi %>% sample_obs)
 
-write.csv(bi_lst,"../data/para1_model8.csv")
-fitY <- bi_lst$y %>%
-  group_by(time) %>%
-  mutate(
-    q025 = quantile(value, 0.025),
-    q25 = quantile(value, 0.25),
-    q50 = quantile(value, 0.5),
-    q75 = quantile(value, 0.75),
-    q975 = quantile(value, 0.975)
-  ) %>% ungroup() %>%
-  left_join(y %>% rename(Y = value))
-write.csv(fitY,"../data/para1_y8.csv")
-
-plot_df <- bi_lst$x %>% mutate(value = exp(value)) %>%
-  group_by(time) %>%
-  mutate(
-    q025 = quantile(value, 0.025),
-    q25 = quantile(value, 0.25),
-    q50 = quantile(value, 0.5),
-    q75 = quantile(value, 0.75),
-    q975 = quantile(value, 0.975)
-  ) %>% ungroup()
-write.csv(plot_df,"../data/para1_beta8.csv")
-
-Mmodel <- read.csv("Covidbm11.csv", header=TRUE, stringsAsFactors=FALSE)
-S<-Mmodel[,4]
-E<-Mmodel[,5]
-I<-Mmodel[,6]
-R<-Mmodel[,7]
-
-S <- data.frame(value = S) %>%
-  mutate(time = seq(1, by = 1, length.out = n())) %>%
-  dplyr::select(time, value)
-fitS <-bi_lst$S %>%
-  group_by(time) %>%
-  mutate(
-    q025 = quantile(value, 0.025),
-    q25 = quantile(value, 0.25),
-    q50 = quantile(value, 0.5),
-    q75 = quantile(value, 0.75),
-    q975 = quantile(value, 0.975)
-  ) %>% ungroup() %>%
-  left_join(S %>% rename(S = value))
-write.csv(fitS,"../data/para1_S8.csv")
-
-E <- data.frame(value = E) %>%
-  mutate(time = seq(1, by = 1, length.out = n())) %>%
-  dplyr::select(time, value)
-fitE <-bi_lst$E %>%
-  group_by(time) %>%
-  mutate(
-    q025 = quantile(value, 0.025),
-    q25 = quantile(value, 0.25),
-    q50 = quantile(value, 0.5),
-    q75 = quantile(value, 0.75),
-    q975 = quantile(value, 0.975)
-  ) %>% ungroup() %>%
-  left_join(E %>% rename(E = value))
-write.csv(fitE,"../data/para1_E8.csv")
-
-I <- data.frame(value = I) %>%
-  mutate(time = seq(1, by = 1, length.out = n())) %>%
-  dplyr::select(time, value)
-fitI <-bi_lst$I %>%
-  group_by(time) %>%
-  mutate(
-    q025 = quantile(value, 0.025),
-    q25 = quantile(value, 0.25),
-    q50 = quantile(value, 0.5),
-    q75 = quantile(value, 0.75),
-    q975 = quantile(value, 0.975)
-  ) %>% ungroup() %>%
-  left_join(I %>% rename(I = value))
-write.csv(fitI,"../data/para1_I8.csv")
-
-R <- data.frame(value = R) %>%
-  mutate(time = seq(1, by = 1, length.out = n())) %>%
-  dplyr::select(time, value)
-fitR <-bi_lst$R %>%
-  group_by(time) %>%
-  mutate(
-    q025 = quantile(value, 0.025),
-    q25 = quantile(value, 0.25),
-    q50 = quantile(value, 0.5),
-    q75 = quantile(value, 0.75),
-    q975 = quantile(value, 0.975)
-  ) %>% ungroup() %>%
-  left_join(R %>% rename(R = value))
-write.csv(fitR,"../data/para1_R8.csv")
-
-write.csv(1/bi_lst$k$value,"../data/para1_alpha8.csv")
-write.csv(1/bi_lst$gamma$value,"../data/para1_gamma8.csv")
-write.csv(bi_lst$sigma$value,"../data/para1_sigma8.csv")
-write.csv(bi_lst$tau$value,"../data/para1_tau8.csv")
+write.csv(bi_lst,"auto_model1.csv")
 
 ```
 
@@ -302,7 +204,7 @@ for (param_name in names(param_options)) {
 combinations_df <- expand.grid(param_options)
 
 # Read in template scripts
-template <- readLines("para_template.R")
+template <- readLines("para_template (1).R")
 data_template <- readLines("data_generation_template.R")
 
 #' Create a file and write content
@@ -326,6 +228,12 @@ generate <- function(param_set) {
     for (param_name in names(param_set)) {
         param_list <- null_params
         param_list[[param_name]] <- param_set[param_name]
+        
+        # param_list[[initial_z]] <- param_set[0]
+        # param_list[[dxdt ]] <- param_set["sigma*e"]
+        # param_list[[param_k]] <- param_set["truncated_gaussian(5, {{ k_dist_stdev }}, lower = 0)"]
+        # param_list[[k_dist_stdev]] <- param_set[0.01]
+        
         output <- whisker.render(output, param_list)
         data_output <- whisker.render(data_output, param_list)
     }

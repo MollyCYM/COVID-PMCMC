@@ -34,7 +34,7 @@ ornstein_uhlenbeck <- function(n,theta,sigma,x0,lens,mu,e){
 
 
 gen_ode_model <- function(rep_time = 200, ori_seed = 20241, tims = 365, 
-                          n = 52196381, pars = c(k=2, gamma=9),
+                          n = 52196381, pars = c(k=5, gamma=9),
                           ini_state = c(t=1,S=N-1, E=1, I=0, R=0),
                           tau = 0.1){
   
@@ -93,7 +93,7 @@ gen_ode_model <- function(rep_time = 200, ori_seed = 20241, tims = 365,
     
     model4 = ode(initial_state, times, Covid_OU, params)
     
-    Z1 = model4[,4]/2
+    Z1 = model4[,4]/5
     
     Y1 = vector(length = tims)
     
@@ -275,6 +275,16 @@ for (i in 1:xs) {
     lines(exp(ode_example$x[,i]), col="orange2")
   }
   lines(beta_mean,col="black",type="l")
+  # abline(h=exp(-0.02), col="blue")
+  abline(v=121, col="darkred")
+  axis(1, at=121,labels=121, col.axis="darkred", las=2)
+  segments(x0=0, y0=0.98, x1 = 120, y1 = 0.98,col="blue")
+  tt1 <-expression(mu=exp(-0.02))
+  text(50,1.2,tt1,col="blue")
+  segments(x0=121, y0=0.802, x1 =365, y1 = 0.802,col="blue")
+  tt2 <-expression(mu=exp(-0.22))
+  text(230,0.6,tt2,col="blue")
+  
 }
 
 ## for x
@@ -292,8 +302,16 @@ for (i in 1:xs) {
     lines((ode_example$x[,i]), col="orange2")
   }
   lines(xs_mean,col="black",type="l")
-  lines(xs_95,col="black",lty="dotdash")
-  lines(xs_05,col="black",lty="dotdash")
+  # lines(xs_95,col="black",lty="dotdash")
+  # lines(xs_05,col="black",lty="dotdash")
+  abline(v=121, col="darkred")
+  axis(1, at=121,labels=121, col.axis="darkred", las=2)
+  segments(x0=0, y0=-0.02, x1 = 120, y1 = -0.02,col="blue")
+  tt1 <-expression(mu=-0.02)
+  text(50,0.3,tt1,col="blue")
+  segments(x0=121, y0=-0.22, x1 =365, y1 = -0.22,col="blue")
+  tt2 <-expression(mu=-0.22)
+  text(230,-0.4,tt2,col="blue")
 }
 
 ## for e
@@ -339,7 +357,7 @@ for (i in 1:ss) {
 
 
 ```{r}
-#Checking procedure
+#Checking procedure for Poisson Distribution
 
 rm(list=ls())
 require(deSolve)
@@ -353,7 +371,7 @@ ornstein_uhlenbeck <- function(n,theta,sigma,x0,lens,mu,e){
   for (i in 1:n) {
     if (i==1){x[i]=x0}
     else{
-      x[i]  <-  x[i-1] + theta*(mu-x[i-1])*dt + sigma*e[i-1]}
+      x[i]  <-  x[i-1] + theta*(mu[i-1]-x[i-1])*dt + sigma*e[i-1]}
   }
   
   return(x)
@@ -362,9 +380,9 @@ ornstein_uhlenbeck <- function(n,theta,sigma,x0,lens,mu,e){
 
 
 gen_ode_model <- function(rep_time = 200, ori_seed = 20241, tims = 365, 
-                          n = 52196381, pars = c(k=2, gamma=9),
-                          ini_state = c(t=1,S=N-1, E=1, I=0, R=0),
-                          tau = 0.1){
+                          n = 52196381, pars = c(k=5, gamma=9),
+                          ini_state = c(t=1,S=N-1, E=1, I=0, R=0)
+                          ){
   
   times = 1:tims
   N = n
@@ -392,14 +410,13 @@ gen_ode_model <- function(rep_time = 200, ori_seed = 20241, tims = 365,
   
   params = pars   
   initial_state = ini_state
-  tau1 = tau
   
   #Main ODE Model
   Covid_OU <- function(time, current_state, params){
     
     with(as.list(c(current_state, params)),{
       
-      # N <- S+E+I+R
+      N <- S+E+I+R
       dt <- 1
       dS <- -exp(x[t])*S*(E+0.1*I)/N
       dE <- exp(x[t])*S*(E+0.1*I)/N - E*(1/k+1/gamma)
@@ -421,12 +438,12 @@ gen_ode_model <- function(rep_time = 200, ori_seed = 20241, tims = 365,
     
     model4 = ode(initial_state, times, Covid_OU, params)
     
-    Z1 = model4[,4]/2
+    Z1 = model4[,4]/5
     
     Y1 = vector(length = tims)
     
     for (i in 1:tims){
-      Y1[i] = rlnorm(1,log(Z1[i]/5),tau1)
+      Y1[i] = rpois(1,Z1[i]/5)
     }
     
     dSi = model4[,3]
@@ -466,7 +483,9 @@ ode_example <- gen_ode_model(200)
 ## for z
 
 zs = ncol(ode_example$Z)
-
+zs_mean = apply(ode_example$Z,1,mean)
+zs_95 = apply(ode_example$Z, 1, quantile, probs=0.95)
+zs_05 = apply(ode_example$Z, 1, quantile, probs=0.05)
 for (i in 1:zs) {
   if (i == 1){
     plot(ode_example$Z[,1], col="darkblue", type = "l", 
@@ -476,12 +495,17 @@ for (i in 1:zs) {
   else{
     lines(ode_example$Z[,i], col="darkblue")
   }
+  lines(zs_mean,col="black",type="l")
+  lines(zs_95,col="black",lty="dotdash")
+  lines(zs_05,col="black",lty="dotdash")
 }
 
 ## for y
 
 ys = ncol(ode_example$Y)
-
+ys_mean = apply(ode_example$Y,1,mean)
+ys_95 = apply(ode_example$Y, 1, quantile, probs=0.95)
+ys_05 = apply(ode_example$Y, 1, quantile, probs=0.05)
 for (i in 1:ys) {
   if (i == 1){
     plot(ode_example$Y[,1], col="darkred", type = "l", 
@@ -491,12 +515,17 @@ for (i in 1:ys) {
   else{
     lines(ode_example$Y[,i], col="darkred")
   }
+  lines(ys_mean,col="black",type="l")
+  lines(ys_95,col="black",lty="dotdash")
+  lines(ys_05,col="black",lty="dotdash")
 }
 
 ## for s
 
 ss = ncol(ode_example$dS)
-
+ss_mean = apply(ode_example$dS,1,mean)
+ss_95 = apply(ode_example$dS, 1, quantile, probs=0.95)
+ss_05 = apply(ode_example$dS, 1, quantile, probs=0.05)
 for (i in 1:ss) {
   if (i == 1){
     plot(ode_example$dS[,1], col="skyblue", type = "l", 
@@ -506,13 +535,18 @@ for (i in 1:ss) {
   else{
     lines(ode_example$dS[,i], col="skyblue")
   }
+  lines(ss_mean,col="black",type="l")
+  lines(ss_95,col="black",lty="dotdash")
+  lines(ss_05,col="black",lty="dotdash")
 }
 
 
 ## for e
 
 es = ncol(ode_example$dE)
-
+es_mean = apply(ode_example$dE,1,mean)
+es_95 = apply(ode_example$dE, 1, quantile, probs=0.95)
+es_05 = apply(ode_example$dE, 1, quantile, probs=0.05)
 for (i in 1:es) {
   if (i == 1){
     plot(ode_example$dE[,1], col="yellow3", type = "l", 
@@ -522,13 +556,18 @@ for (i in 1:es) {
   else{
     lines(ode_example$dE[,i], col="yellow3")
   }
+  lines(es_mean,col="black",type="l")
+  lines(es_95,col="black",lty="dotdash")
+  lines(es_05,col="black",lty="dotdash")
 }
 
 
 ## for i
 
 is = ncol(ode_example$dI)
-
+is_mean = apply(ode_example$dI,1,mean)
+is_95 = apply(ode_example$dI, 1, quantile, probs=0.95)
+is_05 = apply(ode_example$dI, 1, quantile, probs=0.05)
 for (i in 1:is) {
   if (i == 1){
     plot(ode_example$dI[,1], col="pink3", type = "l", 
@@ -538,13 +577,18 @@ for (i in 1:is) {
   else{
     lines(ode_example$dI[,i], col="pink3")
   }
+  lines(is_mean,col="black",type="l")
+  lines(is_95,col="black",lty="dotdash")
+  lines(is_05,col="black",lty="dotdash")
 }
 
 
 ## for R
 
 rs = ncol(ode_example$dR)
-
+rs_mean = apply(ode_example$dR,1,mean)
+rs_95 = apply(ode_example$dR, 1, quantile, probs=0.95)
+rs_05 = apply(ode_example$dR, 1, quantile, probs=0.05)
 for (i in 1:rs) {
   if (i == 1){
     plot(ode_example$dR[,1], col="darkgreen", type = "l", 
@@ -554,6 +598,9 @@ for (i in 1:rs) {
   else{
     lines(ode_example$dR[,i], col="darkgreen")
   }
+  lines(rs_mean,col="black",type="l")
+  lines(rs_95,col="black",lty="dotdash")
+  lines(rs_05,col="black",lty="dotdash")
 }
 
 
@@ -562,7 +609,7 @@ for (i in 1:rs) {
 
 ## for beta
 xs = ncol(ode_example$x)
-
+beta_mean = apply(exp(ode_example$x),1,mean)
 for (i in 1:xs) {
   if (i == 1){
     plot(exp(ode_example$x[,1]), col="orange2", type = "l", 
@@ -572,11 +619,24 @@ for (i in 1:xs) {
   else{
     lines(exp(ode_example$x[,i]), col="orange2")
   }
+  lines(beta_mean,col="black",type="l")
+  # abline(h=exp(-0.02), col="blue")
+  abline(v=121, col="darkred")
+  axis(1, at=121,labels=121, col.axis="darkred", las=2)
+  segments(x0=0, y0=0.98, x1 = 120, y1 = 0.98,col="blue")
+  tt1 <-expression(mu=exp(-0.02))
+  text(50,1.2,tt1,col="blue")
+  segments(x0=121, y0=0.802, x1 =365, y1 = 0.802,col="blue")
+  tt2 <-expression(mu=exp(-0.22))
+  text(230,0.6,tt2,col="blue")
+  
 }
 
 ## for x
 xs = ncol(ode_example$x)
-
+xs_mean = apply(ode_example$x,1,mean)
+xs_95 = apply(ode_example$x, 1, quantile, probs=0.95)
+xs_05 = apply(ode_example$x, 1, quantile, probs=0.05)
 for (i in 1:xs) {
   if (i == 1){
     plot(ode_example$x[,1], col="orange2", type = "l", 
@@ -586,6 +646,17 @@ for (i in 1:xs) {
   else{
     lines((ode_example$x[,i]), col="orange2")
   }
+  lines(xs_mean,col="black",type="l")
+  # lines(xs_95,col="black",lty="dotdash")
+  # lines(xs_05,col="black",lty="dotdash")
+  abline(v=121, col="darkred")
+  axis(1, at=121,labels=121, col.axis="darkred", las=2)
+  segments(x0=0, y0=-0.02, x1 = 120, y1 = -0.02,col="blue")
+  tt1 <-expression(mu=-0.02)
+  text(50,0.3,tt1,col="blue")
+  segments(x0=121, y0=-0.22, x1 =365, y1 = -0.22,col="blue")
+  tt2 <-expression(mu=-0.22)
+  text(230,-0.4,tt2,col="blue")
 }
 
 ## for e

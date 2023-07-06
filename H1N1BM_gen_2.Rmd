@@ -301,3 +301,302 @@ for (i in 1:ss) {
 }
 
 ```
+
+
+```{r}
+#Solution consistent check for Poisson
+rm(list=ls())
+require(deSolve)
+set.seed(2023)
+
+#Simulate a bm process
+ornstein_uhlenbeck <- function(n,sigma,x0,lens,e){
+  dt <- 1
+  x<-vector(length=lens)
+  for (i in 1:n) {
+    if (i==1){x[i]=x0}
+    else{
+      x[i]  <-  x[i-1] + sigma*e[i-1]}
+  }
+  
+  return(x);
+}
+tims=365
+times = 1:tims
+e = rnorm(n = length(times) , sd = 1)
+x = ornstein_uhlenbeck(tims, sigma=0.03, x0=0, tims,e)
+
+# Replication Generation function
+gen_ode_model <- function(rep_time = 200, ori_seed = 2023, tims = 365, 
+                          n = 52196381, pars = c(k=2, gamma=5),
+                          ini_state = c(t=1,S=N-1, E=1, I=0, R=0),
+                          tau = 0.1){
+  
+  times = 1:tims
+  N = n
+  
+  #Construct matrix dataframe of states: times*replicates
+  Zs = setNames(data.frame(matrix(NA, nrow = tims, ncol = rep_time)), paste0("Z", 1:rep_time))
+  Ys = setNames(Zs, paste0("Y", 1:rep_time))
+  dSs = setNames(Zs, paste0("dS", 1:rep_time))
+  dEs = setNames(Zs, paste0("dE", 1:rep_time))
+  dIs = setNames(Zs, paste0("dI", 1:rep_time))
+  dRs = setNames(Zs, paste0("dR", 1:rep_time)) 
+  
+  # add x and e dataframe
+  
+  xs = setNames(Zs, paste0("x", 1:rep_time))
+  es = setNames(Zs, paste0("e", 1:rep_time))
+  
+  
+  params = pars   
+  initial_state = ini_state
+  tau1 = tau
+  
+  #Main ODE Model
+ H1N1BM <- function(time, current_state, params){
+    
+    with(as.list(c(current_state, params)),{
+      
+      dt <- 1
+      dS <- -exp(x[t])*S*I/N
+      dE <- exp(x[t])*S*I/N - E/k
+      dI <- E/k - I/gamma
+      dR <- I/gamma
+      
+      return(list(c(dt, dS, dE, dI, dR)))
+    })
+ }
+ 
+  ## Replicate 200 times-Monte Carlo trials for 200 
+  for (rep_i in 1:rep_time) {
+    set.seed(ori_seed + 1000*rep_i)
+    
+    model4 = ode(initial_state, times, H1N1BM, params)
+    
+    Z1 = model4[,4]/2
+    
+    Y1 = vector(length = tims)
+    
+    for (i in 1:tims){
+      Y1[i] = rpois(1,Z1[i]/5)
+    }
+    
+    dSi = model4[,3]
+    dEi = model4[,4]
+    dIi = model4[,5]
+    dRi = model4[,6]
+    
+    
+    Zs[, rep_i] = Z1
+    Ys[, rep_i] = Y1
+    dSs[, rep_i] = dSi
+    dEs[, rep_i] = dEi
+    dIs[, rep_i] = dIi
+    dRs[, rep_i] = dRi
+  
+    xs[, rep_i] = x
+    es[, rep_i] = e
+    
+  }
+  
+  # output
+  return(list(    
+    Z = Zs,
+    Y = Ys,
+    dS = dSs,
+    dE = dEs,
+    dI = dIs,
+    dR = dRs,
+    x = xs,
+    e = es))
+}
+
+#Initial state values
+library('truncnorm')
+R0 <- rtruncnorm(1, a=0, b=1, mean = 0.15, sd = 0.15)
+E0 <-runif(1,-16, -9)
+I0 <-runif(1,-16, -9)
+S <- 52196381
+R <- R0*S
+S <- S - R
+
+E <- exp(E0 + log(S))
+S <- S - E
+I <- exp(I0 + log(S))
+S <- S - I
+
+initial_state <- c(t=1, S=S, E=E, I=I, R=R)
+
+ode_example <- gen_ode_model(rep_time = 200, ini_state = initial_state)
+
+
+## for z
+
+zs = ncol(ode_example$Z)
+
+for (i in 1:zs) {
+  if (i == 1){
+    plot(ode_example$Z[,1], col="darkblue", type = "l", 
+         ylim = c(0, max(ode_example$Z)),
+         xlab = 'Times', ylab = 'state Z',main="H1N1BM model Monte Carlo tirals")
+  }
+  else{
+    lines(ode_example$Z[,i], col="darkblue")
+  }
+}
+
+## for y
+
+ys = ncol(ode_example$Y)
+
+for (i in 1:ys) {
+  if (i == 1){
+    plot(ode_example$Y[,1], col="darkred", type = "l", 
+         ylim = c( min(ode_example$Y), max(ode_example$Y)),
+         xlab = 'Times', ylab = 'incidence Y',main="H1N1BM model Monte Carlo tirals")
+  }
+  else{
+    lines(ode_example$Y[,i], col="darkred")
+  }
+}
+
+## for s
+
+ss = ncol(ode_example$dS)
+
+for (i in 1:ss) {
+  if (i == 1){
+    plot(ode_example$dS[,1], col="skyblue", type = "l", 
+         ylim = c(min(ode_example$dS), max(ode_example$dS)),
+         xlab = 'Times', ylab = 'state S',main="H1N1BM model Monte Carlo tirals")
+  }
+  else{
+    lines(ode_example$dS[,i], col="skyblue")
+  }
+}
+
+
+## for e
+
+es = ncol(ode_example$dE)
+
+for (i in 1:es) {
+  if (i == 1){
+    plot(ode_example$dE[,1], col="yellow3", type = "l", 
+         ylim = c(min(ode_example$dE), max(ode_example$dE)),
+         xlab = 'Times', ylab = 'state E',main="H1N1BM model Monte Carlo tirals")
+  }
+  else{
+    lines(ode_example$dE[,i], col="yellow3")
+  }
+}
+
+
+## for i
+
+is = ncol(ode_example$dI)
+
+for (i in 1:is) {
+  if (i == 1){
+    plot(ode_example$dI[,1], col="pink3", type = "l", 
+         ylim = c(min(ode_example$dI), max(ode_example$dI)),
+         xlab = 'Times', ylab = 'state I',main="H1N1BM model Monte Carlo tirals")
+  }
+  else{
+    lines(ode_example$dI[,i], col="pink3")
+  }
+}
+
+
+## for R
+
+rs = ncol(ode_example$dR)
+
+for (i in 1:rs) {
+  if (i == 1){
+    plot(ode_example$dR[,1], col="darkgreen", type = "l", 
+         ylim = c(min(ode_example$dR), max(ode_example$dR)),
+         xlab = 'Times', ylab = 'state R',main="H1N1BM model Monte Carlo tirals")
+  }
+  else{
+    lines(ode_example$dR[,i], col="darkgreen")
+  }
+}
+
+
+
+############### add plot of x and e
+
+## for x
+xs = ncol(ode_example$x)
+
+for (i in 1:xs) {
+  if (i == 1){
+    plot(ode_example$x[,1], col="orange2", type = "l", 
+         ylim = c(min(ode_example$x), max(ode_example$x)),
+         xlab = 'Times', ylab = 'Brownian Motion x',main="H1N1BM model Monte Carlo tirals")
+  }
+  else{
+    lines(ode_example$x[,i], col="orange2")
+  }
+}
+
+## for beta
+xs = ncol(ode_example$x)
+
+for (i in 1:xs) {
+  if (i == 1){
+    plot(exp(ode_example$x[,1]), col="orange2", type = "l", 
+         ylim = c(min(exp(ode_example$x)), max(exp(ode_example$x))),
+         xlab = 'Times', ylab = expression(beta),main="H1N1BM model Monte Carlo tirals")
+  }
+  else{
+    lines(exp(ode_example$x[,i]), col="orange2")
+  }
+}
+
+## for e
+
+# es = ncol(ode_example$e)
+# 
+# for (i in 1:es) {
+#   if (i == 1){
+#     plot(ode_example$e[,1], col="grey", type = "l", 
+#          ylim = c(min(ode_example$e), max(ode_example$e)),
+#          xlab = 'Times', ylab = 'e',main="Covid_ou model Monte Carlo tirals")
+#   }
+#   else{
+#     lines(ode_example$e[,i], col="grey")
+#   }
+# }
+# 
+
+## for all
+
+
+lims = c(0, max(max(ode_example$dS), max(ode_example$dE), 
+                max(ode_example$dI), max(ode_example$dR)))
+
+ss = ncol(ode_example$dS)
+
+for (i in 1:ss) {
+  if (i == 1){
+    plot(ode_example$dS[,1], col="skyblue", type = "l", 
+         ylim = lims,
+         xlab = 'Times', ylab = 'All states')
+  }
+  else{
+    lines(ode_example$dS[,i], col="skyblue")
+  }
+  lines(ode_example$dE[,i], col="yellow3")
+  lines(ode_example$dI[,i], col="pink3")
+  lines(ode_example$dR[,i], col="darkgreen")
+}
+```
+
+
+```{r}
+
+```
+
