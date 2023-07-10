@@ -81,14 +81,14 @@ model h1n1bm {
   }
 
   sub proposal_parameter {
-    k ~ gaussian(k, 0.01)
-    sigma ~ gaussian(sigma, 0.01)
-    gamma ~ gaussian(gamma, 0.01)
+    k ~ gaussian(k, 0.001)
+    sigma ~ gaussian(sigma, 0.001)
+    gamma ~ gaussian(gamma, 0.001)
     x0 ~ gaussian(x0, 0.05)
     E0 ~ gaussian(E0, 0.05)
     I0 ~ gaussian(I0, 0.05)
     R0 ~ gaussian(R0, 0.05)
-    tau ~ gaussian(tau, 0.01)
+    tau ~ gaussian(tau, 0.001)
   }
 }"
 model <- bi_model(lines = stringi::stri_split_lines(model_str)[[1]])
