@@ -345,7 +345,7 @@ for (i in 1:es) {
 #Use log_normal obs dis-using method 2
 rm(list=ls())
 require(deSolve)
-set.seed(5216) #5204 5205 5207 5209 5210 5213
+set.seed(5227) #5220 5222 5224 5226
 times <- 1:365
 N=52196381
 ## first, simulate a set of random deviates
@@ -364,12 +364,12 @@ ornstein_uhlenbeck <- function(n,sigma,x0,lens,e){
 }
 tims=365
 times = 1:tims
-e = rnorm(n = length(times) , sd = 1)
 x = ornstein_uhlenbeck(tims, sigma=0.07,x0=0, tims,e)
 
 beta<- exp(x)
 
-plot(beta,type='p',ylab=TeX(r"(Transmission rate $\beta$)"),xlab="time",col="darkred",main="H1N1_BM model generated transmission rate")
+# plot(beta,type='p',ylab=TeX(r"(Transmission rate $\beta$)"),xlab="time",col="darkred",main="H1N1_BM model generated transmission rate")
+plot(beta,type='p',ylab="Transmission rate beta",xlab="time",col="darkred",main="H1N1_BM model generated transmission rate")
 lines(beta,col="darkblue")
 write.csv(beta,"h1n1bmdg_beta1.csv")
 H1N1 <- function(time, current_state, params){
@@ -432,7 +432,7 @@ write.csv(model1,"h1n1bmdg_model1.csv")
 #Use log_normal obs dis-using method 3
 rm(list=ls())
 require(deSolve)
-set.seed(5216) #5204 5205 5207 5209 5210 5213
+set.seed(5227) #5204 5205 5207 5209 5210 5213
 times <- 1:365
 N=52196381
 ## first, simulate a set of random deviates

@@ -180,6 +180,7 @@ write.csv(bi_lst,"auto_model1.csv")
 
 ```{r}
 #generate simulations
+rm(list=ls())
 library(fs)
 library(purrr)
 library(rlang)
@@ -251,6 +252,7 @@ generate <- function(param_set) {
 
     # Save output data generation R script
     file_path <- file.path(path, "data_generation.R")
+    print(file_path)
     write_file(file_path, data_output)
 }
 
