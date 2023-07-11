@@ -363,7 +363,7 @@ ornstein_uhlenbeck <- function(n,sigma,x0,lens,e){
 gen_ode_model <- function(rep_time = 200, ori_seed = 20231, tims = 365, 
                           n = 52196381, pars = c(k=1.59, gamma=7),
                           ini_state = c(t=1,S=N-1, E=1, I=0, R=0),
-                          tau = 0.1){
+                          tau = 100){
   
   times = 1:tims
   N = n

@@ -372,6 +372,7 @@ beta<- exp(x)
 plot(beta,type='p',ylab="Transmission rate beta",xlab="time",col="darkred",main="H1N1_BM model generated transmission rate")
 lines(beta,col="darkblue")
 write.csv(beta,"h1n1bmdg_beta1.csv")
+#Put the function to the top db checking the text of beta
 H1N1 <- function(time, current_state, params){
   
   with(as.list(c(current_state, params)),{
@@ -509,7 +510,7 @@ write.csv(model1,"h1n1bmdg_model2.csv")
 #Use Poisson obs dis
 rm(list=ls())
 require(deSolve)
-set.seed(5216) #5204 5205 5207 5209 5210 5213
+set.seed(5227) #5204 5205 5207 5209 5210 5213
 times <- 1:365
 N=52196381
 ## first, simulate a set of random deviates
@@ -528,7 +529,6 @@ ornstein_uhlenbeck <- function(n,sigma,x0,lens,e){
 }
 tims=365
 times = 1:tims
-e = rnorm(n = length(times) , sd = 1)
 x = ornstein_uhlenbeck(tims, sigma=0.07,x0=0, tims,e)
 
 beta<- exp(x)
@@ -581,10 +581,8 @@ legend("right", legend=legend, col=3:6, lty = 1)
 
 Z1 <-model1[,4]/2
 
-tau1 <- 0.1#runif(1,0,1)
 Y1 <-vector(length = 365)
 for (i in 1:365){
-  #Y1[i]<- rlnorm(1,log(Z1[i,]/5),tau1)
   Y1[i]<- rpois(1,Z1[i]/5)
 }
 plot(Y1,type='p',ylab="Daily incidence Y",xlab="time",col="darkred",main="H1N1_BM model generated observation")
@@ -760,7 +758,7 @@ write.csv(model1,"h1n1bmdg_model5.csv")
 #Use Binomial obs dis
 rm(list=ls())
 require(deSolve)
-set.seed(5216) #5204 5205 5207 5209 5210 5213
+set.seed(5227) #5204 5205 5207 5209 5210 5213
 times <- 1:365
 N=52196381
 ## first, simulate a set of random deviates
@@ -780,7 +778,6 @@ ornstein_uhlenbeck <- function(n,sigma,x0,lens,e){
 }
 tims=365
 times = 1:tims
-e = rnorm(n = length(times) , sd = 1)
 x = ornstein_uhlenbeck(tims, sigma=0.07,x0=0, tims,e)
 
 beta<- exp(x)
@@ -831,9 +828,8 @@ matplot(model1, type="l", lty=1, main="Generated H1N1_BM Model Trajectories", xl
 legend <- colnames(model1)[3:6]
 legend("right", legend=legend, col=3:6, lty = 1)
 
-Z1 <-model1[,4]/2
+Z1 <-floor(model1[,4]/2)
 
-tau1 <- 0.1#runif(1,0,1)
 Y1 <-vector(length = 365)
 for (i in 1:365){
   #Y1[i]<- rlnorm(1,log(Z1[i,]/5),tau1)

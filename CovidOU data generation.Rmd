@@ -682,7 +682,9 @@ times = 1:tims
   x = ornstein_uhlenbeck(tims, theta=0.05, sigma=sqrt(0.004), x0=0, tims,mu,e)
   plot(x,type='p',ylab=TeX(r"(OU process $X_{t}$)"),xlab="Time",col="darkred",main=TeX(r"(Generated OU process: $\theta=0.05$, $sigma=sqrt(0.004)$, $x_{0}=0$)"))
   lines(x,col="darkblue")
-write.csv(x,"covidoudg_x1.csv")
+  abline(v=121, col="red")
+axis(1, at=121,labels=121, col.axis="red", las=2)
+# write.csv(x,"covidoudg_x1.csv")
 beta<- exp(x)
 plot(beta,type='p',ylab=TeX(r"(Transmission rate $\beta$)"),xlab="time",col="darkred",main="COVIDOU model generated transmission rate")
 lines(beta,col="darkblue")
@@ -690,7 +692,7 @@ abline(v=121, col="red")
 axis(1, at=121,labels=121, col.axis="red", las=2)
 tt1 <-expression('lockdown policy start')
 text(80,0.6,tt1,col="red")
-write.csv(beta,"covidoudg_beta1.csv")
+# write.csv(beta,"covidoudg_beta1.csv")
 #Main ODE Model
   Covid_OU <- function(time, current_state, params){
     
@@ -729,8 +731,8 @@ for (i in 1:365){
 
 plot(Y1,type='p',ylab="Daily incidence Y",xlab="time",col="darkred",main="Covid_OU model generated observation with Lognormal distribution")
 lines(Y1,col="darkblue")  
-write.csv(Y1,"covidoudg_y1.csv")
-write.csv(model4,"covidoudg_model1.csv")
+# write.csv(Y1,"covidoudg_y1.csv")
+# write.csv(model4,"covidoudg_model1.csv")
 ```
 
 
@@ -770,7 +772,9 @@ times = 1:tims
   x = ornstein_uhlenbeck(tims, theta=0.05, sigma=sqrt(0.004), x0=0, tims,mu,e)
   plot(x,type='p',ylab=TeX(r"(OU process $X_{t}$)"),xlab="Time",col="darkred",main=TeX(r"(Generated OU process: $\theta=0.05$, $sigma=sqrt(0.004)$, $x_{0}=0$)"))
   lines(x,col="darkblue")
-write.csv(x,"covidoudg_x3.csv")
+  abline(v=121, col="red")
+axis(1, at=121,labels=121, col.axis="red", las=2)
+# write.csv(x,"covidoudg_x3.csv")
 beta<- exp(x)
 plot(beta,type='p',ylab=TeX(r"(Transmission rate $\beta$)"),xlab="time",col="darkred",main="COVIDOU model generated transmission rate")
 lines(beta,col="darkblue")
@@ -778,7 +782,7 @@ abline(v=121, col="red")
 axis(1, at=121,labels=121, col.axis="red", las=2)
 tt1 <-expression('lockdown policy start')
 text(80,0.6,tt1,col="red")
-write.csv(beta,"covidoudg_beta3.csv")
+# write.csv(beta,"covidoudg_beta3.csv")
 #Main ODE Model
   Covid_OU <- function(time, current_state, params){
     
@@ -816,8 +820,8 @@ for (i in 1:365){
 
 plot(Y1,type='p',ylab="Daily incidence Y",xlab="time",col="darkred",main="Covid_OU model generated observation with Poisson distribution")
 lines(Y1,col="darkblue")  
-write.csv(Y1,"covidoudg_y3.csv")
-write.csv(model4,"covidoudg_model3.csv")
+# write.csv(Y1,"covidoudg_y3.csv")
+# write.csv(model4,"covidoudg_model3.csv")
 ```
 
 ```{r}
@@ -995,4 +999,181 @@ plot(Y1,type='p',ylab="Daily incidence Y",xlab="time",col="darkred",main="Covid_
 lines(Y1,col="darkblue")  
 write.csv(Y1,"covidoudg_y4.csv")
 write.csv(model4,"covidoudg_model4.csv")
+```
+
+```{r}
+#Covid OU full model data generation-method 1-Binomial
+rm(list=ls())
+require(deSolve)
+set.seed(533) #533 536
+
+N=52196381
+
+#Simulate an O-U Process
+ornstein_uhlenbeck <- function(n,theta,sigma,x0,lens,mu,e){
+  dt <- 1
+  x<-vector(length=lens)
+  for (i in 1:n) {
+    if (i==1){x[i]=x0}
+    else{
+      x[i]  <-  x[i-1] + theta*(mu[i-1]-x[i-1])*dt + sigma*e[i-1]}
+  }
+  
+  return(x)
+}
+tims=365
+times = 1:tims
+  
+  mu = vector(length=tims) 
+  for (t in 1:tims) {
+    if (t <= 120){
+      mu[t]=-0.02      }                    #No lock-down policy
+    else {mu[t]=-0.2-0.02 }                 #Lock-down policy
+  }
+  mu = ts(mu)
+  plot(mu,type='l')
+  e = rnorm(n = length(times) , sd = 1)
+  plot(e,type='l')
+  x = ornstein_uhlenbeck(tims, theta=0.05, sigma=sqrt(0.004), x0=0, tims,mu,e)
+  plot(x,type='p',ylab=TeX(r"(OU process $X_{t}$)"),xlab="Time",col="darkred",main=TeX(r"(Generated OU process: $\theta=0.05$, $sigma=sqrt(0.004)$, $x_{0}=0$)"))
+  lines(x,col="darkblue")
+  abline(v=121, col="red")
+axis(1, at=121,labels=121, col.axis="red", las=2)
+# write.csv(x,"covidoudg_x1.csv")
+beta<- exp(x)
+plot(beta,type='p',ylab=TeX(r"(Transmission rate $\beta$)"),xlab="time",col="darkred",main="COVIDOU model generated transmission rate")
+lines(beta,col="darkblue")
+abline(v=121, col="red")
+axis(1, at=121,labels=121, col.axis="red", las=2)
+tt1 <-expression('lockdown policy start')
+text(80,0.6,tt1,col="red")
+# write.csv(beta,"covidoudg_beta1.csv")
+#Main ODE Model
+  Covid_OU <- function(time, current_state, params){
+    
+    with(as.list(c(current_state, params)),{
+      
+      N <- S+E+I+R
+      dt <- 1
+      dS <- -exp(x[t])*S*(E+0.1*I)/N
+      dE <- exp(x[t])*S*(E+0.1*I)/N - E*(1/k+1/gamma)
+      dI <- E/k-I*(1/gamma+0.0087)
+      dR <- (I+E)/gamma+0.0087*I
+      
+      return(list(c( dt, dS, dE, dI, dR)))
+    })
+  }
+params <- c(k=5, gamma=9,x=x)   #Trial: k=5 & gamma=5; k=7 & gamma=5
+
+# initial_state<- c(t=1, S=S, E=E, I=I, R=R)
+initial_state <- c(t=1,S=N-1, E=1, I=0, R=0)
+model4 <- ode(initial_state, times, Covid_OU, params)
+
+summary(model4)
+
+
+matplot(model4, type="l", lty=1, main="Generated COVID_OU Model Trajectories",ylab="Counts", xlab="Time")
+legend <- colnames(model4)[3:6]
+legend("right", legend=legend, col=3:6, lty = 1)
+Z1 <-floor(model4[,4]/5)
+
+Y1 <-vector(length = 365)
+for (i in 1:365){
+  Y1[i]<- rbinom(1,Z1[i],1/5)
+}
+
+plot(Y1,type='p',ylab="Daily incidence Y",xlab="time",col="darkred",main="Covid_OU model generated observation with Lognormal distribution")
+lines(Y1,col="darkblue")  
+# write.csv(Y1,"covidoudg_y1.csv")
+# write.csv(model4,"covidoudg_model1.csv")
+```
+
+```{r}
+#Covid OU full model data generation-method 1-NegBinomial
+rm(list=ls())
+require(deSolve)
+set.seed(533) #533 536
+
+N=52196381
+
+#Simulate an O-U Process
+ornstein_uhlenbeck <- function(n,theta,sigma,x0,lens,mu,e){
+  dt <- 1
+  x<-vector(length=lens)
+  for (i in 1:n) {
+    if (i==1){x[i]=x0}
+    else{
+      x[i]  <-  x[i-1] + theta*(mu[i-1]-x[i-1])*dt + sigma*e[i-1]}
+  }
+  
+  return(x)
+}
+tims=365
+times = 1:tims
+  
+  mu = vector(length=tims) 
+  for (t in 1:tims) {
+    if (t <= 120){
+      mu[t]=-0.02      }                    #No lock-down policy
+    else {mu[t]=-0.2-0.02 }                 #Lock-down policy
+  }
+  mu = ts(mu)
+  plot(mu,type='l')
+  e = rnorm(n = length(times) , sd = 1)
+  plot(e,type='l')
+  x = ornstein_uhlenbeck(tims, theta=0.05, sigma=sqrt(0.004), x0=0, tims,mu,e)
+  plot(x,type='p',ylab=TeX(r"(OU process $X_{t}$)"),xlab="Time",col="darkred",main=TeX(r"(Generated OU process: $\theta=0.05$, $sigma=sqrt(0.004)$, $x_{0}=0$)"))
+  lines(x,col="darkblue")
+  abline(v=121, col="red")
+axis(1, at=121,labels=121, col.axis="red", las=2)
+# write.csv(x,"covidoudg_x1.csv")
+beta<- exp(x)
+plot(beta,type='p',ylab=TeX(r"(Transmission rate $\beta$)"),xlab="time",col="darkred",main="COVIDOU model generated transmission rate")
+lines(beta,col="darkblue")
+abline(v=121, col="red")
+axis(1, at=121,labels=121, col.axis="red", las=2)
+tt1 <-expression('lockdown policy start')
+text(80,0.6,tt1,col="red")
+# write.csv(beta,"covidoudg_beta1.csv")
+#Main ODE Model
+  Covid_OU <- function(time, current_state, params){
+    
+    with(as.list(c(current_state, params)),{
+      
+      N <- S+E+I+R
+      dt <- 1
+      dS <- -exp(x[t])*S*(E+0.1*I)/N
+      dE <- exp(x[t])*S*(E+0.1*I)/N - E*(1/k+1/gamma)
+      dI <- E/k-I*(1/gamma+0.0087)
+      dR <- (I+E)/gamma+0.0087*I
+      
+      return(list(c( dt, dS, dE, dI, dR)))
+    })
+  }
+params <- c(k=5, gamma=9,x=x)   #Trial: k=5 & gamma=5; k=7 & gamma=5
+
+# initial_state<- c(t=1, S=S, E=E, I=I, R=R)
+initial_state <- c(t=1,S=N-1, E=1, I=0, R=0)
+model4 <- ode(initial_state, times, Covid_OU, params)
+
+summary(model4)
+
+
+matplot(model4, type="l", lty=1, main="Generated COVID_OU Model Trajectories",ylab="Counts", xlab="Time")
+legend <- colnames(model4)[3:6]
+legend("right", legend=legend, col=3:6, lty = 1)
+Z1 <-floor(model4[,4]/5)
+
+Y1 <-vector(length = 365)
+for (i in 1:365){
+  Y1[i]<- rnbinom(n=1,size=Z1[i],prob=1/5)
+}
+
+plot(Y1,type='p',ylab="Daily incidence Y",xlab="time",col="darkred",main="Covid_OU model generated observation with Lognormal distribution")
+lines(Y1,col="darkblue")  
+# write.csv(Y1,"covidoudg_y1.csv")
+# write.csv(model4,"covidoudg_model1.csv")
+```
+
+```{}
 ```
