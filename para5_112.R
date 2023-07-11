@@ -53,8 +53,8 @@ model dureau {
     sigma ~ truncated_gaussian(sqrt(0.004), 0.1, lower = 0)
     theta ~ truncated_gaussian(0.05, 0.1, lower = 0)
     tau ~ truncated_gaussian(0.1, 0.05, lower = 0,upper=1)
-    a ~ truncated_gaussian(-0.02, 0.5, lower = -inf, upper=0)
-    b ~ truncated_gaussian(-0.2, 0.5, lower = -inf, upper=0)
+    a ~ truncated_gaussian(-0.02, 0.5, upper=0)
+    b ~ truncated_gaussian(-0.2, 0.5, upper=0)
     x0 ~ gaussian(-0.02, 0.2) //long-term ou mean & sd
   }
 
