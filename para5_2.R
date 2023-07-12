@@ -8,7 +8,7 @@ library(latex2exp)
 library(rbi)
 library(rbi.helpers)
 # Load the data
-v <- read.csv("covidoudg_y2w.csv", header=FALSE, stringsAsFactors=FALSE) %>%
+v <- read.csv("covidoudg2_y3w.csv", header=FALSE, stringsAsFactors=FALSE) %>%
   rowSums()
 
 y <- data.frame(value = v) %>%
@@ -20,7 +20,7 @@ Forcing <- data.frame(value = L) %>%
   dplyr::select(time,V1 )
 colnames(Forcing) <- c("time","value")
 
-ncores <- 8
+ncores <- 12
 minParticles <- max(ncores, 16)
 model_str <- "
 model dureau {
@@ -45,6 +45,7 @@ model dureau {
   param a
   param b
   param tau
+  param x0
   
   sub parameter {
     k ~ truncated_gaussian(5, 0.05, lower = 0) // k is the period here, not the rate, i.e. 1/k is the rate
@@ -54,6 +55,7 @@ model dureau {
     tau ~ truncated_gaussian(0.1, 0.001, lower = 0)
     a ~ gaussian(-0.02, 0.001)
     b ~ gaussian(-0.2, 0.01)
+    x0 ~ gaussian(-0.02, 0.2)
   }
 
   sub initial {
@@ -62,7 +64,7 @@ model dureau {
     I <- 0
     R <- 0
     Z <- 0
-    x <- 0
+    x <- x0
   }
 
   sub transition(delta = 1) {
@@ -81,7 +83,7 @@ model dureau {
   }
 
   sub observation {
-    y ~ log_normal(log(max(Z/5, 0)), tau)
+    y ~ binomial(floor(Z),1/5)
   }
 
   sub proposal_parameter {
@@ -92,6 +94,7 @@ model dureau {
     tau ~ gaussian(tau, 0.001)
     a ~ gaussian(a, 0.001)
     b ~ gaussian(b, 0.001)
+    x0 ~ gaussian(x0,0.01)
   }
 }"
 model <- bi_model(lines = stringi::stri_split_lines(model_str)[[1]])
@@ -99,7 +102,7 @@ bi_model <- libbi(model)
 input_lst <- list(N = 52196381,Forcing=Forcing)
 end_time <- max(y$time)
 obs_lst <- list(y = y %>% dplyr::filter(time <= end_time))
-init_list <- list(k=5, gamma=9, sigma=sqrt(0.004),theta=0.05,tau=0.1,a=-0.02,b=-0.2)
+init_list <- list(k=5, gamma=9, sigma=sqrt(0.004),theta=0.05,tau=0.1,a=-0.02,b=-0.2,x0=0)
 
 bi <- sample(bi_model,target = "posterior", end_time = end_time, input = input_lst, init=init_list, obs = obs_lst, nsamples = 2000, nparticles = minParticles, nthreads = ncores, proposal = 'model',seed=0066661) %>% 
   adapt_particles(min = minParticles, max = minParticles*500) %>%
@@ -132,11 +135,11 @@ plot_df <- bi_lst$x %>% mutate(value = exp(value)) %>%
   ) %>% ungroup()
 write.csv(plot_df,"../data/para5_beta2.csv")
 
-Mmodel <- read.csv("covidoudg_model2.csv", header=TRUE, stringsAsFactors=FALSE)
-S<-Mmodel[,4]
-E<-Mmodel[,5]
-I<-Mmodel[,6]
-R<-Mmodel[,7]
+Mmodel <- read.csv("covidoudg2_model3.csv", header=TRUE, stringsAsFactors=FALSE)
+S<-Mmodel[-1,7]
+E<-Mmodel[-1,9]
+I<-Mmodel[-1,11]
+R<-Mmodel[-1,13]
 
 S <- data.frame(value = S) %>%
   mutate(time = seq(1, by = 1, length.out = n())) %>%
@@ -206,6 +209,9 @@ write.csv(bi_lst$tau$value,"../data/para5_tau2.csv")
 write.csv(bi_lst$theta$value,"../data/para5_theta2.csv")
 write.csv(bi_lst$a$value,"../data/para5_a2.csv")
 write.csv(bi_lst$b$value,"../data/para5_b2.csv")
+write.csv(bi_lst$x0$value,"../data/para5_x02.csv")
+
+
 
 
 
