@@ -679,6 +679,7 @@ times = 1:tims
   plot(mu,type='l')
   e = rnorm(n = length(times) , sd = 1)
   plot(e,type='l')
+  # write.csv(e,"covidoudg_e1.csv")
   x = ornstein_uhlenbeck(tims, theta=0.05, sigma=sqrt(0.004), x0=0, tims,mu,e)
   plot(x,type='p',ylab=TeX(r"(OU process $X_{t}$)"),xlab="Time",col="darkred",main=TeX(r"(Generated OU process: $\theta=0.05$, $sigma=sqrt(0.004)$, $x_{0}=0$)"))
   lines(x,col="darkblue")
@@ -712,7 +713,7 @@ params <- c(k=5, gamma=9,x=x)   #Trial: k=5 & gamma=5; k=7 & gamma=5
 
 # initial_state<- c(t=1, S=S, E=E, I=I, R=R)
 initial_state <- c(t=1,S=N-1, E=1, I=0, R=0)
-model4 <- ode(initial_state, times, Covid_OU, params)
+model4 <- ode(initial_state, times, Covid_OU, params,method = "rk4")
 
 summary(model4)
 
@@ -1175,5 +1176,7 @@ lines(Y1,col="darkblue")
 # write.csv(model4,"covidoudg_model1.csv")
 ```
 
-```{}
+```{r}
+#fixed all parameters
+
 ```
