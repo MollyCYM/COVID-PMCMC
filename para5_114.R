@@ -42,6 +42,7 @@ model dureau {
   param gamma
   param sigma // Noise driver
   param theta
+  param d
   param a
   param b
   param tau
