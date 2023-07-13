@@ -680,6 +680,7 @@ times = 1:tims
   e = rnorm(n = length(times) , sd = 1)
   plot(e,type='l')
   # write.csv(e,"covidoudg_e1.csv")
+    # write.csv(e,"para6_2_e1.csv")
   x = ornstein_uhlenbeck(tims, theta=0.05, sigma=sqrt(0.004), x0=0, tims,mu,e)
   plot(x,type='p',ylab=TeX(r"(OU process $X_{t}$)"),xlab="Time",col="darkred",main=TeX(r"(Generated OU process: $\theta=0.05$, $sigma=sqrt(0.004)$, $x_{0}=0$)"))
   lines(x,col="darkblue")
@@ -733,7 +734,7 @@ for (i in 1:365){
 plot(Y1,type='p',ylab="Daily incidence Y",xlab="time",col="darkred",main="Covid_OU model generated observation with Lognormal distribution")
 lines(Y1,col="darkblue")  
 # write.csv(Y1,"covidoudg_y1.csv")
-# write.csv(model4,"covidoudg_model1.csv")
+# write.csv(model4,"para6_2_rmodel1.csv")
 ```
 
 
