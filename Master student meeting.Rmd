@@ -28,7 +28,7 @@ times <- 1:365
 model <- ode(initial_state, times, SEIR, params)
 
 summary(model)
-# write.csv(model,"simulatestates3.csv")
+write.csv(model,"para6_2_rmodel.csv")
 matplot(model, type="l", lty=1, main="Generated Deterministic SEIR Model Trajectories", xlab="Time",ylab = "Counts")
 legend <- colnames(model)[2:5]
 legend("right", legend=legend, col=2:5, lty = 1)
@@ -44,7 +44,7 @@ for (i in 1:365){
 }
 plot(Y,type='p',ylab="Daily incidence Y",xlab="time",col="darkred",main="Deterministic SEIR Model generated observation")
 lines(Y,col="darkblue")
-
+write.csv(Y,"para6_2_robs.csv")
 ```
 
 
@@ -61,7 +61,7 @@ library(rbi)
 library(rbi.helpers)
 
 # Load the data
-v <- read.csv("365days.csv", header=FALSE, stringsAsFactors=FALSE) 
+v <- read.csv("h1n1bm_dailylibbi1.csv", header=FALSE, stringsAsFactors=FALSE) 
 y <- data.frame(value = v) %>%
   mutate(time = seq(1, by = 1, length.out = n())) %>%
   dplyr::select(time, V1)

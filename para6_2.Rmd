@@ -225,3 +225,489 @@ ggplot(synthetic_df, aes(y.time)) +
   ylab("Counts")
 
 ```
+
+```{r}
+#Deterministic case check
+rm(list=ls())
+library(tidyverse)
+library(ggplot2)
+library(ggpubr)
+library(pander)
+library(lubridate)
+library(latex2exp)
+library(rbi)
+library(rbi.helpers)
+
+ncores <- 8 
+minParticles <- max(ncores, 16)
+model_str <- "
+model deter {
+  obs y
+
+  state S
+  state E
+  state I
+  state R
+  
+  const N = 1000000
+  const sigma = 0.25
+  const beta = 0.5
+  const gamma = 0.2
+  const tau = 0.1
+  const mu = 0.001
+
+  sub initial {
+    S <-999999
+    E <- 1 
+    I <-0
+    R <-0
+  }
+
+  sub transition(delta = 1) {
+    ode(alg = 'RK4(3)', h = 1.0, atoler = 1.0e-3, rtoler = 1.0e-8) {
+      dS/dt = -(beta*S*I)/N
+      dE/dt = (beta*S*I)/N - sigma*E
+      dI/dt = sigma*E - gamma*I - mu*I
+      dR/dt = (mu+gamma)*I
+    }
+  }
+
+  sub observation {
+    y ~ log_normal(log(max((sigma*E)/5, 0)), tau)
+  }
+}"
+SEIR <- bi_model(lines = stringi::stri_split_lines(model_str)[[1]])
+
+T <- 365
+nObs <- 365
+
+synthetic_dataset <- bi_generate_dataset(model=SEIR, end_time=T,
+                                         noutputs = nObs)
+synthetic_data <- bi_read(synthetic_dataset)
+
+synthetic_df <- as.data.frame(synthetic_data)
+
+write.csv(synthetic_df$y.value,"para6_2_libbiobs.csv")
+write.csv(synthetic_df,"para6_2_libbimodel.csv")
+
+ggplot(synthetic_df, aes(y.time)) +
+  geom_path(aes(y = y.value, colour="y.value")) +
+  theme(legend.position="bottom") +
+  ggtitle("Covid_OU model generated observation with Lognormal distribution") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  xlab("Time") +
+  ylab("Daily incidence Y")
+
+ggplot(synthetic_df, aes(y.time)) +
+  geom_path(aes(y = S.value, colour="S.value")) +
+  geom_path(aes(y = E.value, colour="E.value")) +
+  geom_path(aes(y = I.value, colour="I.value")) +
+  geom_path(aes(y = R.value, colour="R.value")) +
+  theme(legend.position="bottom") +
+  ggtitle("Generated COVID_OU Model Trajectories") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  xlab("Time") +
+  ylab("Counts")
+
+```
+
+```{r}
+#composite plots
+ry <-read.csv("para6_2_robs.csv", header=TRUE, stringsAsFactors=FALSE)
+libbiy <-read.csv("para6_2_libbiobs.csv", header=TRUE, stringsAsFactors=FALSE)
+rsol <- read.csv("para6_2_rmodel.csv", header=TRUE, stringsAsFactors=FALSE)
+libbisol <- read.csv("para6_2_libbimodel.csv", header=TRUE, stringsAsFactors=FALSE)
+
+#Y
+plot(ry,type='l',ylab=TeX(r"(Incidence observation $Y$)"),xlab="Time",col="darkred",main="deSolve vs LibBi generate obs Y")
+lines(libbiy,type='l',col="darkgreen")
+legend(x = "topright",          # Position
+       legend = c("R deSolve", "LibBi"),  # Legend texts
+       lty = c(1, 1),           # Line types
+       col = c("darkred", "darkgreen"),           # Line colors
+       lwd = 2) 
+#S
+plot(rsol[,3],type='l',ylab=TeX(r"(State trajectory counts)"),xlab="Time",col="darkred",main="deSolve vs LibBi generate state S")
+lines(libbisol[,5],type='l',col="darkgreen")
+legend(x = "topright",          # Position
+       legend = c("R deSolve", "LibBi"),  # Legend texts
+       lty = c(1, 1),           # Line types
+       col = c("darkred", "darkgreen"),           # Line colors
+       lwd = 2)
+
+#E
+plot(rsol[,4],type='l',ylab=TeX(r"(State trajectory counts)"),xlab="Time",col="darkred",main="deSolve vs LibBi generate state E")
+lines(libbisol[,7],type='l',col="darkgreen")
+legend(x = "topright",          # Position
+       legend = c("R deSolve", "LibBi"),  # Legend texts
+       lty = c(1, 1),           # Line types
+       col = c("darkred", "darkgreen"),           # Line colors
+       lwd = 2)
+
+#I
+plot(rsol[,5],type='l',ylab=TeX(r"(State trajectory counts)"),xlab="Time",col="darkred",main="deSolve vs LibBi generate state I")
+lines(libbisol[,9],type='l',col="darkgreen")
+legend(x = "topright",          # Position
+       legend = c("R deSolve", "LibBi"),  # Legend texts
+       lty = c(1, 1),           # Line types
+       col = c("darkred", "darkgreen"),           # Line colors
+       lwd = 2)
+
+#R
+plot(rsol[,6],type='l',ylab=TeX(r"(State trajectory counts)"),xlab="Time",col="darkred",main="deSolve vs LibBi generate state R")
+lines(libbisol[,11],type='l',col="darkgreen")
+legend(x = "bottomright",          # Position
+       legend = c("R deSolve", "LibBi"),  # Legend texts
+       lty = c(1, 1),           # Line types
+       col = c("darkred", "darkgreen"),           # Line colors
+       lwd = 2)
+
+```
+
+```{r}
+#LibBi Monte Carlo
+
+rm(list=ls())
+library(tidyverse)
+library(ggplot2)
+library(ggpubr)
+library(pander)
+library(lubridate)
+library(latex2exp)
+library(rbi)
+library(rbi.helpers)
+set.seed(20245)
+L <- read.csv("Forcing.csv", header=FALSE, stringsAsFactors=FALSE)
+Forcing <- data.frame(value = L) %>%
+  mutate(time = seq(1, by = 1, length.out = n())) %>%
+  dplyr::select(time,V1 )
+colnames(Forcing) <- c("time","value")
+ncores <- 8
+minParticles <- max(ncores, 16)
+model_str <- "
+model covidou {
+  obs y
+  
+  state S
+  state E
+  state I
+  state R
+  state mu
+  state x
+
+  input Forcing
+  input N
+  
+  const k = 5
+  const gamma = 9
+  const sigma = sqrt(0.004)
+  const theta = 0.05
+  const a = -0.02
+  const b = -0.2
+  const tau = 0.1
+
+  sub initial {
+    S <- N-1
+    E <- 1
+    I <- 0
+    R <- 0
+    x <- 0
+  }
+
+  sub transition(delta = 1) {
+    noise e
+    e ~ wiener()
+    mu <- a+b*Forcing
+    ode{
+      dx/dt = theta*(mu-x)+sigma*e
+      dS/dt = -exp(x)*S*(0.1*I+E)/N
+      dE/dt = exp(x)*S*(0.1*I+E)/N - E*(1/k+1/gamma)
+      dI/dt = E/k-I*(1/gamma+0.0087)
+      dR/dt = (I+E)/gamma+0.0087*I
+    }
+  }
+
+  sub observation {
+    y ~ log_normal(log(max((E/k)/5, 0)), tau)
+  }
+
+}"
+covid <- bi_model(lines = stringi::stri_split_lines(model_str)[[1]])
+
+T <- 365
+nObs <- 365
+input_lst <- list(N = 52196381,Forcing=Forcing)
+
+gen_ode_model <- function(rep_time = 200, ori_seed = 20241, tims = 366
+                        ){
+  
+  times = 1:tims
+  
+  
+  
+  Ys = setNames(data.frame(matrix(NA, nrow = tims, ncol = rep_time)), paste0("Y", 1:rep_time))
+  dSs = setNames(Ys, paste0("dS", 1:rep_time))
+  dEs = setNames(Ys, paste0("dE", 1:rep_time))
+  dIs = setNames(Ys, paste0("dI", 1:rep_time))
+  dRs = setNames(Ys, paste0("dR", 1:rep_time)) 
+  dxs = setNames(Ys, paste0("dx", 1:rep_time))
+  dmus = setNames(Ys, paste0("dmu", 1:rep_time))
+  
+  
+  ## rep 200 times 
+  for (rep_i in 1:rep_time) {
+    set.seed(ori_seed + 1000*rep_i)
+    
+    synthetic_dataset <- bi_generate_dataset(model=covid, end_time=T,
+                                         noutputs = nObs, input=input_lst)
+    synthetic_data <- bi_read(synthetic_dataset)
+
+    synthetic_df <- as.data.frame(synthetic_data)
+   
+    Ys[, rep_i] = synthetic_df[,4]
+    dSs[, rep_i] = synthetic_df[,6]
+    dEs[, rep_i] = synthetic_df[,8]
+    dIs[, rep_i] = synthetic_df[,10]
+    dRs[, rep_i] = synthetic_df[,12]
+    dmus[, rep_i] = synthetic_df[,14]
+    dxs[, rep_i] = synthetic_df[,16]
+  
+    
+  }
+  
+  # output
+  return(list(    
+    Y = Ys,
+    dS = dSs,
+    dE = dEs,
+    dI = dIs,
+    dR = dRs,
+    dmu = dmus,
+    dx = dxs))
+}
+
+
+ode_example <- gen_ode_model(20)
+
+## for z
+
+# zs = ncol(ode_example$Z)
+# zs_mean = apply(ode_example$Z,1,mean)
+# zs_95 = apply(ode_example$Z, 1, quantile, probs=0.95)
+# zs_05 = apply(ode_example$Z, 1, quantile, probs=0.05)
+# for (i in 1:zs) {
+#   if (i == 1){
+#     plot(ode_example$Z[,1], col="darkblue", type = "l", 
+#          ylim = c(0, max(ode_example$Z)),
+#          xlab = 'Times', ylab = 'state Z',main="Covid_ou model Monte Carlo tirals")
+#     }
+#   else{
+#     lines(ode_example$Z[,i], col="darkblue")
+#   }
+#   lines(zs_mean,col="black",type="l")
+#   lines(zs_95,col="black",lty="dotdash")
+#   lines(zs_05,col="black",lty="dotdash")
+# }
+
+## for y
+
+ys = ncol(ode_example$Y)
+ys_mean = apply(ode_example$Y,1,mean)
+ys_95 = apply(ode_example$Y, 1, quantile, probs=0.95)
+ys_05 = apply(ode_example$Y, 1, quantile, probs=0.05)
+for (i in 1:ys) {
+  if (i == 1){
+    plot(ode_example$Y[,1], col="darkred", type = "l", 
+         ylim = c( min(ode_example$Y), max(ode_example$Y)),
+         xlab = 'Times', ylab = 'incidence Y',main="Covid_ou model Monte Carlo tirals")
+  }
+  else{
+    lines(ode_example$Y[,i], col="darkred")
+  }
+  lines(ys_mean,col="black",type="l")
+  lines(ys_95,col="black",lty="dotdash")
+  lines(ys_05,col="black",lty="dotdash")
+}
+
+## for s
+
+ss = ncol(ode_example$dS)
+ss_mean = apply(ode_example$dS,1,mean)
+ss_95 = apply(ode_example$dS, 1, quantile, probs=0.95)
+ss_05 = apply(ode_example$dS, 1, quantile, probs=0.05)
+for (i in 1:ss) {
+  if (i == 1){
+    plot(ode_example$dS[,1], col="skyblue", type = "l", 
+         ylim = c(min(ode_example$dS), max(ode_example$dS)),
+         xlab = 'Times', ylab = 'state S',main="Covid_ou model Monte Carlo tirals")
+  }
+  else{
+    lines(ode_example$dS[,i], col="skyblue")
+  }
+  lines(ss_mean,col="black",type="l")
+  lines(ss_95,col="black",lty="dotdash")
+  lines(ss_05,col="black",lty="dotdash")
+}
+
+
+## for e
+
+es = ncol(ode_example$dE)
+es_mean = apply(ode_example$dE,1,mean)
+es_95 = apply(ode_example$dE, 1, quantile, probs=0.95)
+es_05 = apply(ode_example$dE, 1, quantile, probs=0.05)
+for (i in 1:es) {
+  if (i == 1){
+    plot(ode_example$dE[,1], col="yellow3", type = "l", 
+         ylim = c(min(ode_example$dE), max(ode_example$dE)),
+         xlab = 'Times', ylab = 'state E',main="Covid_ou model Monte Carlo tirals")
+  }
+  else{
+    lines(ode_example$dE[,i], col="yellow3")
+  }
+  lines(es_mean,col="black",type="l")
+  lines(es_95,col="black",lty="dotdash")
+  lines(es_05,col="black",lty="dotdash")
+}
+
+
+## for i
+
+is = ncol(ode_example$dI)
+is_mean = apply(ode_example$dI,1,mean)
+is_95 = apply(ode_example$dI, 1, quantile, probs=0.95)
+is_05 = apply(ode_example$dI, 1, quantile, probs=0.05)
+for (i in 1:is) {
+  if (i == 1){
+    plot(ode_example$dI[,1], col="pink3", type = "l", 
+         ylim = c(min(ode_example$dI), max(ode_example$dI)),
+         xlab = 'Times', ylab = 'state I',main="Covid_ou model Monte Carlo tirals")
+  }
+  else{
+    lines(ode_example$dI[,i], col="pink3")
+  }
+  lines(is_mean,col="black",type="l")
+  lines(is_95,col="black",lty="dotdash")
+  lines(is_05,col="black",lty="dotdash")
+}
+
+
+## for R
+
+rs = ncol(ode_example$dR)
+rs_mean = apply(ode_example$dR,1,mean)
+rs_95 = apply(ode_example$dR, 1, quantile, probs=0.95)
+rs_05 = apply(ode_example$dR, 1, quantile, probs=0.05)
+for (i in 1:rs) {
+  if (i == 1){
+    plot(ode_example$dR[,1], col="darkgreen", type = "l", 
+         ylim = c(min(ode_example$dR), max(ode_example$dR)),
+         xlab = 'Times', ylab = 'state R',main="Covid_ou model Monte Carlo tirals")
+  }
+  else{
+    lines(ode_example$dR[,i], col="darkgreen")
+  }
+  lines(rs_mean,col="black",type="l")
+  lines(rs_95,col="black",lty="dotdash")
+  lines(rs_05,col="black",lty="dotdash")
+}
+
+
+
+############### add plot of x and e
+
+# for beta
+xs = ncol(ode_example$dx)
+beta_mean = apply(exp(ode_example$dx),1,mean)
+for (i in 1:xs) {
+  if (i == 1){
+    plot(exp(ode_example$dx[,1]), col="orange2", type = "l",
+         ylim = c(min(exp(ode_example$dx)), max(exp(ode_example$dx))),
+         xlab = 'Times', ylab = expression(beta),main="Covid_ou model Monte Carlo tirals")
+  }
+  else{
+    lines(exp(ode_example$dx[,i]), col="orange2")
+  }
+  lines(beta_mean,col="black",type="l")
+  # abline(h=exp(-0.02), col="blue")
+  abline(v=121, col="darkred")
+  axis(1, at=121,labels=121, col.axis="darkred", las=2)
+  segments(x0=0, y0=0.98, x1 = 120, y1 = 0.98,col="blue")
+  tt1 <-expression(mu=exp(-0.02))
+  text(50,1.2,tt1,col="blue")
+  segments(x0=121, y0=0.802, x1 =365, y1 = 0.802,col="blue")
+  tt2 <-expression(mu=exp(-0.22))
+  text(230,0.6,tt2,col="blue")
+
+}
+
+## for x
+xs = ncol(ode_example$dx)
+xs_mean = apply(ode_example$dx,1,mean)
+xs_95 = apply(ode_example$dx, 1, quantile, probs=0.95)
+xs_05 = apply(ode_example$dx, 1, quantile, probs=0.05)
+for (i in 1:xs) {
+  if (i == 1){
+    plot(ode_example$dx[,1], col="orange2", type = "l",
+         ylim = c(min((ode_example$dx)), max((ode_example$dx))),
+         xlab = 'Times', ylab = 'Ornstein–Uhlenbeck process x',main="Covid_ou model Monte Carlo tirals")
+  }
+  else{
+    lines((ode_example$dx[,i]), col="orange2")
+  }
+  lines(xs_mean,col="black",type="l")
+  # lines(xs_95,col="black",lty="dotdash")
+  # lines(xs_05,col="black",lty="dotdash")
+  abline(v=121, col="darkred")
+  axis(1, at=121,labels=121, col.axis="darkred", las=2)
+  segments(x0=0, y0=-0.02, x1 = 120, y1 = -0.02,col="blue")
+  tt1 <-expression(mu=-0.02)
+  text(50,0.3,tt1,col="blue")
+  segments(x0=121, y0=-0.22, x1 =365, y1 = -0.22,col="blue")
+  tt2 <-expression(mu=-0.22)
+  text(230,-0.4,tt2,col="blue")
+}
+# 
+# ## for e
+# 
+# # es = ncol(ode_example$e)
+# # 
+# # for (i in 1:es) {
+# #   if (i == 1){
+# #     plot(ode_example$e[,1], col="grey", type = "l", 
+# #          ylim = c(min(ode_example$e), max(ode_example$e)),
+# #          xlab = 'Times', ylab = 'e',main="Covid_ou model Monte Carlo tirals")
+# #   }
+# #   else{
+# #     lines(ode_example$e[,i], col="grey")
+# #   }
+# # }
+# 
+# 
+# ## for all
+# 
+# 
+# lims = c(0, max(max(ode_example$dS), max(ode_example$dE), 
+#            max(ode_example$dI), max(ode_example$dR)))
+# 
+# ss = ncol(ode_example$dS)
+# 
+# for (i in 1:ss) {
+#   if (i == 1){
+#     plot(ode_example$dS[,1], col="skyblue", type = "l", 
+#          ylim = lims,
+#          xlab = 'Times', ylab = 'All states')
+#   }
+#   else{
+#     lines(ode_example$dS[,i], col="skyblue")
+#   }
+#   lines(ode_example$dE[,i], col="yellow3")
+#   lines(ode_example$dI[,i], col="pink3")
+#   lines(ode_example$dR[,i], col="darkgreen")
+# }
+
+
+```
+
+```{r}
+```
