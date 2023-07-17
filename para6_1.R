@@ -99,25 +99,42 @@ bi_model <- libbi(model)
 input_lst <- list(N = 52196381,Forcing=Forcing)
 end_time <- max(y$time)
 obs_lst <- list(y = y %>% dplyr::filter(time <= end_time))
+# Initial value of parameters:
 init_list <- list(k=5, gamma=9, sigma=sqrt(0.004),theta=0.05,tau=0.1,a=-0.02,b=-0.2)
 
 bi <- sample(bi_model,target = "posterior", end_time = end_time, input = input_lst, init=init_list,
-             obs = obs_lst, nsamples = 1000,nparticles = minParticles,
+             obs = obs_lst, nsamples = 500,nparticles = minParticles,
              nthreads = ncores, proposal = 'model',seed=0066661) %>% 
   adapt_particles(min = minParticles, max = minParticles*500) %>%
   adapt_proposal(min = 0.1, max = 0.4)
 
 bi_lst <- bi_read(bi %>% sample_obs)
 
-write.csv(bi_lst,"../data/para6_model1.csv")
+#Data saving
+write.csv(1/bi_lst$k$value,"para6_alpha1.csv")
+write.csv(1/bi_lst$gamma$value,"para6_gamma1.csv")
+write.csv(bi_lst$sigma$value,"para6_sigma1.csv")
+write.csv(bi_lst$theta$value,"para6_theta1.csv")
 
-write.csv(1/bi_lst$k$value,"../data/para6_alpha1.csv")
-write.csv(1/bi_lst$gamma$value,"../data/para6_gamma1.csv")
-write.csv(bi_lst$sigma$value,"../data/para6_sigma1.csv")
-write.csv(bi_lst$tau$value,"../data/para6_tau1.csv")
-write.csv(bi_lst$theta$value,"../data/para6_theta1.csv")
-write.csv(bi_lst$a$value,"../data/para6_a1.csv")
-write.csv(bi_lst$b$value,"../data/para6_b1.csv")
+#Trace plot (red lines are their true value used in data generation, also the same with our setting to initial parameter value)
+
+sigma<-read.csv("para6_sigma1.csv", header=TRUE, stringsAsFactors=FALSE)
+gamma<-read.csv("para6_gamma1.csv", header=TRUE, stringsAsFactors=FALSE)
+alpha<-read.csv("para6_alpha1.csv", header=TRUE, stringsAsFactors=FALSE)
+theta<- read.csv("para6_theta1.csv", header=TRUE, stringsAsFactors=FALSE)
+par(mfrow=c(4,1))
+plot(sigma,type='l',main=TeX("Trace plot of ($\\sigma$)"),xlab="MCMC iterations",ylab="sigma")
+abline(h=sqrt(0.004), col="red")
+abline(h=mean(sigma[,2]),col="blue")
+plot(gamma,type='l',main=TeX("Trace plot of ($\\gamma$)"),xlab="MCMC iterations",ylab="gamma")
+abline(h=1/9, col="red")
+abline(h=mean(gamma[,2]),col="blue")
+plot(alpha,type='l',main=TeX("Trace plot of ($\\alpha$)"),xlab="MCMC iterations",ylab="alpha")
+abline(h=1/5, col="red")
+abline(h=mean(alpha[,2]),col="blue")
+plot(theta,type='l',main=TeX("Trace plot of ($\\theta$)"),xlab="MCMC iterations",ylab="theta")
+abline(h=0.05, col="red")
+abline(h=mean(theta[,2]),col="blue")
 
 
 
