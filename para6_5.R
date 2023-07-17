@@ -92,7 +92,6 @@ model dureau {
     theta ~ truncated_gaussian(theta, 0.001, lower = 0)
     a ~ gaussian(a, 0.001)
     b ~ gaussian(b, 0.001)
-    x0 ~ gaussian(x0,0.01)
   }
 }"
 model <- bi_model(lines = stringi::stri_split_lines(model_str)[[1]])
@@ -100,7 +99,7 @@ bi_model <- libbi(model)
 input_lst <- list(N = 52196381,Forcing=Forcing)
 end_time <- max(y$time)
 obs_lst <- list(y = y %>% dplyr::filter(time <= end_time))
-init_list <- list(k=5, gamma=9, sigma=sqrt(0.004),theta=0.05,tau=0.1,a=-0.02,b=-0.2,x0=0)
+init_list <- list(k=5, gamma=9, sigma=sqrt(0.004),theta=0.05,tau=0.1,a=-0.02,b=-0.2)
 
 bi <- sample(bi_model,target = "posterior", end_time = end_time, input = input_lst, init=init_list, obs = obs_lst, nsamples = 2000, nparticles = minParticles, nthreads = ncores, proposal = 'model',seed=0066661) %>% 
   adapt_particles(min = minParticles, max = minParticles*500) %>%
@@ -206,7 +205,7 @@ write.csv(bi_lst$sigma$value,"../data/para6_sigma5.csv")
 write.csv(bi_lst$theta$value,"../data/para6_theta5.csv")
 write.csv(bi_lst$a$value,"../data/para6_a5.csv")
 write.csv(bi_lst$b$value,"../data/para6_b5.csv")
-write.csv(bi_lst$x0$value,"../data/para6_x05.csv")
+
 
 
 
