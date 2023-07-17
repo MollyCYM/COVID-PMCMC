@@ -94,7 +94,6 @@ model dureau {
     tau ~ gaussian(tau, 0.001)
     a ~ gaussian(a, 0.001)
     b ~ gaussian(b, 0.001)
-    x0 ~ gaussian(x0,0.01)
   }
 }"
 model <- bi_model(lines = stringi::stri_split_lines(model_str)[[1]])
@@ -209,7 +208,7 @@ write.csv(bi_lst$tau$value,"../data/para6_tau3.csv")
 write.csv(bi_lst$theta$value,"../data/para6_theta3.csv")
 write.csv(bi_lst$a$value,"../data/para6_a3.csv")
 write.csv(bi_lst$b$value,"../data/para6_b3.csv")
-write.csv(bi_lst$x0$value,"../data/para6_x03.csv")
+
 
 
 
