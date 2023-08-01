@@ -45,7 +45,6 @@ model dureau {
   param a
   param b
   param tau
-  param x0
   
   sub parameter {
     k ~ truncated_gaussian(5, 0.05, lower = 0) // k is the period here, not the rate, i.e. 1/k is the rate
@@ -55,7 +54,6 @@ model dureau {
     tau ~ truncated_gaussian(0.1, 0.001, lower = 0)
     a ~ gaussian(-0.02, 0.001)
     b ~ gaussian(-0.2, 0.01)
-    x0 ~ gaussian(-0.02, 0.2)
   }
 
   sub initial {
@@ -64,7 +62,7 @@ model dureau {
     I <- 0
     R <- 0
     Z <- 0
-    x <- x0
+    x ~ gaussian(-0.02, 0.2)
   }
 
   sub transition(delta = 1) {
@@ -201,8 +199,8 @@ fitR <-bi_lst$R %>%
 write.csv(fitR,"../data/para5_R2.csv")
 
 
-write.csv(1/bi_lst$k$value,"../data/para5_alpha2.csv")
-write.csv(1/bi_lst$gamma$value,"../data/para5_gamma2.csv")
+write.csv(bi_lst$k$value,"../data/para5_alpha2.csv")
+write.csv(bi_lst$gamma$value,"../data/para5_gamma2.csv")
 write.csv(bi_lst$sigma$value,"../data/para5_sigma2.csv")
 write.csv(bi_lst$tau$value,"../data/para5_tau2.csv")
 write.csv(bi_lst$theta$value,"../data/para5_theta2.csv")
