@@ -75,13 +75,19 @@ synthetic_dataset <- bi_generate_dataset(model=h1n1, end_time=T,
 
 synthetic_data <- bi_read(synthetic_dataset)
 synthetic_df <- as.data.frame(synthetic_data)
-write.csv(synthetic_df$y.value,"libbih1n1_Y1.csv")
-write.csv(synthetic_df$x.value,"libbih1n1_x1.csv")
-write.csv(exp(synthetic_df$x.value),"libbih1n1_beta1.csv")
+# write.csv(synthetic_df$y.value,"libbih1n1_Y1.csv")
+# write.csv(synthetic_df$x.value,"libbih1n1_x1.csv")
+# write.csv(exp(synthetic_df$x.value),"libbih1n1_beta1.csv")
 # beta <- read.csv("libbih1n1_beta1.csv", header=TRUE, stringsAsFactors=FALSE)
 # plot(beta,type='l')
-write.csv(synthetic_df,"libbih1n1_model1.csv")
-
+# write.csv(synthetic_df,"libbih1n1_model1.csv")
+ggplot(synthetic_df, aes(y.time)) +
+  geom_path(aes(y = x.value, colour="x.value")) +
+  theme(legend.position="bottom") +
+  ggtitle("H1N1") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  xlab("Time") +
+  ylab("Value")
 ggplot(synthetic_df, aes(y.time)) +
   geom_path(aes(y = exp(x.value), colour="x.value")) +
   theme(legend.position="bottom") +

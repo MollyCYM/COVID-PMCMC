@@ -57,12 +57,12 @@ model dureau {
   }
 
   sub initial {
+    x ~ gaussian(-0.02, 0.2)
     S <- N-1
     E <- 1
     I <- 0
     R <- 0
     Z <- 0
-    x ~ gaussian(-0.02, 0.2)
   }
 
   sub transition(delta = 1) {
@@ -96,6 +96,7 @@ model dureau {
 }"
 model <- bi_model(lines = stringi::stri_split_lines(model_str)[[1]])
 bi_model <- libbi(model)
+#rewrite(bi_model)
 input_lst <- list(N = 52196381,Forcing=Forcing)
 end_time <- max(y$time)
 obs_lst <- list(y = y %>% dplyr::filter(time <= end_time))
