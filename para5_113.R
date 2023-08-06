@@ -57,7 +57,7 @@ model dureau {
   }
 
   sub initial {
-    x <- gaussian(-0.02, 0.2)
+    x ~ gaussian(-0.02, 0.2)
     S <- N-1
     E <- 1
     I <- 0
