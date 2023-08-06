@@ -45,7 +45,6 @@ model dureau {
   param a
   param b
   param tau
-  param x0
   
   sub parameter {
     k ~ truncated_gaussian(5, 0.05, lower = 0) // k is the period here, not the rate, i.e. 1/k is the rate
@@ -55,11 +54,10 @@ model dureau {
     tau ~ truncated_gaussian(0.1, 0.001, lower = 0)
     a ~ gaussian(-0.02, 0.001)
     b ~ gaussian(-0.2, 0.01)
-    x0 ~ gaussian(-0.02, 0.2)
   }
 
   sub initial {
-    x ~ x0
+    x ~ gaussian(-0.02,0.2)
     S <- N-1
     E <- 1
     I <- 0
