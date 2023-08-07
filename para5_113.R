@@ -45,6 +45,7 @@ model dureau {
   param a
   param b
   param tau
+  param x0
   
   sub parameter {
     k ~ truncated_gaussian(5, 0.05, lower = 0) // k is the period here, not the rate, i.e. 1/k is the rate
@@ -54,10 +55,11 @@ model dureau {
     tau ~ truncated_gaussian(0.1, 0.001, lower = 0)
     a ~ gaussian(-0.02, 0.001)
     b ~ gaussian(-0.2, 0.01)
+    x0 ~ gaussian(-0.02, 0.2)
   }
 
   sub initial {
-    x ~ gaussian(a, (sigma*sigma)/(2*theta))
+    x <- x0
     S <- N-1
     E <- 1
     I <- 0
@@ -105,7 +107,7 @@ init_list <- list(k=5, gamma=9, sigma=sqrt(0.004),theta=0.05,tau=0.1,a=-0.02,b=-
 bi <- sample(bi_model,target = "posterior", end_time = end_time, input = input_lst, init=init_list, obs = obs_lst, nsamples = 2000, nparticles = minParticles, nthreads = ncores, proposal = 'model',seed=0066661) %>% 
   adapt_particles(min = minParticles, max = minParticles*500) %>%
   adapt_proposal(min = 0.1, max = 0.4) %>%
-  sample(nsamples = 10000, thin = 1)
+  sample(nsamples = 100, thin = 1)
 
 bi_lst <- bi_read(bi %>% sample_obs)
 

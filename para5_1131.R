@@ -45,6 +45,7 @@ model dureau {
   param a
   param b
   param tau
+  param x0
 
   
   sub parameter {
@@ -55,7 +56,7 @@ model dureau {
     tau ~ truncated_gaussian(0.1, 0.05, lower = 0)
     a ~ truncated_gaussian(-0.02, 0.05, upper = 0)
     b ~ truncated_gaussian(-0.2, 0.1, upper = 0)
-  
+    x0 ~ gaussian(-0.02, 0.2)
   }
 
   sub initial {
@@ -64,7 +65,7 @@ model dureau {
     I <- 0
     R <- 0
     Z <- 0
-    x ~ gaussian(-0.02, 0.2)
+    x <- x0
   }
 
   sub transition(delta = 1) {
