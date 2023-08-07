@@ -107,7 +107,7 @@ init_list <- list(k=5, gamma=9, sigma=sqrt(0.004),theta=0.05,tau=0.1,a=-0.02,b=-
 bi <- sample(bi_model,target = "posterior", end_time = end_time, input = input_lst, init=init_list, obs = obs_lst, nsamples = 2000, nparticles = minParticles, nthreads = ncores, proposal = 'model',seed=0066661) %>% 
   adapt_particles(min = minParticles, max = minParticles*500) %>%
   adapt_proposal(min = 0.1, max = 0.4) %>%
-  sample(nsamples = 100, thin = 1)
+  sample(nsamples = 10000, thin = 1)
 
 bi_lst <- bi_read(bi %>% sample_obs)
 
