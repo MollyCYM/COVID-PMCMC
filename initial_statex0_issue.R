@@ -42,9 +42,11 @@ model dureau {
   param gamma
   param sigma // Noise driver
   param theta
+  param tau
   param a
   param b
-  param tau
+  
+  
   
   sub parameter {
     k ~ truncated_gaussian(5, 0.05, lower = 0) 
@@ -55,16 +57,17 @@ model dureau {
     a ~ gaussian(-0.02, 0.001)
     b ~ gaussian(-0.2, 0.01)
   }
-
+  
   sub initial {
-    x ~ gaussian(-0.02, 0.2) //x0 draw from unconditional distribution
     S <- N-1
     E <- 1
     I <- 0
     R <- 0
     Z <- 0
+    
+    x ~ gaussian(-0.02,0.2) //x0 draw from unconditional distribution
   }
-
+  
   sub transition(delta = 1) {
   Z <- ((t_now) % 7 == 0 ? 0 : Z)
     noise e
@@ -84,7 +87,7 @@ model dureau {
     y ~ log_normal(log(max(Z/5, 0)), tau)
   }
 
-  sub proposal_parameter {
+sub proposal_parameter {
     k ~ truncated_gaussian(k, 0.01, lower = 0) 
     gamma ~ truncated_gaussian(gamma, 0.01, lower = 0) 
     sigma ~ truncated_gaussian(sigma, 0.001, lower = 0)
@@ -93,10 +96,12 @@ model dureau {
     a ~ gaussian(a, 0.001)
     b ~ gaussian(b, 0.001)
   }
+
+
 }"
 model <- bi_model(lines = stringi::stri_split_lines(model_str)[[1]])
 bi_model <- libbi(model)
-#rewrite(bi_model)
+rewrite(bi_model)
 input_lst <- list(N = 52196381,Forcing=Forcing)
 end_time <- max(y$time)
 obs_lst <- list(y = y %>% dplyr::filter(time <= end_time))
