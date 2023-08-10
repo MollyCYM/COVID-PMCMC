@@ -47,13 +47,13 @@ model dureau {
   param tau
   
   sub parameter {
-    k ~ truncated_gaussian(5, 0.05, lower = 0) // k is the period here, not the rate, i.e. 1/k is the rate
-    gamma ~ truncated_gaussian(9, 0.09, lower = 0) // gamma is the period, not the rate
-    sigma ~ truncated_gaussian(sqrt(0.004), 0.001, lower = 0)
-    theta ~ truncated_gaussian(0.05, 0.001, lower = 0)
-    tau ~ truncated_gaussian(3, 0.01, lower = 0)
-    a ~ gaussian(-0.02, 0.001)
-    b ~ gaussian(-0.2, 0.01)
+    k ~ truncated_gaussian(5, 1, lower = 0) // k is the period here, not the rate, i.e. 1/k is the rate
+    gamma ~ truncated_gaussian(9, 1, lower = 0) // gamma is the period, not the rate
+    sigma ~ truncated_gaussian(sqrt(0.004), 0.1, lower = 0)
+    theta ~ truncated_gaussian(0.05, 0.1, lower = 0)
+    tau ~ truncated_gaussian(3, 1, lower = 0)
+    a ~ truncated_gaussian(-0.02, 0.05, upper = 0)
+    b ~ truncated_gaussian(-0.2, 0.1, upper = 0)
   }
 
   sub initial {
@@ -108,7 +108,7 @@ bi <- sample(bi_model,target = "posterior", end_time = end_time, input = input_l
 
 bi_lst <- bi_read(bi %>% sample_obs)
 
-write.csv(bi_lst,"../data/para5_model4.csv")
+write.csv(bi_lst,"../data/para5_model41.csv")
 fitY <- bi_lst$y %>%
   group_by(time) %>%
   mutate(
@@ -119,7 +119,7 @@ fitY <- bi_lst$y %>%
     q975 = quantile(value, 0.975)
   ) %>% ungroup() %>%
   left_join(y %>% rename(Y = value))
-write.csv(fitY,"../data/para5_y4.csv")
+write.csv(fitY,"../data/para5_y41.csv")
 
 plot_df <- bi_lst$x %>% mutate(value = exp(value)) %>%
   group_by(time) %>%
@@ -130,7 +130,7 @@ plot_df <- bi_lst$x %>% mutate(value = exp(value)) %>%
     q75 = quantile(value, 0.75),
     q975 = quantile(value, 0.975)
   ) %>% ungroup()
-write.csv(plot_df,"../data/para5_beta4.csv")
+write.csv(plot_df,"../data/para5_beta41.csv")
 
 Mmodel <- read.csv("covidoudg2_model4.csv", header=TRUE, stringsAsFactors=FALSE)
 S<-Mmodel[-1,7]
@@ -151,7 +151,7 @@ fitS <-bi_lst$S %>%
     q975 = quantile(value, 0.975)
   ) %>% ungroup() %>%
   left_join(S %>% rename(S = value))
-write.csv(fitS,"../data/para5_S4.csv")
+write.csv(fitS,"../data/para5_S41.csv")
 
 E <- data.frame(value = E) %>%
   mutate(time = seq(1, by = 1, length.out = n())) %>%
@@ -166,7 +166,7 @@ fitE <-bi_lst$E %>%
     q975 = quantile(value, 0.975)
   ) %>% ungroup() %>%
   left_join(E %>% rename(E = value))
-write.csv(fitE,"../data/para5_E4.csv")
+write.csv(fitE,"../data/para5_E41.csv")
 
 I <- data.frame(value = I) %>%
   mutate(time = seq(1, by = 1, length.out = n())) %>%
@@ -181,7 +181,7 @@ fitI <-bi_lst$I %>%
     q975 = quantile(value, 0.975)
   ) %>% ungroup() %>%
   left_join(I %>% rename(I = value))
-write.csv(fitI,"../data/para5_I4.csv")
+write.csv(fitI,"../data/para5_I41.csv")
 
 R <- data.frame(value = R) %>%
   mutate(time = seq(1, by = 1, length.out = n())) %>%
@@ -196,16 +196,16 @@ fitR <-bi_lst$R %>%
     q975 = quantile(value, 0.975)
   ) %>% ungroup() %>%
   left_join(R %>% rename(R = value))
-write.csv(fitR,"../data/para5_R4.csv")
+write.csv(fitR,"../data/para5_R41.csv")
 
 
-write.csv(bi_lst$k$value,"../data/para5_alpha4.csv")
-write.csv(bi_lst$gamma$value,"../data/para5_gamma4.csv")
-write.csv(bi_lst$sigma$value,"../data/para5_sigma4.csv")
-write.csv(bi_lst$tau$value,"../data/para5_tau4.csv")
-write.csv(bi_lst$theta$value,"../data/para5_theta4.csv")
-write.csv(bi_lst$a$value,"../data/para5_a4.csv")
-write.csv(bi_lst$b$value,"../data/para5_b4.csv")
+write.csv(bi_lst$k$value,"../data/para5_alpha41.csv")
+write.csv(bi_lst$gamma$value,"../data/para5_gamma41.csv")
+write.csv(bi_lst$sigma$value,"../data/para5_sigma41.csv")
+write.csv(bi_lst$tau$value,"../data/para5_tau41.csv")
+write.csv(bi_lst$theta$value,"../data/para5_theta41.csv")
+write.csv(bi_lst$a$value,"../data/para5_a41.csv")
+write.csv(bi_lst$b$value,"../data/para5_b41.csv")
 
 
 
