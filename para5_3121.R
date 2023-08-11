@@ -44,14 +44,12 @@ model dureau {
   param theta
   param a
   param b
-  param tau
   
   sub parameter {
     k ~ truncated_gaussian(5, 1, lower = 0) // k is the period here, not the rate, i.e. 1/k is the rate
     gamma ~ truncated_gaussian(9, 1, lower = 0) // gamma is the period, not the rate
     sigma ~ truncated_gaussian(sqrt(0.004), 0.1, lower = 0)
     theta ~ truncated_gaussian(0.05, 0.1, lower = 0)
-    tau ~ truncated_gaussian(0.1, 0.05, lower = 0)
     a ~ truncated_gaussian(-0.02, 0.05, upper = 0)
     b ~ truncated_gaussian(-0.2, 0.1, upper = 0)
   }
@@ -89,7 +87,6 @@ model dureau {
     gamma ~ truncated_gaussian(gamma, 0.01, lower = 0) 
     sigma ~ truncated_gaussian(sigma, 0.001, lower = 0)
     theta ~ truncated_gaussian(theta, 0.001, lower = 0)
-    tau ~ gaussian(tau, 0.001)
     a ~ gaussian(a, 0.001)
     b ~ gaussian(b, 0.001)
   }
@@ -99,7 +96,7 @@ bi_model <- libbi(model)
 input_lst <- list(N = 52196381,Forcing=Forcing)
 end_time <- max(y$time)
 obs_lst <- list(y = y %>% dplyr::filter(time <= end_time))
-init_list <- list(k=5, gamma=9, sigma=sqrt(0.004),theta=0.05,tau=0.1,a=-0.02,b=-0.2)
+init_list <- list(k=5, gamma=9, sigma=sqrt(0.004),theta=0.05,a=-0.02,b=-0.2)
 
 bi <- sample(bi_model,target = "posterior", end_time = end_time, input = input_lst, init=init_list, obs = obs_lst, nsamples = 2000, nparticles = minParticles, nthreads = ncores, proposal = 'model',seed=0066661) %>% 
   adapt_particles(min = minParticles, max = minParticles*500) %>%
@@ -202,7 +199,6 @@ write.csv(fitR,"../data/para5_R3121.csv")
 write.csv(bi_lst$k$value,"../data/para5_alpha3121.csv")
 write.csv(bi_lst$gamma$value,"../data/para5_gamma3121.csv")
 write.csv(bi_lst$sigma$value,"../data/para5_sigma3121.csv")
-write.csv(bi_lst$tau$value,"../data/para5_tau3121.csv")
 write.csv(bi_lst$theta$value,"../data/para5_theta3121.csv")
 write.csv(bi_lst$a$value,"../data/para5_a3121.csv")
 write.csv(bi_lst$b$value,"../data/para5_b3121.csv")
