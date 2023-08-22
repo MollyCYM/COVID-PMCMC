@@ -2,15 +2,20 @@ library(ncdf4) # package for netcdf manipulation
 library(raster) # package for raster manipulation
 library(rgdal) # package for geospatial analysis
 library(ggplot2) # package for plotting
-nc_data <- nc_open('input.nc')
+nc_data <- nc_open('obs.nc')
 # Save the print(nc) dump to a text file
-{
-  sink('input.txt')
-  print(nc_data)
-  sink()
-}
-variable_F <- ncvar_get(nc_data,"F")
-variable_time <- ncvar_get(nc_data,"time")
+# {
+#   sink('obs.txt')
+#   print(nc_data)
+#   sink()
+# }
+variable_P <- ncvar_get(nc_data,"P_obs")
+variable_time <- ncvar_get(nc_data,"time_P_obs")
+
+obs_P<-data.frame(variable_P)
+P_time<-data.frame(variable_time)
+write.csv(obs_P,"obs_P.csv")
+
 plo
 nlon <- dim(lon)
 variable=nc_data[15]

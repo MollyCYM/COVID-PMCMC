@@ -223,5 +223,3 @@ write.csv(bi_lst$c$value,"../data/para7_c1.csv")
 
 
 
-
-
