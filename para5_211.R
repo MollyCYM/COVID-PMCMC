@@ -96,7 +96,7 @@ bi_model <- libbi(model)
 input_lst <- list(N = 52196381,Forcing=Forcing)
 end_time <- max(y$time)
 obs_lst <- list(y = y %>% dplyr::filter(time <= end_time))
-init_list <- list(k=3, gamma=7, sigma=0.04,theta=0.03,tau=0.08,a=-0.01,b=-0.1)
+init_list <- list(k=3, gamma=7, sigma=0.04,theta=0.03,a=-0.01,b=-0.1)
 
 bi <- sample(bi_model,target = "posterior", end_time = end_time, input = input_lst, init=init_list, obs = obs_lst, nsamples = 2000, nparticles = minParticles, nthreads = ncores, proposal = 'model',seed=0066661) %>% 
   adapt_particles(min = minParticles, max = minParticles*500) %>%
