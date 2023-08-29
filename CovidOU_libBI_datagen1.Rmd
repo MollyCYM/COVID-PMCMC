@@ -857,19 +857,19 @@ ggplot(synthetic_df, aes(y.time)) +
   xlab("Time") +
   ylab("Counts")
 
-# x <- read.csv("covidoudg2_x1.csv", header=TRUE, stringsAsFactors=FALSE)
-# plot(x,type='p',ylab=TeX(r"(OU process $X_{t}$)"),xlab="Time",col="darkred",main=TeX(r"(Generated OU process: $\theta=0.05$, $sigma=sqrt(0.004)$, $x_{0} \sim N(-0.02,0.2)$)"))
-#   lines(x,col="darkblue")
-#   abline(v=121, col="red")
-# axis(1, at=121,labels=121, col.axis="red", las=2)
-# 
-# beta <- read.csv("covidoudg2_beta1.csv", header=TRUE, stringsAsFactors=FALSE)
-# plot(beta,type='p',ylab=TeX(r"(Transmission rate $\beta$)"),xlab="time",col="darkred",main="COVIDOU model generated transmission rate")
-# lines(beta,col="darkblue")
-# abline(v=121, col="red")
-# axis(1, at=121,labels=121, col.axis="red", las=2)
-# tt1 <-expression('lockdown policy start')
-# text(80,0.6,tt1,col="red")
+x <- read.csv("covidoudg2_x1.csv", header=TRUE, stringsAsFactors=FALSE)
+plot(x,type='p',ylab=TeX(r"(OU process $X_{t}$)"),xlab="Time",col="darkred",main=TeX(r"(Generated OU process: $\theta=0.05$, $sigma=sqrt(0.004)$, $x_{0} \sim N(-0.02,0.2)$)"))
+  lines(x,col="darkblue")
+  abline(v=121, col="red")
+axis(1, at=121,labels=121, col.axis="red", las=2)
+
+beta <- read.csv("covidoudg2_beta1.csv", header=TRUE, stringsAsFactors=FALSE)
+plot(beta,type='p',ylab=TeX(r"(Transmission rate $\beta$)"),xlab="time",col="darkred",main="COVIDOU model generated transmission rate")
+lines(beta,col="darkblue")
+abline(v=121, col="red")
+axis(1, at=121,labels=121, col.axis="red", las=2)
+tt1 <-expression('lockdown policy start')
+text(80,0.6,tt1,col="red")
 ```
 
 ```{r}
@@ -950,10 +950,10 @@ synthetic_data <- bi_read(synthetic_dataset)
 synthetic_df <- as.data.frame(synthetic_data)
 
 
-write.csv(synthetic_df$y.value,"covidoudg2_Y2.csv")
-write.csv(synthetic_df$x.value,"covidoudg2_x2.csv")
-write.csv(exp(synthetic_df$x.value),"covidoudg2_beta2.csv")
-write.csv(synthetic_df,"covidoudg2_model2.csv")
+# write.csv(synthetic_df$y.value,"covidoudg2_Y2.csv")
+# write.csv(synthetic_df$x.value,"covidoudg2_x2.csv")
+# write.csv(exp(synthetic_df$x.value),"covidoudg2_beta2.csv")
+# write.csv(synthetic_df,"covidoudg2_model2.csv")
 
 ggplot(synthetic_df, aes(y.time)) +
   geom_path(aes(y = y.value, colour="y.value")) +
@@ -1068,10 +1068,10 @@ synthetic_data <- bi_read(synthetic_dataset)
 synthetic_df <- as.data.frame(synthetic_data)
 
 
-write.csv(synthetic_df$y.value,"covidoudg2_Y3.csv")
-write.csv(synthetic_df$x.value,"covidoudg2_x3.csv")
-write.csv(exp(synthetic_df$x.value),"covidoudg2_beta3.csv")
-write.csv(synthetic_df,"covidoudg2_model3.csv")
+# write.csv(synthetic_df$y.value,"covidoudg2_Y3.csv")
+# write.csv(synthetic_df$x.value,"covidoudg2_x3.csv")
+# write.csv(exp(synthetic_df$x.value),"covidoudg2_beta3.csv")
+# write.csv(synthetic_df,"covidoudg2_model3.csv")
 
 ggplot(synthetic_df, aes(y.time)) +
   geom_path(aes(y = y.value, colour="y.value")) +

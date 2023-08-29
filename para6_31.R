@@ -20,6 +20,12 @@ Forcing <- data.frame(value = L) %>%
   dplyr::select(time,V1 )
 colnames(Forcing) <- c("time","value")
 
+x_read <- read.csv("covidoudg2_x41.csv", header=FALSE, stringsAsFactors=FALSE)
+x <- data.frame(value = x_read) %>%
+  mutate(time = seq(1, by = 1, length.out = n())) %>%
+  dplyr::select(time,V1 )
+colnames(x) <- c("time","value")
+
 ncores <- 15
 minParticles <- max(ncores, 16)
 model_str <- "
@@ -37,6 +43,7 @@ model dureau {
 
   input N
   input Forcing
+  input x
   
   const sigma = 0.000001
   
@@ -73,7 +80,6 @@ model dureau {
     e ~ wiener()
     mu <- a+b*Forcing
     ode(alg = 'RK4(3)', h = 1.0, atoler = 1.0e-3, rtoler = 1.0e-8) {
-      dx/dt = theta*(mu-x)+sigma*e
       dS/dt = -exp(x)*S*(0.1*I+E)/N
       dE/dt = exp(x)*S*(0.1*I+E)/N - E*(1/k+1/gamma)
       dI/dt = E/k-I*(1/gamma+0.0087)

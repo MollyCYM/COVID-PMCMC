@@ -18,7 +18,7 @@ require(deSolve)
 set.seed(20241)
 
 
-#Simulate an O-U Process ? bugs
+#Simulate an O-U Process
 ornstein_uhlenbeck <- function(n,theta,sigma,x0,lens,mu,e){
   dt <- 1
   x<-vector(length=lens)
@@ -34,7 +34,7 @@ ornstein_uhlenbeck <- function(n,theta,sigma,x0,lens,mu,e){
 
 
 gen_ode_model <- function(rep_time = 200, ori_seed = 20241, tims = 365, 
-                          n = 52196381, pars = c(k=5, gamma=9),
+                          n = 52196381, pars = c(k=5, gamma=7),
                           ini_state = c(t=1,S=N-1, E=1, I=0, R=0),
                           tau = 0.1){
   
@@ -133,7 +133,7 @@ gen_ode_model <- function(rep_time = 200, ori_seed = 20241, tims = 365,
 }
 
 
-ode_example <- gen_ode_model(200)
+ode_example <- gen_ode_model(100)
 
 ## for z
 

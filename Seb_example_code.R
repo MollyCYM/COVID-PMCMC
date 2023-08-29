@@ -50,7 +50,7 @@ model PZ {
 model <- bi_model(lines = stringi::stri_split_lines(model_str)[[1]])
 bi_model <- libbi(model)
 # create simulated data set
-sim <- bi_generate_dataset(bi_model, end_time = 100)
+sim <-generate_dataset(bi_model, end_time = 100)
 
 obs_lst <- bi_read(sim)["P_obs"]
 

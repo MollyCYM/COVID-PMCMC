@@ -487,7 +487,7 @@ gen_ode_model <- function(rep_time = 200, ori_seed = 20241, tims = 366
 }
 
 
-ode_example <- gen_ode_model(20)
+ode_example <- gen_ode_model(50)
 
 ## for z
 

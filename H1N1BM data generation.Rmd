@@ -46,8 +46,8 @@ set.seed(5204)
 ## first, simulate a set of random deviates
 tims=365
 times = 1:tims
-e <- rnorm(n = length(times) ,mean=0, sd = 1)
-plot(e,type='l')
+# e <- rnorm(n = length(times) ,mean=0, sd = 1)
+# plot(e,type='l')
 ornstein_uhlenbeck <- function(n,sigma,x0,lens,e){
   dt <- 1
   x<-vector(length=lens)
@@ -60,26 +60,27 @@ ornstein_uhlenbeck <- function(n,sigma,x0,lens,e){
   return(x)
 }
 # e = rnorm(n = length(times) , sd = 1)
-x = ornstein_uhlenbeck(tims, sigma=0.07,x0=0, tims,e)
+# x = ornstein_uhlenbeck(tims, sigma=0.07,x0=0, tims,e)
 e<-replicate(n=50, ornstein_uhlenbeck(tims, sigma=0.1,x0=0, tims,rnorm(n = length(times) , sd = 1)))
-tim<-replicate(n=50,times)
+# tim<-replicate(n=50,times)
 es = ncol(e)
-
+e_mean = apply(e,1,mean)
 for (i in 1:es) {
   if (i == 1){
-    plot(e[,1], col="pink3", type = "l",
+    plot(e[,1], col=rainbow(1)[1], type = "l",
          ylim = c(min(e), max(e)),
-         xlab = 'Times', ylab = expression(B(t)),main="Brownian Motion Monte Carlo tirals")
+         xlab = 'Times', ylab = expression(B(t)),main="Brownian Motion 50 simulated paths")
   }
   else{
-    lines(e[,i], col="pink3")
+    lines(e[,i], col=rainbow(90)[i])
   }
+  lines(e_mean,col='black')
 }
 
-beta<- exp(x)
-
-plot(beta,type='p',ylab="Transmission rate beta",xlab="time",col="darkred",main="H1N1_BM model generated transmission rate")
-lines(beta,col="darkblue")
+# beta<- exp(x)
+# 
+# plot(beta,type='p',ylab="Transmission rate beta",xlab="time",col="darkred",main="H1N1_BM model generated transmission rate")
+# lines(beta,col="darkblue")
 
 ```
 
@@ -200,16 +201,17 @@ ornstein_uhlenbeck <- function(T,n,x0,lens,e){
 e<-replicate(n=100, ornstein_uhlenbeck(T=500,n=5000, x0=0, lens=5000,e=rnorm(n = 5000 , sd = sqrt(500/5000))))
 tim<-replicate(n=100,times)
 es = ncol(e)
-
+e_mean = apply(e,1,mean)
 for (i in 1:es) {
   if (i == 1){
-    plot(e[,1], col="darkseagreen", type = "l",
+    plot(e[,1], col=rainbow(1)[1], type = "l",
          ylim = c(min(e), max(e)),
-         xlab = 'Time points', ylab = expression(B(t)),main="Brownian Motion Monte Carlo tirals")
+         xlab = 'Time points', ylab = expression(B(t)),main="Brownian Motion 100 simulated paths")
   }
   else{
-    lines(e[,i], col="darkseagreen")
+    lines(e[,i], col=rainbow(90)[i])
   }
+   lines(e_mean,col='black')
 }
 for (i in 1:es) {
   if (i == 1){
