@@ -8,7 +8,7 @@ rm(list=ls())
 library(rbi)
 library(rbi.helpers)
 # Load the data
-v <- read.csv("covidoudg2_y2w.csv", header=FALSE, stringsAsFactors=FALSE) %>%
+v <- read.csv("covidoudg2_y2w.csv", header=FALSE, stringsAsFactors=FALSE) |>
   rowSums()
 
 y <- data.frame(value = v) |>
