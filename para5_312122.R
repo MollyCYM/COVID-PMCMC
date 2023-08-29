@@ -1,6 +1,6 @@
 rm(list=ls())
-# library(tidyverse)
-# library(ggplot2)
+library(tidyverse)
+library(ggplot2)
 library(ggpubr)
 library(pander)
 library(lubridate)
@@ -8,15 +8,15 @@ library(latex2exp)
 library(rbi)
 library(rbi.helpers)
 # Load the data
-v <- read.csv("covidoudg2_y2w.csv", header=FALSE, stringsAsFactors=FALSE) |>
+v <- read.csv("covidoudg2_y2w.csv", header=FALSE, stringsAsFactors=FALSE) %>%
   rowSums()
 
-y <- data.frame(value = v) |>
-  mutate(time = seq(7, by = 7, length.out = n())) |>
+y <- data.frame(value = v) %>%
+  mutate(time = seq(7, by = 7, length.out = n())) %>%
   dplyr::select(time, value)
 L <- read.csv("Forcing.csv", header=FALSE, stringsAsFactors=FALSE)
-Forcing <- data.frame(value = L) |>
-  mutate(time = seq(1, by = 1, length.out = n())) |>
+Forcing <- data.frame(value = L) %>%
+  mutate(time = seq(1, by = 1, length.out = n())) %>%
   dplyr::select(time,V1 )
 colnames(Forcing) <- c("time","value")
 
@@ -96,13 +96,13 @@ model <- bi_model(lines = stringi::stri_split_lines(model_str)[[1]])
 bi_model <- libbi(model)
 input_lst <- list(N = 52196381,Forcing=Forcing)
 end_time <- max(y$time)
-obs_lst <- list(y = y |> dplyr::filter(time <= end_time))
+obs_lst <- list(y = y %>% dplyr::filter(time <= end_time))
 init_list <- list(k=6, gamma=10, sigma=0.07,theta=0.07,a=-0.04,b=-0.4)
 
-bi <- sample(bi_model,target = "posterior", end_time = end_time, input = input_lst, init=init_list, obs = obs_lst, nsamples = 2000, nparticles = minParticles, nthreads = ncores, proposal = 'model',seed=00000888) |> 
-  adapt_particles(min = minParticles, max = minParticles*500) |>
-  adapt_proposal(min = 0.1, max = 0.4) |>
-  sample(nsamples = 1000, thin = 1, init=init_list) |>
+bi <- sample(bi_model,target = "posterior", end_time = end_time, input = input_lst, init=init_list, obs = obs_lst, nsamples = 2000, nparticles = minParticles, nthreads = ncores, proposal = 'model',seed=00000888) %>% 
+  adapt_particles(min = minParticles, max = minParticles*500) %>%
+  adapt_proposal(min = 0.1, max = 0.4) %>%
+  sample(nsamples = 1000, thin = 1, init=init_list) %>%
   sample(nsamples = 10000, thin = 1)
 
 bi_lst <- bi_read(bi %>% sample_obs)
