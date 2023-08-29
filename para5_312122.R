@@ -12,11 +12,12 @@ v <- read.csv("covidoudg2_y2w.csv", header=FALSE, stringsAsFactors=FALSE) |>
   rowSums()
 
 y <- data.frame(value = v) |>
-  mutate(time = seq(7, by = 7, length.out = n())) |>
+  # mutate(time = seq(7, by = 7, length.out = n())) |>
+  mutate(time = seq(7, by = 7, length.out = 52)) |>
   dplyr::select(time, value)
 L <- read.csv("Forcing.csv", header=FALSE, stringsAsFactors=FALSE)
 Forcing <- data.frame(value = L) |>
-  mutate(time = seq(1, by = 1, length.out = n())) |>
+  mutate(time = seq(1, by = 1, length.out = 365)) |>
   dplyr::select(time,V1 )
 colnames(Forcing) <- c("time","value")
 
