@@ -106,7 +106,7 @@ bi <- sample(bi_model,target = "posterior", end_time = end_time, input = input_l
   sample(nsamples = 1000, thin = 1, init=init_list) |>
   sample(nsamples = 10000, thin = 1)
 
-bi_lst <- bi_read(bi |> sample_obs)
+bi_lst <- bi_read(bi |> sample_obs())
 
 write.csv(bi_lst,"../data/para5_model312122.csv")
 fitY <- bi_lst$y |>
@@ -139,7 +139,7 @@ I<-Mmodel[-1,11]
 R<-Mmodel[-1,13]
 
 S <- data.frame(value = S) |>
-  mutate(time = seq(1, by = 1, length.out = n())) |>
+  mutate(time = seq(1, by = 1, length.out = 365)) |>
   dplyr::select(time, value)
 fitS <-bi_lst$S |>
   group_by(time) |>
@@ -154,7 +154,7 @@ fitS <-bi_lst$S |>
 write.csv(fitS,"../data/para5_S312122.csv")
 
 E <- data.frame(value = E) |>
-  mutate(time = seq(1, by = 1, length.out = n())) |>
+  mutate(time = seq(1, by = 1, length.out = 365)) |>
   dplyr::select(time, value)
 fitE <-bi_lst$E |>
   group_by(time) |>
@@ -169,7 +169,7 @@ fitE <-bi_lst$E |>
 write.csv(fitE,"../data/para5_E312122.csv")
 
 I <- data.frame(value = I) |>
-  mutate(time = seq(1, by = 1, length.out = n())) |>
+  mutate(time = seq(1, by = 1, length.out = 365)) |>
   dplyr::select(time, value)
 fitI <-bi_lst$I |>
   group_by(time) |>
@@ -184,7 +184,7 @@ fitI <-bi_lst$I |>
 write.csv(fitI,"../data/para5_I312122.csv")
 
 R <- data.frame(value = R) |>
-  mutate(time = seq(1, by = 1, length.out = n())) |> 
+  mutate(time = seq(1, by = 1, length.out = 365)) |> 
   dplyr::select(time, value)
 fitR <-bi_lst$R |>
   group_by(time) |>
