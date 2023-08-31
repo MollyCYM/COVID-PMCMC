@@ -20,7 +20,7 @@ Forcing <- data.frame(value = L) %>%
   dplyr::select(time,V1 )
 colnames(Forcing) <- c("time","value")
 
-ncores <- 15
+ncores <- 12
 minParticles <- max(ncores, 16)
 model_str <- "
 model dureau {
@@ -59,11 +59,11 @@ model dureau {
 
   sub initial {
     x ~ gaussian(-0.02, 0.2)
-    S ~ gaussian(N-1,0.001)
-    E ~ truncated_gaussian(1, 0.001, lower = 0)
-    I ~ truncated_gaussian(0, 0.001, lower = 0)
-    R ~ truncated_gaussian(0, 0.001, lower = 0)
-    Z ~ truncated_gaussian(1/k, 0.001, lower = 0)
+    S <- N-1
+    E <- 1
+    I <- 0
+    R <- 0
+    Z <- 1/k
   }
 
   sub transition(delta = 1) {
@@ -122,7 +122,7 @@ fitY <- bi_lst$y %>%
   left_join(y %>% rename(Y = value))
 write.csv(fitY,"../data/para5_y1131.csv")
 
-plot_df <- bi_lst$x %>% mutate(value = exp(value)) %>%
+plot_df <- bi_lst$x |> mutate(value = exp(value)) %>%
   group_by(time) %>%
   mutate(
     q025 = quantile(value, 0.025),
