@@ -56,11 +56,11 @@ model dureau {
 
   sub initial {
     x ~ gaussian(-0.02, 0.2)
-    S ~ gaussian(N-1,0.001)
-    E ~ truncated_gaussian(1, 0.001, lower = 0)
-    I ~ truncated_gaussian(0, 0.001, lower = 0)
-    R ~ truncated_gaussian(0, 0.001, lower = 0)
-    Z ~ truncated_gaussian(1/k, 0.001, lower = 0)
+    S <- N-1
+    E <- 1
+    I <- 0
+    R <- 0
+    Z <- 1/k
   }
 
   sub transition(delta = 1) {
