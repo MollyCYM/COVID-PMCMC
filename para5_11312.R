@@ -59,11 +59,11 @@ model dureau {
 
   sub initial {
     x ~ gaussian(-0.02, 0.2)
-    S ~ gaussian(N-1,0.001)
-    E ~ truncated_gaussian(1, 0.001, lower = 0)
-    I ~ truncated_gaussian(0, 0.001, lower = 0)
-    R ~ truncated_gaussian(0, 0.001, lower = 0)
-    Z ~ truncated_gaussian(1/k, 0.001, lower = 0)
+    S <- N-1
+    E <- 1
+    I <- 0
+    R <- 0
+    Z <- 1/k
   }
 
   sub transition(delta = 1) {
@@ -96,16 +96,29 @@ model dureau {
   }
 }"
 model <- bi_model(lines = stringi::stri_split_lines(model_str)[[1]])
-bi_model <- libbi(model)
 input_lst <- list(N = 52196381,Forcing=Forcing)
 end_time <- max(y$time)
 obs_lst <- list(y = y %>% dplyr::filter(time <= end_time))
-init_list <- list(k=7, gamma=11, sigma=0.09,theta=0.08,tau=0.3,a=-0.04,b=-0.4)
+init_list <- list(k=7, gamma=11, sigma=0.08,theta=0.08,tau=0.12,a=-0.04,b=-0.4)
+#LibBi wrapper 
+#run launches LibBi with a particular set of command line arguments
+bi_model <- libbi(model,end_time = end_time, input = input_lst, 
+                  init=init_list, obs = obs_lst)
+#RBi.helpers adapt_particle
+particles_adapted <- bi_model %>%
+  sample(nsamples = 2000, nparticles = minParticles, 
+         nthreads = ncores, proposal = 'prior',seed=0066661) %>%
+  adapt_particles(min = minParticles, max = minParticles*500)
 
-bi <- sample(bi_model,target = "posterior", end_time = end_time, input = input_lst, init=init_list, obs = obs_lst, nsamples = 2000, nparticles = minParticles, nthreads = ncores, proposal = 'model',seed=0066661) %>% 
-  adapt_particles(min = minParticles, max = minParticles*500) %>%
-  adapt_proposal(min = 0.1, max = 0.4) %>%
-  sample(nsamples = 10000, thin = 1, init = init_list)
+#RBi.helpers adapt_proposal
+proposal_adapted <- particles_adapted %>%
+  sample(target = "posterior", nsamples = 2000, 
+         nthreads = ncores, proposal = 'model',seed=0066661) %>%
+  adapt_proposal(min = 0.1, max = 0.4)
+
+#Running pMCMC with burn-in
+bi <- proposal_adapted %>%
+  sample(nsamples = 10000, thin = 1, init=init_list)
 
 bi_lst <- bi_read(bi %>% sample_obs)
 
