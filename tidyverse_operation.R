@@ -128,3 +128,4 @@ fitS <-bi_lst$S |>
   ) |> ungroup() |>
   left_join(S |> rename(S = value))
 write.csv(fitS,"para5_S3121211.csv")
+

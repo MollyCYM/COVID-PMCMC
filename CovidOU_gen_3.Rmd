@@ -343,6 +343,7 @@ for (i in 1:ss) {
 #wider priors 1
 rm(list=ls())
 require(deSolve)
+require(truncnorm)
 set.seed(2024)
 
 #Simulate a bm process
