@@ -55,7 +55,7 @@ model dureau {
   }
 
   sub initial {
-    x ~ gaussian(-0.02, 0.2)
+    x ~ gaussian(a, sigma/sqrt(2*theta) )
     S <- N-1
     E <- 1
     I <- 0
@@ -96,7 +96,7 @@ model <- bi_model(lines = stringi::stri_split_lines(model_str)[[1]])
 input_lst <- list(N = 52196381,Forcing=Forcing)
 end_time <- max(y$time)
 obs_lst <- list(y = y %>% dplyr::filter(time <= end_time))
-init_list <- list(k=5, gamma=9, sigma=sqrt(0.004),theta=0.05,tau=0.1,a=-0.02,b=-0.2)
+init_list <- list(k=5, gamma=9, sigma=sqrt(0.004),theta=0.05,a=-0.02,b=-0.2)
 #LibBi wrapper 
 #run launches LibBi with a particular set of command line arguments
 bi_model <- libbi(model,end_time = end_time, input = input_lst, 
