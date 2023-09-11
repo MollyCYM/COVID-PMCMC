@@ -42,8 +42,8 @@ model dureau {
   param gamma
   param sigma // Noise driver
   param theta
-  param a
-  param b
+  param a 
+  param b 
   param tau
 
   
@@ -58,7 +58,7 @@ model dureau {
   }
 
   sub initial {
-    x ~ gaussian(-0.02, 0.2)
+    x ~ gaussian(a, sigma/sqrt(2*theta) ) 
     S <- N-1
     E <- 1
     I <- 0

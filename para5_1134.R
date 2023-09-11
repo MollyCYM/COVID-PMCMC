@@ -58,7 +58,7 @@ model dureau {
   }
 
   sub initial {
-    x ~ gaussian(-0.02, 0.2)
+    x ~ gaussian(a, ) //fix this to be the parameters
     S ~ gaussian(N-1,0.001)
     E ~ truncated_gaussian(1, 0.001, lower = 0)
     I ~ truncated_gaussian(0, 0.001, lower = 0)
