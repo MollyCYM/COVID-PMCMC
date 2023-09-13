@@ -54,6 +54,15 @@ model dureau {
     b ~ truncated_gaussian(-0.2, 0.2, upper = 0)
   }
   
+  sub proposal_parameter {
+    k ~ truncated_gaussian(k, 0.01, lower = 0) 
+    gamma ~ truncated_gaussian(gamma, 0.01, lower = 0) 
+    sigma ~ truncated_gaussian(sigma, 0.001, lower = 0)
+    theta ~ truncated_gaussian(theta, 0.001, lower = 0)
+    a ~ gaussian(a, 0.001)
+    b ~ gaussian(b, 0.001)
+  }
+  
   sub proposal_initial {
     x ~ gaussian(a, sigma/sqrt(2*theta)) // local proposal
     S <- N-1
@@ -83,14 +92,6 @@ model dureau {
     y ~ binomial(floor(Z),1/5)
   }
 
-  sub proposal_parameter {
-    k ~ truncated_gaussian(k, 0.01, lower = 0) 
-    gamma ~ truncated_gaussian(gamma, 0.01, lower = 0) 
-    sigma ~ truncated_gaussian(sigma, 0.001, lower = 0)
-    theta ~ truncated_gaussian(theta, 0.001, lower = 0)
-    a ~ gaussian(a, 0.001)
-    b ~ gaussian(b, 0.001)
-  }
 }"
 model <- bi_model(lines = stringi::stri_split_lines(model_str)[[1]])
 
