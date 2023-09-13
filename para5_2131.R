@@ -63,7 +63,7 @@ model dureau {
     b ~ gaussian(b, 0.001)
   }
   
-  sub proposal_initial {
+  sub initial {
     x ~ gaussian(a, sigma/sqrt(2*theta)) // local proposal
     S <- N-1
     E <- 1
