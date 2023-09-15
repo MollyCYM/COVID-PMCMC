@@ -56,7 +56,17 @@ model dureau {
     a ~ truncated_gaussian(-0.02, 0.05, upper = 0)
     b ~ truncated_gaussian(-0.2, 0.1, upper = 0)
   }
-
+  
+  sub proposal_parameter {
+    k ~ truncated_gaussian(k, 0.01, lower = 0) 
+    gamma ~ truncated_gaussian(gamma, 0.01, lower = 0) 
+    sigma ~ truncated_gaussian(sigma, 0.001, lower = 0)
+    theta ~ truncated_gaussian(theta, 0.001, lower = 0)
+    tau ~ gaussian(tau, 0.001)
+    a ~ gaussian(a, 0.001)
+    b ~ gaussian(b, 0.001)
+  }
+  
   sub initial {
     x ~ gaussian(a, sigma/sqrt(2*theta) ) 
     S <- N-1
@@ -83,16 +93,6 @@ model dureau {
 
   sub observation {
     y ~ log_normal(log(max(Z/5, 0)), tau)
-  }
-
-  sub proposal_parameter {
-    k ~ truncated_gaussian(k, 0.01, lower = 0) 
-    gamma ~ truncated_gaussian(gamma, 0.01, lower = 0) 
-    sigma ~ truncated_gaussian(sigma, 0.001, lower = 0)
-    theta ~ truncated_gaussian(theta, 0.001, lower = 0)
-    tau ~ gaussian(tau, 0.001)
-    a ~ gaussian(a, 0.001)
-    b ~ gaussian(b, 0.001)
   }
 }"
 
