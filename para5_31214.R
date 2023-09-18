@@ -59,7 +59,7 @@ model dureau {
     gamma ~ truncated_gaussian(gamma, 0.01, lower = 0) 
     sigma ~ truncated_gaussian(sigma, 0.001, lower = 0)
     theta ~ truncated_gaussian(theta, 0.001, lower = 0)
-    a ~ gaussian(a, 0.001)
+    a ~ gaussian(a, 0.0001)
     b ~ gaussian(b, 0.001)
  }
   
