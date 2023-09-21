@@ -8,13 +8,13 @@ library(latex2exp)
 library(rbi)
 library(rbi.helpers)
 # Load the data
-v <- read.csv("covidoudg2_y1w.csv", header=FALSE, stringsAsFactors=FALSE) %>%
+v <- read.csv("covidoudg2_y121w.csv", header=FALSE, stringsAsFactors=FALSE) %>%
   rowSums()
 
 y <- data.frame(value = v) %>%
   mutate(time = seq(7, by = 7, length.out = n())) %>%
   dplyr::select(time, value)
-L <- read.csv("Forcing.csv", header=FALSE, stringsAsFactors=FALSE)
+L <- read.csv("forcing30.csv", header=FALSE, stringsAsFactors=FALSE)
 Forcing <- data.frame(value = L) %>%
   mutate(time = seq(1, by = 1, length.out = n())) %>%
   dplyr::select(time,V1 )
@@ -42,8 +42,8 @@ model dureau {
   param gamma
   param sigma // Noise driver
   param theta
-  param a
-  param b
+  param a 
+  param b 
   param tau
 
   
@@ -51,14 +51,24 @@ model dureau {
     k ~ truncated_gaussian(5, 1, lower = 0) // k is the period here, not the rate, i.e. 1/k is the rate
     gamma ~ truncated_gaussian(9, 1, lower = 0) // gamma is the period, not the rate
     sigma ~ truncated_gaussian(sqrt(0.004), 0.1, lower = 0)
-    theta ~ truncated_gaussian(0.05, 0.1, lower = 0)
-    tau ~ truncated_gaussian(0.1, 0.05, lower = 0)
-    a ~ truncated_gaussian(-0.02, 0.05, upper = 0)
-    b ~ truncated_gaussian(-0.2, 0.1, upper = 0)
+    theta ~ truncated_gaussian(0.05, 0.2, lower = 0)
+    tau ~ truncated_gaussian(0.1, 0.1, lower = 0)
+    a ~ truncated_gaussian(-0.02, 0.1, upper = 0)
+    b ~ truncated_gaussian(-0.2, 0.2, upper = 0)
   }
-
+  
+  sub proposal_parameter {
+    k ~ truncated_gaussian(k, 0.01, lower = 0) 
+    gamma ~ truncated_gaussian(gamma, 0.01, lower = 0) 
+    sigma ~ truncated_gaussian(sigma, 0.001, lower = 0)
+    theta ~ truncated_gaussian(theta, 0.001, lower = 0)
+    tau ~ gaussian(tau, 0.001)
+    a ~ gaussian(a, 0.001)
+    b ~ gaussian(b, 0.001)
+  }
+  
   sub initial {
-    x ~ gaussian(-0.02, 0.2)
+    x ~ gaussian(a, sigma/sqrt(2*theta) ) 
     S <- N-1
     E <- 1
     I <- 0
@@ -84,17 +94,8 @@ model dureau {
   sub observation {
     y ~ log_normal(log(max(Z/5, 0)), tau)
   }
-
-  sub proposal_parameter {
-    k ~ truncated_gaussian(k, 0.01, lower = 0) 
-    gamma ~ truncated_gaussian(gamma, 0.01, lower = 0) 
-    sigma ~ truncated_gaussian(sigma, 0.001, lower = 0)
-    theta ~ truncated_gaussian(theta, 0.001, lower = 0)
-    tau ~ gaussian(tau, 0.001)
-    a ~ gaussian(a, 0.001)
-    b ~ gaussian(b, 0.001)
-  }
 }"
+
 model <- bi_model(lines = stringi::stri_split_lines(model_str)[[1]])
 input_lst <- list(N = 52196381,Forcing=Forcing)
 end_time <- max(y$time)
