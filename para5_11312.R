@@ -54,7 +54,7 @@ model dureau {
     theta ~ truncated_gaussian(0.05, 0.2, lower = 0)
     tau ~ truncated_gaussian(0.1, 0.1, lower = 0)
     a ~ truncated_gaussian(-0.02, 0.1, upper = 0)
-    b ~ truncated_gaussian(-0.2, 0.2, upper = 0)
+    b ~ truncated_gaussian(-0.2, 0.3, upper = 0)
   }
   
   sub proposal_parameter {
@@ -107,13 +107,13 @@ bi_model <- libbi(model,end_time = end_time, input = input_lst,
 #RBi.helpers adapt_particle
 particles_adapted <- bi_model %>%
   sample(nsamples = 2000, nparticles = minParticles, 
-         nthreads = ncores, proposal = 'prior',seed=0066661) %>%
+         nthreads = ncores, proposal = 'prior') %>%
   adapt_particles(min = minParticles, max = minParticles*500)
 
 #RBi.helpers adapt_proposal
 proposal_adapted <- particles_adapted %>%
   sample(target = "posterior", nsamples = 2000, 
-         nthreads = ncores, proposal = 'model',seed=0066661) %>%
+         nthreads = ncores, proposal = 'model') %>%
   adapt_proposal(min = 0.1, max = 0.4)
 
 #Running pMCMC with burn-in
@@ -146,7 +146,7 @@ plot_df <- bi_lst$x %>% mutate(value = exp(value)) %>%
   ) %>% ungroup()
 write.csv(plot_df,"../data/para5_beta11312.csv")
 
-Mmodel <- read.csv("covidoudg2_model1.csv", header=TRUE, stringsAsFactors=FALSE)
+Mmodel <- read.csv("covidoudg2_model121.csv", header=TRUE, stringsAsFactors=FALSE)
 S<-Mmodel[-1,7]
 E<-Mmodel[-1,9]
 I<-Mmodel[-1,11]
