@@ -1,4 +1,5 @@
 rm(list=ls())
+set.seed(0066661)
 library(tidyverse)
 library(ggplot2)
 library(ggpubr)
@@ -100,7 +101,7 @@ model <- bi_model(lines = stringi::stri_split_lines(model_str)[[1]])
 input_lst <- list(N = 52196381,Forcing=Forcing)
 end_time <- max(y$time)
 obs_lst <- list(y = y %>% dplyr::filter(time <= end_time))
-init_list <- list(k=4, gamma=8, sigma=0.04,theta=0.04,tau=0.08,a=-0.01,b=-0.1)
+init_list <- list(k=4, gamma=8, sigma=0.04,theta=0.04,tau=0.08,a=-0.02,b=-0.2)
 #LibBi wrapper 
 #run launches LibBi with a particular set of command line arguments
 bi_model <- libbi(model,end_time = end_time, input = input_lst, 
@@ -108,13 +109,13 @@ bi_model <- libbi(model,end_time = end_time, input = input_lst,
 #RBi.helpers adapt_particle
 particles_adapted <- bi_model %>%
   sample(nsamples = 2000, nparticles = minParticles, 
-         nthreads = ncores, proposal = 'prior',seed=0066661) %>%
+         nthreads = ncores, proposal = 'prior') %>%
   adapt_particles(min = minParticles, max = minParticles*500)
 
 #RBi.helpers adapt_proposal
 proposal_adapted <- particles_adapted %>%
   sample(target = "posterior", nsamples = 2000, 
-         nthreads = ncores, proposal = 'model',seed=0066661) %>%
+         nthreads = ncores, proposal = 'model') %>%
   adapt_proposal(min = 0.1, max = 0.4)
 
 #Running pMCMC with burn-in
