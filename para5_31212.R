@@ -52,7 +52,7 @@ model dureau {
     sigma ~ truncated_gaussian(sqrt(0.004), 0.1, lower = 0)
     theta ~ truncated_gaussian(0.05, 0.2, lower = 0)
     a ~ truncated_gaussian(-0.02, 0.1, upper = 0)
-    b ~ truncated_gaussian(-0.2, 0.2, upper = 0)
+    b ~ truncated_gaussian(-0.2, 0.3, upper = 0)
   }
   
  sub proposal_parameter {
@@ -105,7 +105,7 @@ bi_model <- libbi(model,end_time = end_time, input = input_lst,
 #RBi.helpers adapt_particle
 particles_adapted <- bi_model %>%
   sample(nsamples = 2000, nparticles = minParticles, 
-         nthreads = ncores, proposal = 'prior') %>%
+         nthreads = ncores, target = 'prior') %>%
   adapt_particles(min = minParticles, max = minParticles*500)
 
 #RBi.helpers adapt_proposal
