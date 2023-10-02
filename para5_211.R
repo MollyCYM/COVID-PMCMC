@@ -7,14 +7,15 @@ library(lubridate)
 library(latex2exp)
 library(rbi)
 library(rbi.helpers)
+set.seed(4151)
 # Load the data
-v <- read.csv("covidoudg2_y3w.csv", header=FALSE, stringsAsFactors=FALSE) %>%
+v <- read.csv("covidoudg2_y321w.csv", header=FALSE, stringsAsFactors=FALSE) %>%
   rowSums()
 
 y <- data.frame(value = v) %>%
   mutate(time = seq(7, by = 7, length.out = n())) %>%
   dplyr::select(time, value)
-L <- read.csv("Forcing.csv", header=FALSE, stringsAsFactors=FALSE)
+L <- read.csv("forcing30.csv", header=FALSE, stringsAsFactors=FALSE)
 Forcing <- data.frame(value = L) %>%
   mutate(time = seq(1, by = 1, length.out = n())) %>%
   dplyr::select(time,V1 )
@@ -30,7 +31,6 @@ model dureau {
   state E
   state I
   state R
-  state mu
   state x
 
   state Z
@@ -45,7 +45,7 @@ model dureau {
   param a
   param b
   
-   sub parameter {
+  sub parameter {
     k ~ truncated_gaussian(5, 1, lower = 0) // k is the period here, not the rate, i.e. 1/k is the rate
     gamma ~ truncated_gaussian(9, 1, lower = 0) // gamma is the period, not the rate
     sigma ~ truncated_gaussian(sqrt(0.004), 0.1, lower = 0)
@@ -53,9 +53,18 @@ model dureau {
     a ~ truncated_gaussian(-0.02, 0.1, upper = 0)
     b ~ truncated_gaussian(-0.2, 0.2, upper = 0)
   }
-
+  
+  sub proposal_parameter {
+    k ~ truncated_gaussian(k, 0.01, lower = 0) 
+    gamma ~ truncated_gaussian(gamma, 0.01, lower = 0) 
+    sigma ~ truncated_gaussian(sigma, 0.001, lower = 0)
+    theta ~ truncated_gaussian(theta, 0.001, lower = 0)
+    a ~ gaussian(a, 0.001)
+    b ~ gaussian(b, 0.001)
+  }
+  
   sub initial {
-    x ~ gaussian(-0.02, 0.2)
+    x ~ gaussian(a, sigma/sqrt(2*theta)) // local proposal
     S <- N-1
     E <- 1
     I <- 0
@@ -63,11 +72,12 @@ model dureau {
     Z <- 1/k
   }
 
+
   sub transition(delta = 1) {
   Z <- ((t_now) % 7 == 0 ? 0 : Z)
     noise e
     e ~ wiener()
-    mu <- a+b*Forcing
+    inline mu = a+b*Forcing
     ode(alg = 'RK4(3)', h = 1.0, atoler = 1.0e-3, rtoler = 1.0e-8) {
       dx/dt = theta*(mu-x)+sigma*e
       dS/dt = -exp(x)*S*(0.1*I+E)/N
@@ -80,15 +90,6 @@ model dureau {
 
   sub observation {
     y ~ binomial(floor(Z),1/5)
-  }
-
-  sub proposal_parameter {
-    k ~ truncated_gaussian(k, 0.01, lower = 0) 
-    gamma ~ truncated_gaussian(gamma, 0.01, lower = 0) 
-    sigma ~ truncated_gaussian(sigma, 0.001, lower = 0)
-    theta ~ truncated_gaussian(theta, 0.001, lower = 0)
-    a ~ gaussian(a, 0.001)
-    b ~ gaussian(b, 0.001)
   }
 }"
 model <- bi_model(lines = stringi::stri_split_lines(model_str)[[1]])
@@ -104,13 +105,12 @@ bi_model <- libbi(model,end_time = end_time, input = input_lst,
 #RBi.helpers adapt_particle
 particles_adapted <- bi_model %>%
   sample(nsamples = 2000, nparticles = minParticles, 
-         nthreads = ncores, proposal = 'prior',seed=00007788) %>%
+         nthreads = ncores, target = 'prior') %>%
   adapt_particles(min = minParticles, max = minParticles*500)
 
 #RBi.helpers adapt_proposal
 proposal_adapted <- particles_adapted %>%
-  sample(target = "posterior", nsamples = 2000, 
-         nthreads = ncores, proposal = 'model',seed=00007788) %>%
+  sample(target = "posterior") %>%
   adapt_proposal(min = 0.1, max = 0.4)
 
 #Running pMCMC with burn-in
