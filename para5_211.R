@@ -105,7 +105,7 @@ bi_model <- libbi(model,end_time = end_time, input = input_lst,
 #RBi.helpers adapt_particle
 particles_adapted <- bi_model %>%
   sample(nsamples = 2000, nparticles = minParticles, 
-         nthreads = ncores, target = 'prior') %>%
+         nthreads = ncores, proposal = 'prior') %>%
   adapt_particles(min = minParticles, max = minParticles*500)
 
 #RBi.helpers adapt_proposal
@@ -143,7 +143,7 @@ plot_df <- bi_lst$x %>% mutate(value = exp(value)) %>%
   ) %>% ungroup()
 write.csv(plot_df,"../data/para5_beta211.csv")
 
-Mmodel <- read.csv("covidoudg2_model3.csv", header=TRUE, stringsAsFactors=FALSE)
+Mmodel <- read.csv("covidoudg2_model321.csv", header=TRUE, stringsAsFactors=FALSE)
 S<-Mmodel[-1,7]
 E<-Mmodel[-1,9]
 I<-Mmodel[-1,11]
