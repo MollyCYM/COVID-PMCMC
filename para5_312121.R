@@ -97,7 +97,7 @@ model <- bi_model(lines = stringi::stri_split_lines(model_str)[[1]])
 input_lst <- list(N = 52196381,Forcing=Forcing)
 end_time <- max(y$time)
 obs_lst <- list(y = y %>% dplyr::filter(time <= end_time))
-init_list <- list(k=7, gamma=11, sigma=0.08,theta=0.08,a=-0.03,b=-0.3)
+init_list <- list(k=6, gamma=10, sigma=0.08,theta=0.08,a=-0.04,b=-0.4)
 #LibBi wrapper 
 #run launches LibBi with a particular set of command line arguments
 bi_model <- libbi(model,end_time = end_time, input = input_lst, 
