@@ -50,8 +50,8 @@ model dureau {
     k ~ truncated_gaussian(5, 1, lower = 0) // k is the period here, not the rate, i.e. 1/k is the rate
     gamma ~ truncated_gaussian(9, 1, lower = 0) // gamma is the period, not the rate
     sigma ~ truncated_gaussian(sqrt(0.004), 0.1, lower = 0)
-    theta ~ truncated_gaussian(0.05, 0.2, lower = 0)
-    a ~ truncated_gaussian(-0.02, 0.1, upper = 0)
+    theta ~ truncated_gaussian(0.05, 0.3, lower = 0)
+    a ~ truncated_gaussian(-0.02, 0.2, upper = 0)
     b ~ truncated_gaussian(-0.2, 0.3, upper = 0)
   }
   
@@ -97,7 +97,7 @@ model <- bi_model(lines = stringi::stri_split_lines(model_str)[[1]])
 input_lst <- list(N = 52196381,Forcing=Forcing)
 end_time <- max(y$time)
 obs_lst <- list(y = y %>% dplyr::filter(time <= end_time))
-init_list <- list(k=6, gamma=10, sigma=0.08,theta=0.08,a=-0.04,b=-0.4)
+init_list <- list(k=7, gamma=11, sigma=0.07,theta=0.07,a=-0.04,b=-0.4)
 #LibBi wrapper 
 #run launches LibBi with a particular set of command line arguments
 bi_model <- libbi(model,end_time = end_time, input = input_lst, 
