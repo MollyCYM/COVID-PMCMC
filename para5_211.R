@@ -110,7 +110,7 @@ particles_adapted <- bi_model %>%
 
 #RBi.helpers adapt_proposal
 proposal_adapted <- particles_adapted %>%
-  sample(target = "posterior") %>%
+  sample(target = "posterior",proposal = 'model') %>%
   adapt_proposal(min = 0.1, max = 0.4)
 
 #Running pMCMC with burn-in
