@@ -1,5 +1,5 @@
 rm(list=ls())
-set.seed(07811)
+set.seed(078113)
 library(tidyverse)
 library(ggplot2)
 library(ggpubr)
@@ -53,8 +53,8 @@ model dureau {
     gamma ~ truncated_gaussian(9, 1, lower = 0) // gamma is the period, not the rate
     sigma ~ truncated_gaussian(sqrt(0.004), 0.1, lower = 0)
     theta ~ truncated_gaussian(0.05, 0.2, lower = 0)
-    tau ~ truncated_gaussian(0.1, 0.1, lower = 0)
-    a ~ truncated_gaussian(-0.02, 0.1, upper = 0)
+    tau ~ truncated_gaussian(0.1, 0.2, lower = 0)
+    a ~ truncated_gaussian(-0.02, 0.2, upper = 0)
     b ~ truncated_gaussian(-0.2, 0.3, upper = 0)
   }
   
