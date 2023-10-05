@@ -55,7 +55,7 @@ model dureau {
     theta ~ truncated_gaussian(0.05, 0.2, lower = 0)
     tau ~ truncated_gaussian(0.1, 0.1, lower = 0)
     a ~ truncated_gaussian(-0.02, 0.1, upper = 0)
-    b ~ truncated_gaussian(-0.2, 0.2, upper = 0)
+    b ~ truncated_gaussian(-0.2, 0.25, upper = 0)
   }
   
   sub proposal_parameter {
@@ -109,13 +109,13 @@ bi_model <- libbi(model,end_time = end_time, input = input_lst,
 #RBi.helpers adapt_particle
 particles_adapted <- bi_model %>%
   sample(nsamples = 2000, nparticles = minParticles, 
-         nthreads = ncores, proposal = 'prior') %>%
+         nthreads = ncores, proposal = "prior") %>%
   adapt_particles(min = minParticles, max = minParticles*500)
 
 #RBi.helpers adapt_proposal
 proposal_adapted <- particles_adapted %>%
-  sample(target = "posterior", proposal = 'model') %>%
-  adapt_proposal(min = 0.1, max = 0.4)
+  sample(target = "posterior", proposal = "model") %>%
+  adapt_proposal(min = 0.1, max = 0.4,adapt="both")
 
 #Running pMCMC with burn-in
 bi <- proposal_adapted %>%
