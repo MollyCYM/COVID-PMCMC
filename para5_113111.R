@@ -9,12 +9,6 @@ library(latex2exp)
 library(rbi)
 library(rbi.helpers)
 # Load the data
-v <- read.csv("covidoudg2_y121w.csv", header=FALSE, stringsAsFactors=FALSE) %>%
-  rowSums()
-
-y <- data.frame(value = v) %>%
-  mutate(time = seq(7, by = 7, length.out = n())) %>%
-  dplyr::select(time, value)
 L <- read.csv("forcing30.csv", header=FALSE, stringsAsFactors=FALSE)
 Forcing <- data.frame(value = L) %>%
   mutate(time = seq(1, by = 1, length.out = n())) %>%
@@ -99,23 +93,23 @@ model dureau {
 
 model <- bi_model(lines = stringi::stri_split_lines(model_str)[[1]])
 input_lst <- list(N = 52196381,Forcing=Forcing)
-end_time <- max(y$time)
-obs_lst <- list(y = y %>% dplyr::filter(time <= end_time))
 init_list <- list(k=3, gamma=7, sigma=0.04, theta=0.03, tau=0.08, b_0=-0.01, b_1=-0.1)
-#LibBi wrapper 
-#run launches LibBi with a particular set of command line arguments
-bi_model <- libbi(model,end_time = end_time, input = input_lst, 
-                  init=init_list, obs = obs_lst)
+
+#One. Generate 10 weeks data:10*7 
+covid_data <- generate_dataset(model, end_time = 52 * 7, noutputs = 52,input = input_lst, init=init_list)
+#Save and read the libbi output as a dataframe
+dataset <- bi_read(covid_data)
+covid_model <- libbi(model,input = input_lst, init=init_list,obs = covid_data)
 #RBi.helpers adapt_particle
-particles_adapted <- bi_model %>%
+particles_adapted <- covid_model %>%
   sample(nsamples = 2000, nparticles = minParticles, 
-         nthreads = ncores, proposal = 'prior') %>%
+         nthreads = ncores, proposal = "prior") %>%
   adapt_particles(min = minParticles, max = minParticles*500)
 
 #RBi.helpers adapt_proposal
 proposal_adapted <- particles_adapted %>%
-  sample(target = "posterior", proposal = 'model') %>%
-  adapt_proposal(min = 0.1, max = 0.4)
+  sample(target = "posterior", proposal = "model") %>%
+  adapt_proposal(min = 0.1, max = 0.4,adapt="both")
 
 #Running pMCMC with burn-in
 bi <- proposal_adapted %>%
@@ -133,7 +127,7 @@ fitY <- bi_lst$y %>%
     q75 = quantile(value, 0.75),
     q975 = quantile(value, 0.975)
   ) %>% ungroup() %>%
-  left_join(y %>% rename(Y = value))
+  left_join(dataset$y %>% rename(Y = value))
 write.csv(fitY,"../data/para5_y113111.csv")
 
 plot_df <- bi_lst$x %>% mutate(value = exp(value)) %>%
@@ -144,18 +138,10 @@ plot_df <- bi_lst$x %>% mutate(value = exp(value)) %>%
     q50 = quantile(value, 0.5),
     q75 = quantile(value, 0.75),
     q975 = quantile(value, 0.975)
-  ) %>% ungroup()
+  ) %>% ungroup() %>%
+left_join(dataset$x %>% rename(beta = exp(value)))
 write.csv(plot_df,"../data/para5_beta113111.csv")
 
-Mmodel <- read.csv("covidoudg2_model121.csv", header=TRUE, stringsAsFactors=FALSE)
-S<-Mmodel[-1,7]
-E<-Mmodel[-1,9]
-I<-Mmodel[-1,11]
-R<-Mmodel[-1,13]
-
-S <- data.frame(value = S) %>%
-  mutate(time = seq(1, by = 1, length.out = n())) %>%
-  dplyr::select(time, value)
 fitS <-bi_lst$S %>%
   group_by(time) %>%
   mutate(
@@ -165,12 +151,9 @@ fitS <-bi_lst$S %>%
     q75 = quantile(value, 0.75),
     q975 = quantile(value, 0.975)
   ) %>% ungroup() %>%
-  left_join(S %>% rename(S = value))
+  left_join(dataset$S %>% rename(S = value))
 write.csv(fitS,"../data/para5_S113111.csv")
 
-E <- data.frame(value = E) %>%
-  mutate(time = seq(1, by = 1, length.out = n())) %>%
-  dplyr::select(time, value)
 fitE <-bi_lst$E %>%
   group_by(time) %>%
   mutate(
@@ -180,12 +163,9 @@ fitE <-bi_lst$E %>%
     q75 = quantile(value, 0.75),
     q975 = quantile(value, 0.975)
   ) %>% ungroup() %>%
-  left_join(E %>% rename(E = value))
+  left_join(dataset$E %>% rename(E = value))
 write.csv(fitE,"../data/para5_E113111.csv")
 
-I <- data.frame(value = I) %>%
-  mutate(time = seq(1, by = 1, length.out = n())) %>%
-  dplyr::select(time, value)
 fitI <-bi_lst$I %>%
   group_by(time) %>%
   mutate(
@@ -195,12 +175,9 @@ fitI <-bi_lst$I %>%
     q75 = quantile(value, 0.75),
     q975 = quantile(value, 0.975)
   ) %>% ungroup() %>%
-  left_join(I %>% rename(I = value))
+  left_join(dataset$I %>% rename(I = value))
 write.csv(fitI,"../data/para5_I113111.csv")
 
-R <- data.frame(value = R) %>%
-  mutate(time = seq(1, by = 1, length.out = n())) %>%
-  dplyr::select(time, value)
 fitR <-bi_lst$R %>%
   group_by(time) %>%
   mutate(
@@ -210,7 +187,7 @@ fitR <-bi_lst$R %>%
     q75 = quantile(value, 0.75),
     q975 = quantile(value, 0.975)
   ) %>% ungroup() %>%
-  left_join(R %>% rename(R = value))
+  left_join(dataset$R %>% rename(R = value))
 write.csv(fitR,"../data/para5_R113111.csv")
 
 
