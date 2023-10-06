@@ -31,7 +31,6 @@ model dureau {
   state E
   state I
   state R
-  state mu
   state x
 
   state Z
@@ -81,7 +80,7 @@ model dureau {
   Z <- ((t_now) % 7 == 0 ? 0 : Z)
     noise e
     e ~ wiener()
-    mu <- a+b*Forcing
+    inline mu = a+b*Forcing
     ode(alg = 'RK4(3)', h = 1.0, atoler = 1.0e-3, rtoler = 1.0e-8) {
       dx/dt = theta*(mu-x)+sigma*e
       dS/dt = -exp(x)*S*(0.1*I+E)/N
