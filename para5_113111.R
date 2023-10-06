@@ -99,7 +99,7 @@ init_list <- list(k=3, gamma=7, sigma=0.04, theta=0.03, tau=0.08, b_0=-0.01, b_1
 covid_data <- generate_dataset(model, end_time = 52 * 7, noutputs = 52,input = input_lst, init=init_list)
 #Save and read the libbi output as a dataframe
 dataset <- bi_read(covid_data)
-covid_model <- libbi(model,input = input_lst, init=init_list,obs = covid_data)
+covid_model <- libbi(model,input = input_lst, init=init_list,obs = covid_data$y)
 #RBi.helpers adapt_particle
 particles_adapted <- covid_model %>%
   sample(nsamples = 2000, nparticles = minParticles, 
