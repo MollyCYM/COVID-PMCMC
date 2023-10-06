@@ -65,7 +65,7 @@ model dureau {
   }
   
   sub initial {
-    x ~ gaussian(a, sigma/sqrt(2*theta) ) 
+    x ~ gaussian(0, sigma/sqrt(2*theta) ) 
     S <- N-1
     E <- 1
     I <- 0
@@ -144,7 +144,7 @@ plot_df <- bi_lst$x %>% mutate(value = exp(value)) %>%
   ) %>% ungroup()
 write.csv(plot_df,"../data/para5_beta11316.csv")
 
-Mmodel <- read.csv("covidoudg2_model122.csv", header=TRUE, stringsAsFactors=FALSE)
+Mmodel <- read.csv("covidoudg2_model123.csv", header=TRUE, stringsAsFactors=FALSE)
 S<-Mmodel[-1,7]
 E<-Mmodel[-1,9]
 I<-Mmodel[-1,11]
