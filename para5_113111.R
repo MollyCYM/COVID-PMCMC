@@ -1,5 +1,5 @@
 rm(list=ls())
-set.seed(0781167)
+set.seed(07811690)
 library(tidyverse)
 library(ggplot2)
 library(ggpubr)
@@ -139,7 +139,7 @@ plot_df <- bi_lst$x %>% mutate(value = exp(value)) %>%
     q75 = quantile(value, 0.75),
     q975 = quantile(value, 0.975)
   ) %>% ungroup() %>%
-left_join(dataset$x %>% rename(beta = exp(value)))
+left_join(dataset$x %>% rename(x = value))
 write.csv(plot_df,"../data/para5_beta113111.csv")
 
 fitS <-bi_lst$S %>%
