@@ -103,7 +103,7 @@ covid_model <- libbi(model,input = input_lst, init=init_list,obs = covid_data$y)
 #RBi.helpers adapt_particle
 particles_adapted <- covid_model %>%
   sample(nsamples = 2000, nparticles = minParticles, 
-         nthreads = ncores, proposal = "prior") %>%
+         nthreads = ncores, target = "prior") %>%
   adapt_particles(min = minParticles, max = minParticles*500)
 
 #RBi.helpers adapt_proposal
