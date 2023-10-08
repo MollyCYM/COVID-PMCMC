@@ -1,5 +1,5 @@
 rm(list=ls())
-set.seed(00786778)
+set.seed(0066660)
 #0066661
 library(tidyverse)
 library(ggplot2)
