@@ -10,13 +10,13 @@ library(latex2exp)
 library(rbi)
 library(rbi.helpers)
 # Load the data
-v <- read.csv("covidoudg2_long1w.csv", header=FALSE, stringsAsFactors=FALSE) %>%
+v <- read.csv("covidoudg2_y12w.csv", header=FALSE, stringsAsFactors=FALSE) %>%
   rowSums()
 
 y <- data.frame(value = v) %>%
   mutate(time = seq(7, by = 7, length.out = n())) %>%
   dplyr::select(time, value)
-L <- read.csv("long_forcing30.csv", header=FALSE, stringsAsFactors=FALSE)
+L <- read.csv("long_forcing.csv", header=FALSE, stringsAsFactors=FALSE)
 Forcing <- data.frame(value = L) %>%
   mutate(time = seq(1, by = 1, length.out = n())) %>%
   dplyr::select(time,V1 )
