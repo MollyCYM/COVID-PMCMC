@@ -148,7 +148,7 @@ plot_df <- bi_lst$x %>% mutate(value = exp(value)) %>%
   ) %>% ungroup()
 write.csv(plot_df,"../data/para5_beta113142.csv")
 
-Mmodel <- read.csv("covidoudg2_model124.csv", header=TRUE, stringsAsFactors=FALSE)
+Mmodel <- read.csv("covidoudg2_model122.csv", header=TRUE, stringsAsFactors=FALSE)
 S<-Mmodel[-1,7]
 E<-Mmodel[-1,9]
 I<-Mmodel[-1,11]
