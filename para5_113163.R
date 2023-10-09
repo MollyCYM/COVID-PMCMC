@@ -86,7 +86,7 @@ model dureau {
   }
 
   sub observation {
-    y ~ binomial(floor(E/k),1/5)
+    y ~ binomial(floor(Z),1/5)
   }
 }"
 
