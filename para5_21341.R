@@ -1,5 +1,4 @@
 rm(list=ls())
-set.seed(0066661)
 library(tidyverse)
 library(ggplot2)
 library(ggpubr)
@@ -8,8 +7,9 @@ library(lubridate)
 library(latex2exp)
 library(rbi)
 library(rbi.helpers)
+set.seed(4151)
 # Load the data
-v <- read.csv("covidoudg2_y722w.csv", header=FALSE, stringsAsFactors=FALSE) %>%
+v <- read.csv("covidoudg2_y723w.csv", header=FALSE, stringsAsFactors=FALSE) %>%
   rowSums()
 
 y <- data.frame(value = v) %>%
@@ -58,13 +58,14 @@ model dureau {
   }
   
   sub initial {
-    x ~ gaussian(a, sigma/sqrt(2*theta) )
+    x ~ gaussian(a, sigma/sqrt(2*theta)) // local proposal
     S <- N-1
     E <- 1
     I <- 0
     R <- 0
     Z <- 1/k
   }
+
 
   sub transition(delta = 1) {
   Z <- ((t_now) % 7 == 0 ? 0 : Z)
@@ -82,8 +83,9 @@ model dureau {
   }
 
   sub observation {
-    y ~ poisson(Z/5)
+    y ~ binomial(floor(Z),1/5)
   }
+
 }"
 model <- bi_model(lines = stringi::stri_split_lines(model_str)[[1]])
 
@@ -113,7 +115,7 @@ bi <- proposal_adapted %>%
 
 bi_lst <- bi_read(bi %>% sample_obs)
 
-write.csv(bi_lst,"../data/para5_model312151.csv")
+write.csv(bi_lst,"../data/para5_model21341.csv")
 fitY <- bi_lst$y %>%
   group_by(time) %>%
   mutate(
@@ -124,7 +126,7 @@ fitY <- bi_lst$y %>%
     q975 = quantile(value, 0.975)
   ) %>% ungroup() %>%
   left_join(y %>% rename(Y = value))
-write.csv(fitY,"../data/para5_y312151.csv")
+write.csv(fitY,"../data/para5_y21341.csv")
 
 plot_df <- bi_lst$x %>% mutate(value = exp(value)) %>%
   group_by(time) %>%
@@ -135,9 +137,9 @@ plot_df <- bi_lst$x %>% mutate(value = exp(value)) %>%
     q75 = quantile(value, 0.75),
     q975 = quantile(value, 0.975)
   ) %>% ungroup()
-write.csv(plot_df,"../data/para5_beta312151.csv")
+write.csv(plot_df,"../data/para5_beta21341.csv")
 
-Mmodel <- read.csv("covidoudg2_model722.csv", header=TRUE, stringsAsFactors=FALSE)
+Mmodel <- read.csv("covidoudg2_model723.csv", header=TRUE, stringsAsFactors=FALSE)
 S<-Mmodel[-1,7]
 E<-Mmodel[-1,9]
 I<-Mmodel[-1,11]
@@ -156,7 +158,7 @@ fitS <-bi_lst$S %>%
     q975 = quantile(value, 0.975)
   ) %>% ungroup() %>%
   left_join(S %>% rename(S = value))
-write.csv(fitS,"../data/para5_S312151.csv")
+write.csv(fitS,"../data/para5_S21341.csv")
 
 E <- data.frame(value = E) %>%
   mutate(time = seq(1, by = 1, length.out = n())) %>%
@@ -171,7 +173,7 @@ fitE <-bi_lst$E %>%
     q975 = quantile(value, 0.975)
   ) %>% ungroup() %>%
   left_join(E %>% rename(E = value))
-write.csv(fitE,"../data/para5_E312151.csv")
+write.csv(fitE,"../data/para5_E21341.csv")
 
 I <- data.frame(value = I) %>%
   mutate(time = seq(1, by = 1, length.out = n())) %>%
@@ -186,7 +188,7 @@ fitI <-bi_lst$I %>%
     q975 = quantile(value, 0.975)
   ) %>% ungroup() %>%
   left_join(I %>% rename(I = value))
-write.csv(fitI,"../data/para5_I312151.csv")
+write.csv(fitI,"../data/para5_I21341.csv")
 
 R <- data.frame(value = R) %>%
   mutate(time = seq(1, by = 1, length.out = n())) %>%
@@ -201,10 +203,10 @@ fitR <-bi_lst$R %>%
     q975 = quantile(value, 0.975)
   ) %>% ungroup() %>%
   left_join(R %>% rename(R = value))
-write.csv(fitR,"../data/para5_R312151.csv")
+write.csv(fitR,"../data/para5_R21341.csv")
 
-write.csv(bi_lst$a$value,"../data/para5_a312151.csv")
-write.csv(bi_lst$b$value,"../data/para5_b312151.csv")
+write.csv(bi_lst$a$value,"../data/para5_a21341.csv")
+write.csv(bi_lst$b$value,"../data/para5_b21341.csv")
 
 
 
