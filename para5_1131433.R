@@ -134,10 +134,10 @@ plot_df <- bi_lst$x |> mutate(value = exp(value)) %>%
 write.csv(plot_df,"../data/para5_beta1131433.csv")
 
 Mmodel <- read.csv("covidoudg2_model821.csv", header=TRUE, stringsAsFactors=FALSE)
-S<-Mmodel[-1,7]
-E<-Mmodel[-1,9]
-I<-Mmodel[-1,11]
-R<-Mmodel[-1,13]
+S<-Mmodel[-1,5]
+E<-Mmodel[-1,7]
+I<-Mmodel[-1,9]
+R<-Mmodel[-1,11]
 
 S <- data.frame(value = S) %>%
   mutate(time = seq(1, by = 1, length.out = n())) %>%
