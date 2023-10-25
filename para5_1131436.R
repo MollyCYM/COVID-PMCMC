@@ -72,7 +72,6 @@ model dureau {
     E <- 1
     I <- 0
     R <- 0
-    Z <- 1/k
   }
 
   sub transition(delta = 1) {
