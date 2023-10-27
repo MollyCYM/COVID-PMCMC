@@ -8,8 +8,7 @@ library(latex2exp)
 library(rbi)
 library(rbi.helpers)
 # Load the data
-v <- read.csv("covidoudg2_y221d.csv", header=FALSE, stringsAsFactors=FALSE) %>%
-  rowSums()
+v <- read.csv("covidoudg2_y221d.csv", header=FALSE, stringsAsFactors=FALSE) 
 
 y <- data.frame(value = v) %>%
   mutate(time = seq(1, by = 1, length.out = n())) %>%
