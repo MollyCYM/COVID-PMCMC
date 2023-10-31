@@ -58,8 +58,8 @@ model dureau {
   }
   
   sub proposal_parameter {
-    k ~ truncated_gaussian(k, 0.5, lower = 0) 
-    gamma ~ truncated_gaussian(gamma, 0.5, lower = 0) 
+    k ~ truncated_gaussian(k, 1, lower = 0) 
+    gamma ~ truncated_gaussian(gamma, 1, lower = 0) 
     sigma ~ truncated_gaussian(sigma, 0.01, lower = 0)
     theta ~ truncated_gaussian(theta, 0.01, lower = 0)
     tau ~ gaussian(tau, 0.01)
