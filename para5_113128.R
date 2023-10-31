@@ -59,7 +59,7 @@ model dureau {
   
   sub proposal_parameter {
     k ~ truncated_gaussian(k, 0.01, lower = 0) 
-    gamma ~ truncated_gaussian(gamma, 0.01, lower = 0) 
+    gamma ~ truncated_gaussian(gamma, 0.05, lower = 0) 
     sigma ~ truncated_gaussian(sigma, 0.001, lower = 0)
     theta ~ truncated_gaussian(theta, 0.001, lower = 0)
     tau ~ gaussian(tau, 0.001)
@@ -118,7 +118,7 @@ proposal_adapted <- particles_adapted %>%
 
 #Running pMCMC with burn-in
 bi <- proposal_adapted %>%
-  sample(nsamples = 10000, thin = 1, init=init_list)
+  sample(nsamples = 2000, thin = 1, init=init_list)
 
 bi_lst <- bi_read(bi %>% sample_obs)
 
