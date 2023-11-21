@@ -58,9 +58,9 @@ model dureau {
     k ~ truncated_gaussian(k, 0.01, lower = 0) 
     gamma ~ truncated_gaussian(gamma, 0.01, lower = 0) 
     sigma ~ truncated_gaussian(sigma, 0.001, lower = 0)
-    theta ~ truncated_gaussian(theta, 0.0005, lower = 0)
+    theta ~ truncated_gaussian(theta, 0.0001, lower = 0)
     a ~ gaussian(a, 0.001)
-    b ~ gaussian(b, 0.0005)
+    b ~ gaussian(b, 0.0001)
  }
   
   sub initial {
