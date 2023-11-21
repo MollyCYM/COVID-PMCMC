@@ -112,7 +112,7 @@ proposal_adapted <- particles_adapted %>%
 
 #Running pMCMC with burn-in
 bi <- proposal_adapted %>%
-  sample(nsamples = 10000, thin = 1, init=init_list)
+  sample(nsamples = 2000, thin = 1, init=init_list)
 
 bi_lst <- bi_read(bi %>% sample_obs)
 
