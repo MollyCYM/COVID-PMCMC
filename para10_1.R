@@ -104,7 +104,7 @@ obs_lst <- list(y = y %>% dplyr::filter(time <= end_time))
 #LibBi wrapper 
 #run launches LibBi with a particular set of command line arguments
 bi_model <- libbi(model,end_time = end_time, input = input_lst, 
-                  init=init_list, obs = obs_lst)
+                  obs = obs_lst)
 #RBi.helpers adapt_particle
 particles_adapted <- bi_model %>%
   sample(nsamples = 2000, nparticles = minParticles, 
