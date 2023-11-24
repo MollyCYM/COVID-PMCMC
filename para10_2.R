@@ -99,19 +99,19 @@ bi_model <- libbi(model,end_time = end_time, input = input_lst,
                   init=init_list, obs = obs_lst)
 #RBi.helpers adapt_particle
 particles_adapted <- bi_model %>%
-  sample(nsamples = 2000, nparticles = minParticles, 
+  sample(nsamples = 1000, nparticles = minParticles, 
          nthreads = ncores, proposal = 'prior') %>%
   adapt_particles(min = minParticles, max = minParticles*500)
 
 #RBi.helpers adapt_proposal
 proposal_adapted <- particles_adapted %>%
-  sample(target = "posterior", nsamples = 2000, 
+  sample(target = "posterior", nsamples = 1000, 
          nthreads = ncores, proposal = 'model') %>%
   adapt_proposal(min = 0.1, max = 0.4)
 
 #Running pMCMC with burn-in
 bi <- proposal_adapted %>%
-  sample(nsamples = 10000, thin = 1, init=init_list)
+  sample(nsamples = 5000, thin = 1, init=init_list)
 
 bi_lst <- bi_read(bi %>% sample_obs)
 
@@ -139,10 +139,6 @@ plot_df <- bi_lst$x |> mutate(value = exp(value)) %>%
   ) %>% ungroup()
 write.csv(plot_df,"../data/para10_beta2.csv")
 
-
-S <- data.frame(value = S) %>%
-  mutate(time = seq(1, by = 1, length.out = n())) %>%
-  dplyr::select(time, value)
 fitS <-bi_lst$S %>%
   group_by(time) %>%
   mutate(
@@ -154,9 +150,6 @@ fitS <-bi_lst$S %>%
   ) %>% ungroup() 
 write.csv(fitS,"../data/para10_S2.csv")
 
-E <- data.frame(value = E) %>%
-  mutate(time = seq(1, by = 1, length.out = n())) %>%
-  dplyr::select(time, value)
 fitE <-bi_lst$E %>%
   group_by(time) %>%
   mutate(
@@ -168,9 +161,6 @@ fitE <-bi_lst$E %>%
   ) %>% ungroup() 
 write.csv(fitE,"../data/para10_E2.csv")
 
-I <- data.frame(value = I) %>%
-  mutate(time = seq(1, by = 1, length.out = n())) %>%
-  dplyr::select(time, value)
 fitI <-bi_lst$I %>%
   group_by(time) %>%
   mutate(
@@ -182,9 +172,6 @@ fitI <-bi_lst$I %>%
   ) %>% ungroup()
 write.csv(fitI,"../data/para10_I2.csv")
 
-R <- data.frame(value = R) %>%
-  mutate(time = seq(1, by = 1, length.out = n())) %>%
-  dplyr::select(time, value)
 fitR <-bi_lst$R %>%
   group_by(time) %>%
   mutate(
