@@ -58,13 +58,13 @@ model dureau {
   }
   
   sub proposal_parameter {
-    k ~ truncated_gaussian(k, 0.01, lower = 0) 
-    gamma ~ truncated_gaussian(gamma, 0.01, lower = 0) 
-    sigma ~ truncated_gaussian(sigma, 0.001, lower = 0)
-    theta ~ truncated_gaussian(theta, 0.001, lower = 0)
-    tau ~ gaussian(tau, 0.001)
-    a ~ gaussian(a, 0.001)
-    b ~ gaussian(b, 0.001)
+    k ~ truncated_gaussian(k, 0.001, lower = 0) 
+    gamma ~ truncated_gaussian(gamma, 0.001, lower = 0) 
+    sigma ~ truncated_gaussian(sigma, 0.0001, lower = 0)
+    theta ~ truncated_gaussian(theta, 0.0001, lower = 0)
+    tau ~ gaussian(tau, 0.0001)
+    a ~ gaussian(a, 0.0001)
+    b ~ gaussian(b, 0.0001)
   }
   
   sub initial {
@@ -119,7 +119,7 @@ proposal_adapted <- particles_adapted %>%
 
 #Running pMCMC with burn-in
 bi <- proposal_adapted %>%
-  sample(nsamples = 2000, thin = 1, init=init_list)
+  sample(nsamples = 5000, thin = 1, init=init_list)
 
 bi_lst <- bi_read(bi %>% sample_obs)
 
@@ -147,10 +147,6 @@ plot_df <- bi_lst$x |> mutate(value = exp(value)) %>%
   ) %>% ungroup()
 write.csv(plot_df,"../data/para10_beta1.csv")
 
-
-S <- data.frame(value = S) %>%
-  mutate(time = seq(1, by = 1, length.out = n())) %>%
-  dplyr::select(time, value)
 fitS <-bi_lst$S %>%
   group_by(time) %>%
   mutate(
@@ -162,9 +158,7 @@ fitS <-bi_lst$S %>%
   ) %>% ungroup() 
 write.csv(fitS,"../data/para10_S1.csv")
 
-E <- data.frame(value = E) %>%
-  mutate(time = seq(1, by = 1, length.out = n())) %>%
-  dplyr::select(time, value)
+
 fitE <-bi_lst$E %>%
   group_by(time) %>%
   mutate(
@@ -176,9 +170,7 @@ fitE <-bi_lst$E %>%
   ) %>% ungroup() 
 write.csv(fitE,"../data/para10_E1.csv")
 
-I <- data.frame(value = I) %>%
-  mutate(time = seq(1, by = 1, length.out = n())) %>%
-  dplyr::select(time, value)
+
 fitI <-bi_lst$I %>%
   group_by(time) %>%
   mutate(
@@ -190,9 +182,7 @@ fitI <-bi_lst$I %>%
   ) %>% ungroup()
 write.csv(fitI,"../data/para10_I1.csv")
 
-R <- data.frame(value = R) %>%
-  mutate(time = seq(1, by = 1, length.out = n())) %>%
-  dplyr::select(time, value)
+
 fitR <-bi_lst$R %>%
   group_by(time) %>%
   mutate(
