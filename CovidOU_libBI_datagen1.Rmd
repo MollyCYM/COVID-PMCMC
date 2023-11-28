@@ -1695,3 +1695,2005 @@ axis(1, at=31,labels=31, col.axis="red", las=2)
 tt1 <-expression('lockdown policy start')
 text(80,0.6,tt1,col="red")
 ```
+
+```{r}
+#earlier lockdown policy: 30th day
+#Test for longer days-check width of ci
+rm(list=ls())
+library(tidyverse)
+library(ggplot2)
+library(ggpubr)
+library(pander)
+library(lubridate)
+library(latex2exp)
+library(rbi)
+library(rbi.helpers)
+
+L <- read.csv("long_forcing.csv", header=FALSE, stringsAsFactors=FALSE)
+Forcing <- data.frame(value = L) %>%
+  mutate(time = seq(1, by = 1, length.out = n())) %>%
+  dplyr::select(time,V1 )
+colnames(Forcing) <- c("time","value")
+ncores <- 8
+minParticles <- max(ncores, 16)
+model_str <- "
+model covidou {
+  obs y
+  
+  state S
+  state E
+  state I
+  state R
+  state x
+
+  input Forcing
+  input N
+  
+  const k = 5
+  const gamma = 9
+  const sigma = sqrt(0.004)
+  const theta = 0.05
+  const a = -0.02
+  const b = -0.2
+  const tau = 0.1
+
+  sub initial {
+    S <- N-1
+    E <- 1
+    I <- 0
+    R <- 0
+    x ~ gaussian(-0.02, 0.2)
+  }
+
+  sub transition(delta = 1) {
+    noise e
+    e ~ wiener()
+    inline mu = a+b*Forcing
+    ode{
+      dx/dt = theta*(mu-x)+sigma*e
+      dS/dt = -exp(x)*S*(0.1*I+E)/N
+      dE/dt = exp(x)*S*(0.1*I+E)/N - E*(1/k+1/gamma)
+      dI/dt = E/k-I*(1/gamma+0.0087)
+      dR/dt = (I+E)/gamma+0.0087*I
+    }
+  }
+
+  sub observation {
+    y ~ log_normal(log(max((E/k)/5, 0)), tau)
+  }
+
+}"
+covid <- bi_model(lines = stringi::stri_split_lines(model_str)[[1]])
+input_lst <- list(N = 52196381,Forcing=Forcing)
+T <- 560
+nObs <- 560
+input_lst <- list(N = 52196381,Forcing=Forcing)
+synthetic_dataset <- generate_dataset(model=covid, end_time=T,
+                                         noutputs = nObs, input=input_lst, seed="199")
+synthetic_data <- bi_read(synthetic_dataset)
+
+synthetic_df <- as.data.frame(synthetic_data)
+#92 194 197
+# 
+write.csv(synthetic_df$y.value,"covidoudg2_Y122.csv")
+write.csv(synthetic_df$x.value,"covidoudg2_x122.csv")
+write.csv(exp(synthetic_df$x.value),"covidoudg2_beta122.csv")
+write.csv(synthetic_df,"covidoudg2_model122.csv")
+
+ggplot(synthetic_df, aes(y.time)) +
+  geom_path(aes(y = y.value, colour="y.value")) +
+  theme(legend.position="bottom") +
+  ggtitle("Covid_OU model generated observation with Lognormal distribution") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  xlab("Time") +
+  ylab("Daily incidence Y")
+
+ggplot(synthetic_df, aes(y.time)) +
+  geom_path(aes(y = S.value, colour="S.value")) +
+  geom_path(aes(y = E.value, colour="E.value")) +
+  geom_path(aes(y = I.value, colour="I.value")) +
+  geom_path(aes(y = R.value, colour="R.value")) +
+  theme(legend.position="bottom") +
+  ggtitle("Generated COVID_OU Model Trajectories") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  xlab("Time") +
+  ylab("Counts")
+
+x <- read.csv("covidoudg2_x122.csv", header=TRUE, stringsAsFactors=FALSE)
+plot(x,type='p',ylab=TeX(r"(OU process $X_{t}$)"),xlab="Time",col="darkred",main=TeX(r"(Generated OU process: $\theta=0.05$, $sigma=sqrt(0.004)$, $x_{0} \sim N(-0.02,0.2)$)"))
+  lines(x,col="darkblue")
+  abline(v=101, col="red")
+axis(1, at=101,labels=101, col.axis="red", las=2)
+
+beta <- read.csv("covidoudg2_beta122.csv", header=TRUE, stringsAsFactors=FALSE)
+plot(beta,type='p',ylab=TeX(r"(Transmission rate $\beta$)"),xlab="time",col="darkred",main="COVIDOU model generated transmission rate")
+lines(beta,col="darkblue")
+abline(v=101, col="red")
+axis(1, at=101,labels=101, col.axis="red", las=2)
+tt1 <-expression('lockdown policy start')
+text(80,0.6,tt1,col="red")
+```
+
+```{r}
+#later lockdown policy: 60th day
+#test for identifiability-only b1
+rm(list=ls())
+library(tidyverse)
+library(ggplot2)
+library(ggpubr)
+library(pander)
+library(lubridate)
+library(latex2exp)
+library(rbi)
+library(rbi.helpers)
+
+L <- read.csv("test_forcing.csv", header=FALSE, stringsAsFactors=FALSE)
+Forcing <- data.frame(value = L) %>%
+  mutate(time = seq(1, by = 1, length.out = n())) %>%
+  dplyr::select(time,V1 )
+colnames(Forcing) <- c("time","value")
+ncores <- 8
+minParticles <- max(ncores, 16)
+model_str <- "
+model covidou {
+  obs y
+  
+  state S
+  state E
+  state I
+  state R
+  state mu
+  state x
+
+  input Forcing
+  input N
+  
+  const k = 5
+  const gamma = 9
+  const sigma = sqrt(0.004)
+  const theta = 0.05
+  const b = -0.2
+  const tau = 0.1
+
+  sub initial {
+    S <- N-1
+    E <- 1
+    I <- 0
+    R <- 0
+    x ~ gaussian(0, 0.2)
+  }
+
+  sub transition(delta = 1) {
+    noise e
+    e ~ wiener()
+    inline mu = b*Forcing
+    ode{
+      dx/dt = theta*(mu-x)+sigma*e
+      dS/dt = -exp(x)*S*(0.1*I+E)/N
+      dE/dt = exp(x)*S*(0.1*I+E)/N - E*(1/k+1/gamma)
+      dI/dt = E/k-I*(1/gamma+0.0087)
+      dR/dt = (I+E)/gamma+0.0087*I
+    }
+  }
+
+  sub observation {
+    y ~ log_normal(log(max((E/k)/5, 0)), tau)
+  }
+
+}"
+covid <- bi_model(lines = stringi::stri_split_lines(model_str)[[1]])
+
+T <- 365
+nObs <- 365
+input_lst <- list(N = 52196381,Forcing=Forcing)
+synthetic_dataset <- generate_dataset(model=covid, end_time=T,
+                                         noutputs = nObs, input=input_lst, seed="894")
+synthetic_data <- bi_read(synthetic_dataset)
+
+synthetic_df <- as.data.frame(synthetic_data)
+#92 893 894
+
+write.csv(synthetic_df$y.value,"covidoudg2_Y1231.csv")
+write.csv(synthetic_df$x.value,"covidoudg2_x1231.csv")
+write.csv(exp(synthetic_df$x.value),"covidoudg2_beta1231.csv")
+write.csv(synthetic_df,"covidoudg2_model1231.csv")
+
+ggplot(synthetic_df, aes(y.time)) +
+  geom_path(aes(y = y.value, colour="y.value")) +
+  theme(legend.position="bottom") +
+  ggtitle("Covid_OU model generated observation with Lognormal distribution") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  xlab("Time") +
+  ylab("Daily incidence Y")
+
+ggplot(synthetic_df, aes(y.time)) +
+  geom_path(aes(y = S.value, colour="S.value")) +
+  geom_path(aes(y = E.value, colour="E.value")) +
+  geom_path(aes(y = I.value, colour="I.value")) +
+  geom_path(aes(y = R.value, colour="R.value")) +
+  theme(legend.position="bottom") +
+  ggtitle("Generated COVID_OU Model Trajectories") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  xlab("Time") +
+  ylab("Counts")
+
+x <- read.csv("covidoudg2_x1231.csv", header=TRUE, stringsAsFactors=FALSE)
+plot(x,type='p',ylab=TeX(r"(OU process $X_{t}$)"),xlab="Time",col="darkred",main=TeX(r"(Generated OU process: $\theta=0.05$, $sigma=sqrt(0.004)$, $x_{0} \sim N(-0.02,0.2)$)"))
+  lines(x,col="darkblue")
+  abline(v=61, col="red")
+axis(1, at=61,labels=61, col.axis="red", las=2)
+
+beta <- read.csv("covidoudg2_beta1231.csv", header=TRUE, stringsAsFactors=FALSE)
+plot(beta,type='p',ylab=TeX(r"(Transmission rate $\beta$)"),xlab="time",col="darkred",main="COVIDOU model generated transmission rate")
+lines(beta,col="darkblue")
+abline(v=61, col="red")
+axis(1, at=61,labels=61, col.axis="red", las=2)
+tt1 <-expression('lockdown policy start')
+text(80,0.6,tt1,col="red")
+```
+
+```{r}
+#later lockdown policy: 60th day
+#test for identifiability-only b1
+rm(list=ls())
+library(tidyverse)
+library(ggplot2)
+library(ggpubr)
+library(pander)
+library(lubridate)
+library(latex2exp)
+library(rbi)
+library(rbi.helpers)
+
+L <- read.csv("test_forcing.csv", header=FALSE, stringsAsFactors=FALSE)
+Forcing <- data.frame(value = L) %>%
+  mutate(time = seq(1, by = 1, length.out = n())) %>%
+  dplyr::select(time,V1 )
+colnames(Forcing) <- c("time","value")
+ncores <- 8
+minParticles <- max(ncores, 16)
+model_str <- "
+model covidou {
+  obs y
+  
+  state S
+  state E
+  state I
+  state R
+  state mu
+  state x
+
+  input Forcing
+  input N
+  
+  const k = 5
+  const gamma = 9
+  const sigma = sqrt(0.004)
+  const theta = 0.05
+  const b = -0.2
+
+  sub initial {
+    S <- N-1
+    E <- 1
+    I <- 0
+    R <- 0
+    x ~ gaussian(0, 0.2)
+  }
+
+  sub transition(delta = 1) {
+    noise e
+    e ~ wiener()
+    inline mu = b*Forcing
+    ode{
+      dx/dt = theta*(mu-x)+sigma*e
+      dS/dt = -exp(x)*S*(0.1*I+E)/N
+      dE/dt = exp(x)*S*(0.1*I+E)/N - E*(1/k+1/gamma)
+      dI/dt = E/k-I*(1/gamma+0.0087)
+      dR/dt = (I+E)/gamma+0.0087*I
+    }
+  }
+
+  sub observation {
+    y ~ poisson((E/k)/5)
+  }
+
+}"
+covid <- bi_model(lines = stringi::stri_split_lines(model_str)[[1]])
+
+T <- 365
+nObs <- 365
+input_lst <- list(N = 52196381,Forcing=Forcing)
+synthetic_dataset <- generate_dataset(model=covid, end_time=T,
+                                         noutputs = nObs, input=input_lst, seed="897")
+synthetic_data <- bi_read(synthetic_dataset)
+
+synthetic_df <- as.data.frame(synthetic_data)
+#92 897 892
+
+write.csv(synthetic_df$y.value,"covidoudg2_Y1232.csv")
+write.csv(synthetic_df$x.value,"covidoudg2_x1232.csv")
+write.csv(exp(synthetic_df$x.value),"covidoudg2_beta1232.csv")
+write.csv(synthetic_df,"covidoudg2_model1232.csv")
+
+ggplot(synthetic_df, aes(y.time)) +
+  geom_path(aes(y = y.value, colour="y.value")) +
+  theme(legend.position="bottom") +
+  ggtitle("Covid_OU model generated observation with Poisson distribution") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  xlab("Time") +
+  ylab("Daily incidence Y")
+
+ggplot(synthetic_df, aes(y.time)) +
+  geom_path(aes(y = S.value, colour="S.value")) +
+  geom_path(aes(y = E.value, colour="E.value")) +
+  geom_path(aes(y = I.value, colour="I.value")) +
+  geom_path(aes(y = R.value, colour="R.value")) +
+  theme(legend.position="bottom") +
+  ggtitle("Generated COVID_OU Model Trajectories") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  xlab("Time") +
+  ylab("Counts")
+
+x <- read.csv("covidoudg2_x1232.csv", header=TRUE, stringsAsFactors=FALSE)
+plot(x,type='p',ylab=TeX(r"(OU process $X_{t}$)"),xlab="Time",col="darkred",main=TeX(r"(Generated OU process: $\theta=0.05$, $sigma=sqrt(0.004)$, $x_{0} \sim N(-0.02,0.2)$)"))
+  lines(x,col="darkblue")
+  abline(v=61, col="red")
+axis(1, at=61,labels=61, col.axis="red", las=2)
+
+beta <- read.csv("covidoudg2_beta1232.csv", header=TRUE, stringsAsFactors=FALSE)
+plot(beta,type='p',ylab=TeX(r"(Transmission rate $\beta$)"),xlab="time",col="darkred",main="COVIDOU model generated transmission rate")
+lines(beta,col="darkblue")
+abline(v=61, col="red")
+axis(1, at=61,labels=61, col.axis="red", las=2)
+tt1 <-expression('lockdown policy start')
+text(80,0.6,tt1,col="red")
+```
+```{r}
+#later lockdown policy: 60th day
+#test for identifiability-only b1
+rm(list=ls())
+library(tidyverse)
+library(ggplot2)
+library(ggpubr)
+library(pander)
+library(lubridate)
+library(latex2exp)
+library(rbi)
+library(rbi.helpers)
+
+L <- read.csv("test_forcing.csv", header=FALSE, stringsAsFactors=FALSE)
+Forcing <- data.frame(value = L) %>%
+  mutate(time = seq(1, by = 1, length.out = n())) %>%
+  dplyr::select(time,V1 )
+colnames(Forcing) <- c("time","value")
+ncores <- 8
+minParticles <- max(ncores, 16)
+model_str <- "
+model covidou {
+  obs y
+  
+  state S
+  state E
+  state I
+  state R
+  state mu
+  state x
+
+  input Forcing
+  input N
+  
+  const k = 5
+  const gamma = 9
+  const sigma = sqrt(0.004)
+  const theta = 0.05
+  const b = -0.2
+
+  sub initial {
+    S <- N-1
+    E <- 1
+    I <- 0
+    R <- 0
+    x ~ gaussian(0, 0.2)
+  }
+
+  sub transition(delta = 1) {
+    noise e
+    e ~ wiener()
+    inline mu = b*Forcing
+    ode{
+      dx/dt = theta*(mu-x)+sigma*e
+      dS/dt = -exp(x)*S*(0.1*I+E)/N
+      dE/dt = exp(x)*S*(0.1*I+E)/N - E*(1/k+1/gamma)
+      dI/dt = E/k-I*(1/gamma+0.0087)
+      dR/dt = (I+E)/gamma+0.0087*I
+    }
+  }
+
+  sub observation {
+      y ~ binomial(floor(E/k),1/5)
+}
+
+}"
+covid <- bi_model(lines = stringi::stri_split_lines(model_str)[[1]])
+
+T <- 365
+nObs <- 365
+input_lst <- list(N = 52196381,Forcing=Forcing)
+synthetic_dataset <- generate_dataset(model=covid, end_time=T,
+                                         noutputs = nObs, input=input_lst, seed="92")
+synthetic_data <- bi_read(synthetic_dataset)
+
+synthetic_df <- as.data.frame(synthetic_data)
+#92 897 892
+
+write.csv(synthetic_df$y.value,"covidoudg2_Y1233.csv")
+write.csv(synthetic_df$x.value,"covidoudg2_x1233.csv")
+write.csv(exp(synthetic_df$x.value),"covidoudg2_beta1233.csv")
+write.csv(synthetic_df,"covidoudg2_model1233.csv")
+
+ggplot(synthetic_df, aes(y.time)) +
+  geom_path(aes(y = y.value, colour="y.value")) +
+  theme(legend.position="bottom") +
+  ggtitle("Covid_OU model generated observation with Binomial distribution") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  xlab("Time") +
+  ylab("Daily incidence Y")
+
+ggplot(synthetic_df, aes(y.time)) +
+  geom_path(aes(y = S.value, colour="S.value")) +
+  geom_path(aes(y = E.value, colour="E.value")) +
+  geom_path(aes(y = I.value, colour="I.value")) +
+  geom_path(aes(y = R.value, colour="R.value")) +
+  theme(legend.position="bottom") +
+  ggtitle("Generated COVID_OU Model Trajectories") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  xlab("Time") +
+  ylab("Counts")
+
+x <- read.csv("covidoudg2_x1233.csv", header=TRUE, stringsAsFactors=FALSE)
+plot(x,type='p',ylab=TeX(r"(OU process $X_{t}$)"),xlab="Time",col="darkred",main=TeX(r"(Generated OU process: $\theta=0.05$, $sigma=sqrt(0.004)$, $x_{0} \sim N(-0.02,0.2)$)"))
+  lines(x,col="darkblue")
+  abline(v=61, col="red")
+axis(1, at=61,labels=61, col.axis="red", las=2)
+
+beta <- read.csv("covidoudg2_beta1233.csv", header=TRUE, stringsAsFactors=FALSE)
+plot(beta,type='p',ylab=TeX(r"(Transmission rate $\beta$)"),xlab="time",col="darkred",main="COVIDOU model generated transmission rate")
+lines(beta,col="darkblue")
+abline(v=61, col="red")
+axis(1, at=61,labels=61, col.axis="red", las=2)
+tt1 <-expression('lockdown policy start')
+text(80,0.6,tt1,col="red")
+```
+
+```{r}
+#regenerate log normal-with x0 corrections+earlier lockdown policy: 30th day
+# still keep the same settings as previous 30 day lockdown
+rm(list=ls())
+library(tidyverse)
+library(ggplot2)
+library(ggpubr)
+library(pander)
+library(lubridate)
+library(latex2exp)
+library(rbi)
+library(rbi.helpers)
+
+L <- read.csv("long_forcing30.csv", header=FALSE, stringsAsFactors=FALSE)
+Forcing <- data.frame(value = L) %>%
+  mutate(time = seq(1, by = 1, length.out = n())) %>%
+  dplyr::select(time,V1 )
+colnames(Forcing) <- c("time","value")
+ncores <- 8
+minParticles <- max(ncores, 16)
+model_str <- "
+model covidou {
+  obs y
+  
+  state S
+  state E
+  state I
+  state R
+  state x
+
+  input Forcing
+  input N
+  
+  const k = 5
+  const gamma = 9
+  const sigma = sqrt(0.004)
+  const theta = 0.05
+  const a = -0.02
+  const b = -0.2
+  const tau = 0.1
+
+  sub initial {
+    S <- N-1
+    E <- 1
+    I <- 0
+    R <- 0
+    x ~ gaussian(-0.02, 0.2)
+  }
+
+  sub transition(delta = 1) {
+    noise e
+    e ~ wiener()
+    inline mu = a+b*Forcing
+    ode{
+      dx/dt = theta*(mu-x)+sigma*e
+      dS/dt = -exp(x)*S*(0.1*I+E)/N
+      dE/dt = exp(x)*S*(0.1*I+E)/N - E*(1/k+1/gamma)
+      dI/dt = E/k-I*(1/gamma+0.0087)
+      dR/dt = (I+E)/gamma+0.0087*I
+    }
+  }
+
+  sub observation {
+    y ~ log_normal(log(max((E/k)/5, 0)), tau)
+  }
+
+}"
+covid <- bi_model(lines = stringi::stri_split_lines(model_str)[[1]])
+
+T <- 560
+nObs <- 560
+input_lst <- list(N = 52196381,Forcing=Forcing)
+synthetic_dataset <- generate_dataset(model=covid, end_time=T,
+                                         noutputs = nObs, input=input_lst, seed="92")
+synthetic_data <- bi_read(synthetic_dataset)
+
+synthetic_df <- as.data.frame(synthetic_data)
+
+
+write.csv(synthetic_df$y.value,"covidoudg2_Y124.csv")
+write.csv(synthetic_df$x.value,"covidoudg2_x124.csv")
+write.csv(exp(synthetic_df$x.value),"covidoudg2_beta124.csv")
+write.csv(synthetic_df,"covidoudg2_model124.csv")
+
+ggplot(synthetic_df, aes(y.time)) +
+  geom_path(aes(y = y.value, colour="y.value")) +
+  theme(legend.position="bottom") +
+  ggtitle("Covid_OU model generated observation with Lognormal distribution") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  xlab("Time") +
+  ylab("Daily incidence Y")
+
+ggplot(synthetic_df, aes(y.time)) +
+  geom_path(aes(y = S.value, colour="S.value")) +
+  geom_path(aes(y = E.value, colour="E.value")) +
+  geom_path(aes(y = I.value, colour="I.value")) +
+  geom_path(aes(y = R.value, colour="R.value")) +
+  theme(legend.position="bottom") +
+  ggtitle("Generated COVID_OU Model Trajectories") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  xlab("Time") +
+  ylab("Counts")
+
+x <- read.csv("covidoudg2_x124.csv", header=TRUE, stringsAsFactors=FALSE)
+plot(x,type='p',ylab=TeX(r"(OU process $X_{t}$)"),xlab="Time",col="darkred",main=TeX(r"(Generated OU process: $\theta=0.05$, $sigma=sqrt(0.004)$, $x_{0} \sim N(-0.02,0.2)$)"))
+  lines(x,col="darkblue")
+  abline(v=31, col="red")
+axis(1, at=31,labels=31, col.axis="red", las=2)
+
+beta <- read.csv("covidoudg2_beta124.csv", header=TRUE, stringsAsFactors=FALSE)
+plot(beta,type='p',ylab=TeX(r"(Transmission rate $\beta$)"),xlab="time",col="darkred",main="COVIDOU model generated transmission rate")
+lines(beta,col="darkblue")
+abline(v=31, col="red")
+axis(1, at=31,labels=31, col.axis="red", las=2)
+tt1 <-expression('lockdown policy start')
+text(80,0.6,tt1,col="red")
+```
+
+```{r}
+#Further test: 3 period lockdown dummy-350 days
+rm(list=ls())
+library(tidyverse)
+library(ggplot2)
+library(ggpubr)
+library(pander)
+library(lubridate)
+library(latex2exp)
+library(rbi)
+library(rbi.helpers)
+
+L <- read.csv("3_forcing.csv", header=FALSE, stringsAsFactors=FALSE)
+Forcing <- data.frame(value = L) %>%
+  mutate(time = seq(1, by = 1, length.out = n())) %>%
+  dplyr::select(time,V1 )
+colnames(Forcing) <- c("time","value")
+ncores <- 8
+minParticles <- max(ncores, 16)
+model_str <- "
+model covidou {
+  obs y
+  
+  state S
+  state E
+  state I
+  state R
+  state x
+
+  input Forcing
+  input N
+  
+  const k = 5
+  const gamma = 9
+  const sigma = sqrt(0.004)
+  const theta = 0.05
+  const a = -0.02
+  const b = -0.2
+  const tau = 0.1
+
+  sub initial {
+    S <- N-1
+    E <- 1
+    I <- 0
+    R <- 0
+    x ~ gaussian(-0.02, 0.2)
+  }
+
+  sub transition(delta = 1) {
+    noise e
+    e ~ wiener()
+    inline mu = a+b*Forcing
+    ode{
+      dx/dt = theta*(mu-x)+sigma*e
+      dS/dt = -exp(x)*S*(0.1*I+E)/N
+      dE/dt = exp(x)*S*(0.1*I+E)/N - E*(1/k+1/gamma)
+      dI/dt = E/k-I*(1/gamma+0.0087)
+      dR/dt = (I+E)/gamma+0.0087*I
+    }
+  }
+
+  sub observation {
+    y ~ log_normal(log(max((E/k)/5, 0)), tau)
+  }
+
+}"
+covid <- bi_model(lines = stringi::stri_split_lines(model_str)[[1]])
+
+T <- 350
+nObs <- 350
+input_lst <- list(N = 52196381,Forcing=Forcing)
+synthetic_dataset <- generate_dataset(model=covid, end_time=T,
+                                         noutputs = nObs, input=input_lst, seed="104")
+synthetic_data <- bi_read(synthetic_dataset)
+
+synthetic_df <- as.data.frame(synthetic_data)
+#101 103 104 1010
+
+write.csv(synthetic_df$y.value,"covidoudg2_Y125.csv")
+write.csv(synthetic_df$x.value,"covidoudg2_x125.csv")
+write.csv(exp(synthetic_df$x.value),"covidoudg2_beta125.csv")
+write.csv(synthetic_df,"covidoudg2_model125.csv")
+
+ggplot(synthetic_df, aes(y.time)) +
+  geom_path(aes(y = y.value, colour="y.value")) +
+  theme(legend.position="bottom") +
+  ggtitle("Covid_OU model generated observation with Lognormal distribution") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  xlab("Time") +
+  ylab("Daily incidence Y")
+
+ggplot(synthetic_df, aes(y.time)) +
+  geom_path(aes(y = S.value, colour="S.value")) +
+  geom_path(aes(y = E.value, colour="E.value")) +
+  geom_path(aes(y = I.value, colour="I.value")) +
+  geom_path(aes(y = R.value, colour="R.value")) +
+  theme(legend.position="bottom") +
+  ggtitle("Generated COVID_OU Model Trajectories") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  xlab("Time") +
+  ylab("Counts")
+
+x <- read.csv("covidoudg2_x125.csv", header=TRUE, stringsAsFactors=FALSE)
+plot(x,type='p',ylab=TeX(r"(OU process $X_{t}$)"),xlab="Time",col="darkred",main=TeX(r"(Generated OU process: $\theta=0.05$, $sigma=sqrt(0.004)$, $x_{0} \sim N(-0.02,0.2)$)"))
+  lines(x,col="darkblue")
+  abline(v=31, col="red")
+axis(1, at=31,labels=31, col.axis="red", las=2)
+abline(v=91, col="red")
+axis(1, at=91,labels=91, col.axis="red", las=2)
+
+beta <- read.csv("covidoudg2_beta125.csv", header=TRUE, stringsAsFactors=FALSE)
+plot(beta,type='p',ylab=TeX(r"(Transmission rate $\beta$)"),xlab="time",col="darkred",main="COVIDOU model generated transmission rate")
+lines(beta,col="darkblue")
+abline(v=31, col="red")
+axis(1, at=31,labels=31, col.axis="red", las=2)
+abline(v=91, col="red")
+axis(1, at=91,labels=91, col.axis="red", las=2)
+tt1 <-expression('lockdown policy start')
+text(80,0.6,tt1,col="red")
+```
+
+
+```{r}
+#regenerate log normal-with x0 corrections+earlier lockdown policy: 30th day
+#O-U test
+rm(list=ls())
+library(tidyverse)
+library(ggplot2)
+library(ggpubr)
+library(pander)
+library(lubridate)
+library(latex2exp)
+library(rbi)
+library(rbi.helpers)
+
+L <- read.csv("forcing30.csv", header=FALSE, stringsAsFactors=FALSE)
+Forcing <- data.frame(value = L) %>%
+  mutate(time = seq(1, by = 1, length.out = n())) %>%
+  dplyr::select(time,V1 )
+colnames(Forcing) <- c("time","value")
+ncores <- 8
+minParticles <- max(ncores, 16)
+model_str <- "
+model covidou {
+  obs y
+  
+  state S
+  state E
+  state I
+  state R
+  state x
+
+  input Forcing
+  input N
+  
+  const k = 5
+  const gamma = 9
+  const sigma = sqrt(0.004)/10
+  const theta = 0.2
+  const a = -0.02
+  const b = -0.2
+  const tau = 0.1
+
+  sub initial {
+    S <- N-1
+    E <- 1
+    I <- 0
+    R <- 0
+    x ~ gaussian(-0.02, sqrt(0.0001))
+  }
+
+  sub transition(delta = 1) {
+    noise e
+    e ~ wiener()
+    inline mu = a+b*Forcing
+    ode{
+      dx/dt = theta*(mu-x)+sigma*e
+      dS/dt = -exp(x)*S*(0.1*I+E)/N
+      dE/dt = exp(x)*S*(0.1*I+E)/N - E*(1/k+1/gamma)
+      dI/dt = E/k-I*(1/gamma+0.0087)
+      dR/dt = (I+E)/gamma+0.0087*I
+    }
+  }
+
+  sub observation {
+    y ~ log_normal(log(max((E/k)/5, 0)), tau)
+  }
+
+}"
+covid <- bi_model(lines = stringi::stri_split_lines(model_str)[[1]])
+
+T <- 365
+nObs <- 365
+input_lst <- list(N = 52196381,Forcing=Forcing)
+synthetic_dataset <- generate_dataset(model=covid, end_time=T,
+                                         noutputs = nObs, input=input_lst, seed="92")
+synthetic_data <- bi_read(synthetic_dataset)
+
+synthetic_df <- as.data.frame(synthetic_data)
+
+
+write.csv(synthetic_df$y.value,"covidoudg2_Y721.csv")
+write.csv(synthetic_df$x.value,"covidoudg2_x721.csv")
+write.csv(exp(synthetic_df$x.value),"covidoudg2_beta721.csv")
+write.csv(synthetic_df,"covidoudg2_model721.csv")
+
+ggplot(synthetic_df, aes(y.time)) +
+  geom_path(aes(y = y.value, colour="y.value")) +
+  theme(legend.position="bottom") +
+  ggtitle("Covid_OU model generated observation with Lognormal distribution") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  xlab("Time") +
+  ylab("Daily incidence Y")
+
+ggplot(synthetic_df, aes(y.time)) +
+  geom_path(aes(y = S.value, colour="S.value")) +
+  geom_path(aes(y = E.value, colour="E.value")) +
+  geom_path(aes(y = I.value, colour="I.value")) +
+  geom_path(aes(y = R.value, colour="R.value")) +
+  theme(legend.position="bottom") +
+  ggtitle("Generated COVID_OU Model Trajectories") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  xlab("Time") +
+  ylab("Counts")
+
+x <- read.csv("covidoudg2_x721.csv", header=TRUE, stringsAsFactors=FALSE)
+plot(x,type='p',ylab=TeX(r"(OU process $X_{t}$)"),xlab="Time",col="darkred",main=TeX(r"(Generated OU process: $\theta=0.05$, $sigma=sqrt(0.004)$, $x_{0} \sim N(-0.02,0.2)$)"))
+  lines(x,col="darkblue")
+  abline(v=31, col="red")
+axis(1, at=31,labels=31, col.axis="red", las=2)
+
+beta <- read.csv("covidoudg2_beta721.csv", header=TRUE, stringsAsFactors=FALSE)
+plot(beta,type='p',ylab=TeX(r"(Transmission rate $\beta$)"),xlab="time",col="darkred",main="COVIDOU model generated transmission rate")
+lines(beta,col="darkblue")
+abline(v=31, col="red")
+axis(1, at=31,labels=31, col.axis="red", las=2)
+tt1 <-expression('lockdown policy start')
+text(80,0.6,tt1,col="red")
+```
+
+```{r}
+#O-U test Poisson
+rm(list=ls())
+library(tidyverse)
+library(ggplot2)
+library(ggpubr)
+library(pander)
+library(lubridate)
+library(latex2exp)
+library(rbi)
+library(rbi.helpers)
+
+L <- read.csv("forcing30.csv", header=FALSE, stringsAsFactors=FALSE)
+Forcing <- data.frame(value = L) %>%
+  mutate(time = seq(1, by = 1, length.out = n())) %>%
+  dplyr::select(time,V1 )
+colnames(Forcing) <- c("time","value")
+ncores <- 8
+minParticles <- max(ncores, 16)
+model_str <- "
+model covidou {
+  obs y
+  
+  state S
+  state E
+  state I
+  state R
+  state x
+
+  input Forcing
+  input N
+  
+  const k = 5
+  const gamma = 9
+  const sigma = sqrt(0.004)/10
+  const theta = 0.2
+  const a = -0.02
+  const b = -0.2
+  
+
+  sub initial {
+    S <- N-1
+    E <- 1
+    I <- 0
+    R <- 0
+    x ~ gaussian(-0.02, sqrt(0.0001))
+  }
+
+  sub transition(delta = 1) {
+    noise e
+    e ~ wiener()
+    inline mu = a+b*Forcing
+    ode{
+      dx/dt = theta*(mu-x)+sigma*e
+      dS/dt = -exp(x)*S*(0.1*I+E)/N
+      dE/dt = exp(x)*S*(0.1*I+E)/N - E*(1/k+1/gamma)
+      dI/dt = E/k-I*(1/gamma+0.0087)
+      dR/dt = (I+E)/gamma+0.0087*I
+    }
+  }
+
+  sub observation {
+    y ~ poisson((E/k)/5)
+  }
+
+}"
+covid <- bi_model(lines = stringi::stri_split_lines(model_str)[[1]])
+
+T <- 365
+nObs <- 365
+input_lst <- list(N = 52196381,Forcing=Forcing)
+synthetic_dataset <- generate_dataset(model=covid, end_time=T,
+                                         noutputs = nObs, input=input_lst, seed="92")
+synthetic_data <- bi_read(synthetic_dataset)
+
+synthetic_df <- as.data.frame(synthetic_data)
+
+
+write.csv(synthetic_df$y.value,"covidoudg2_Y722.csv")
+write.csv(synthetic_df$x.value,"covidoudg2_x722.csv")
+write.csv(exp(synthetic_df$x.value),"covidoudg2_beta722.csv")
+write.csv(synthetic_df,"covidoudg2_model722.csv")
+
+ggplot(synthetic_df, aes(y.time)) +
+  geom_path(aes(y = y.value, colour="y.value")) +
+  theme(legend.position="bottom") +
+  ggtitle("Covid_OU model generated observation with Poisson distribution") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  xlab("Time") +
+  ylab("Daily incidence Y")
+
+ggplot(synthetic_df, aes(y.time)) +
+  geom_path(aes(y = S.value, colour="S.value")) +
+  geom_path(aes(y = E.value, colour="E.value")) +
+  geom_path(aes(y = I.value, colour="I.value")) +
+  geom_path(aes(y = R.value, colour="R.value")) +
+  theme(legend.position="bottom") +
+  ggtitle("Generated COVID_OU Model Trajectories") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  xlab("Time") +
+  ylab("Counts")
+
+x <- read.csv("covidoudg2_x722.csv", header=TRUE, stringsAsFactors=FALSE)
+plot(x,type='p',ylab=TeX(r"(OU process $X_{t}$)"),xlab="Time",col="darkred",main=TeX(r"(Generated OU process: $\theta=0.05$, $sigma=sqrt(0.004)$, $x_{0}\sim N(-0.02,0.2)$)"))
+  lines(x,col="darkblue")
+  abline(v=31, col="red")
+axis(1, at=31,labels=31, col.axis="red", las=2)
+
+beta <- read.csv("covidoudg2_beta722.csv", header=TRUE, stringsAsFactors=FALSE)
+plot(beta,type='p',ylab=TeX(r"(Transmission rate $\beta$)"),xlab="time",col="darkred",main="COVIDOU model generated transmission rate")
+lines(beta,col="darkblue")
+abline(v=31, col="red")
+axis(1, at=31,labels=31, col.axis="red", las=2)
+tt1 <-expression('lockdown policy start')
+text(80,0.6,tt1,col="red")
+
+```
+
+```{r}
+#O-U test Binomial
+rm(list=ls())
+library(tidyverse)
+library(ggplot2)
+library(ggpubr)
+library(pander)
+library(lubridate)
+library(latex2exp)
+library(rbi)
+library(rbi.helpers)
+
+L <- read.csv("forcing30.csv", header=FALSE, stringsAsFactors=FALSE)
+Forcing <- data.frame(value = L) %>%
+  mutate(time = seq(1, by = 1, length.out = n())) %>%
+  dplyr::select(time,V1 )
+colnames(Forcing) <- c("time","value")
+ncores <- 8
+minParticles <- max(ncores, 16)
+model_str <- "
+model covidou {
+  obs y
+  
+  state S
+  state E
+  state I
+  state R
+  state x
+
+  input Forcing
+  input N
+  
+  const k = 5
+  const gamma = 9
+  const sigma = sqrt(0.004)/10
+  const theta = 0.2
+  const a = -0.02
+  const b = -0.2
+
+  sub initial {
+    S <- N-1
+    E <- 1
+    I <- 0
+    R <- 0
+    x ~ gaussian(-0.02, sqrt(0.0001))
+  }
+
+  sub transition(delta = 1) {
+    noise e
+    e ~ wiener()
+    inline mu = a+b*Forcing
+    ode{
+      dx/dt = theta*(mu-x)+sigma*e
+      dS/dt = -exp(x)*S*(0.1*I+E)/N
+      dE/dt = exp(x)*S*(0.1*I+E)/N - E*(1/k+1/gamma)
+      dI/dt = E/k-I*(1/gamma+0.0087)
+      dR/dt = (I+E)/gamma+0.0087*I
+    }
+  }
+
+  sub observation {
+y ~ binomial(floor(E/k),1/5)  }
+
+}"
+covid <- bi_model(lines = stringi::stri_split_lines(model_str)[[1]])
+
+T <- 365
+nObs <- 365
+input_lst <- list(N = 52196381,Forcing=Forcing)
+synthetic_dataset <- generate_dataset(model=covid, end_time=T,
+                                         noutputs = nObs, input=input_lst, seed="92")
+synthetic_data <- bi_read(synthetic_dataset)
+
+synthetic_df <- as.data.frame(synthetic_data)
+
+
+write.csv(synthetic_df$y.value,"covidoudg2_Y723.csv")
+write.csv(synthetic_df$x.value,"covidoudg2_x723.csv")
+write.csv(exp(synthetic_df$x.value),"covidoudg2_beta723.csv")
+write.csv(synthetic_df,"covidoudg2_model723.csv")
+
+ggplot(synthetic_df, aes(y.time)) +
+  geom_path(aes(y = y.value, colour="y.value")) +
+  theme(legend.position="bottom") +
+  ggtitle("Covid_OU model generated observation with Binomial distribution") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  xlab("Time") +
+  ylab("Daily incidence Y")
+
+ggplot(synthetic_df, aes(y.time)) +
+  geom_path(aes(y = S.value, colour="S.value")) +
+  geom_path(aes(y = E.value, colour="E.value")) +
+  geom_path(aes(y = I.value, colour="I.value")) +
+  geom_path(aes(y = R.value, colour="R.value")) +
+  theme(legend.position="bottom") +
+  ggtitle("Generated COVID_OU Model Trajectories") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  xlab("Time") +
+  ylab("Counts")
+
+x <- read.csv("covidoudg2_x723.csv", header=TRUE, stringsAsFactors=FALSE)
+plot(x,type='p',ylab=TeX(r"(OU process $X_{t}$)"),xlab="Time",col="darkred",main=TeX(r"(Generated OU process: $\theta=0.05$, $sigma=sqrt(0.004)$, $x_{0}\sim N(-0.02,0.2)$)"))
+  lines(x,col="darkblue")
+  abline(v=31, col="red")
+axis(1, at=31,labels=31, col.axis="red", las=2)
+
+beta <- read.csv("covidoudg2_beta723.csv", header=TRUE, stringsAsFactors=FALSE)
+plot(beta,type='p',ylab=TeX(r"(Transmission rate $\beta$)"),xlab="time",col="darkred",main="COVIDOU model generated transmission rate")
+lines(beta,col="darkblue")
+abline(v=31, col="red")
+axis(1, at=31,labels=31, col.axis="red", las=2)
+tt1 <-expression('lockdown policy start')
+text(80,0.6,tt1,col="red")
+```
+
+```{r}
+#added test 2: deterministic model of covid
+rm(list=ls())
+library(tidyverse)
+library(ggplot2)
+library(ggpubr)
+library(pander)
+library(lubridate)
+library(latex2exp)
+library(rbi)
+library(rbi.helpers)
+
+L <- read.csv("forcing30.csv", header=FALSE, stringsAsFactors=FALSE)
+Forcing <- data.frame(value = L) %>%
+  mutate(time = seq(1, by = 1, length.out = n())) %>%
+  dplyr::select(time,V1 )
+colnames(Forcing) <- c("time","value")
+ncores <- 8
+minParticles <- max(ncores, 16)
+model_str <- "
+model covidou {
+  obs y
+  
+  state S
+  state E
+  state I
+  state R
+  state x
+
+  input Forcing
+  input N
+  
+  const k = 5
+  const gamma = 9
+  const theta = 0.2
+  const a = -0.02
+  const b = -0.2
+  const tau = 0.1
+
+  sub initial {
+    S <- N-1
+    E <- 1
+    I <- 0
+    R <- 0
+    x <- -0.02
+  }
+
+  sub transition(delta = 1) {
+    inline mu = a+b*Forcing
+    ode{
+      dx/dt = theta*(mu-x)
+      dS/dt = -exp(x)*S*(0.1*I+E)/N
+      dE/dt = exp(x)*S*(0.1*I+E)/N - E*(1/k+1/gamma)
+      dI/dt = E/k-I*(1/gamma+0.0087)
+      dR/dt = (I+E)/gamma+0.0087*I
+    }
+  }
+
+  sub observation {
+    y ~ log_normal(log(max((E/k)/5, 0)), tau)
+  }
+
+}"
+covid <- bi_model(lines = stringi::stri_split_lines(model_str)[[1]])
+
+T <- 365
+nObs <- 365
+input_lst <- list(N = 52196381,Forcing=Forcing)
+synthetic_dataset <- generate_dataset(model=covid, end_time=T,
+                                         noutputs = nObs, input=input_lst, seed="92")
+synthetic_data <- bi_read(synthetic_dataset)
+
+synthetic_df <- as.data.frame(synthetic_data)
+
+
+write.csv(synthetic_df$y.value,"covidoudg2_Y821.csv")
+write.csv(synthetic_df$x.value,"covidoudg2_x821.csv")
+write.csv(exp(synthetic_df$x.value),"covidoudg2_beta821.csv")
+write.csv(synthetic_df,"covidoudg2_model821.csv")
+
+ggplot(synthetic_df, aes(y.time)) +
+  geom_path(aes(y = y.value, colour="y.value")) +
+  theme(legend.position="bottom") +
+  ggtitle("Covid_OU model generated observation with Lognormal distribution") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  xlab("Time") +
+  ylab("Daily incidence Y")
+
+ggplot(synthetic_df, aes(y.time)) +
+  geom_path(aes(y = S.value, colour="S.value")) +
+  geom_path(aes(y = E.value, colour="E.value")) +
+  geom_path(aes(y = I.value, colour="I.value")) +
+  geom_path(aes(y = R.value, colour="R.value")) +
+  theme(legend.position="bottom") +
+  ggtitle("Generated COVID_OU Model Trajectories") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  xlab("Time") +
+  ylab("Counts")
+
+x <- read.csv("covidoudg2_x821.csv", header=TRUE, stringsAsFactors=FALSE)
+plot(x,type='p',ylab=TeX(r"(OU process $X_{t}$)"),xlab="Time",col="darkred",main=TeX(r"(Generated OU process: $\theta=0.05$, $sigma=sqrt(0.004)$, $x_{0} \sim N(-0.02,0.2)$)"))
+  lines(x,col="darkblue")
+  abline(v=31, col="red")
+axis(1, at=31,labels=31, col.axis="red", las=2)
+
+beta <- read.csv("covidoudg2_beta821.csv", header=TRUE, stringsAsFactors=FALSE)
+plot(beta,type='p',ylab=TeX(r"(Transmission rate $\beta$)"),xlab="time",col="darkred",main="COVIDOU model generated transmission rate")
+lines(beta,col="darkblue")
+abline(v=31, col="red")
+axis(1, at=31,labels=31, col.axis="red", las=2)
+tt1 <-expression('lockdown policy start')
+text(80,0.6,tt1,col="red")
+```
+
+```{r}
+#regenerate log normal-with x0 corrections+earlier lockdown policy: 30th day
+#O-U test-regenerate data with tau=0.05
+rm(list=ls())
+library(tidyverse)
+library(ggplot2)
+library(ggpubr)
+library(pander)
+library(lubridate)
+library(latex2exp)
+library(rbi)
+library(rbi.helpers)
+
+L <- read.csv("forcing30.csv", header=FALSE, stringsAsFactors=FALSE)
+Forcing <- data.frame(value = L) %>%
+  mutate(time = seq(1, by = 1, length.out = n())) %>%
+  dplyr::select(time,V1 )
+colnames(Forcing) <- c("time","value")
+ncores <- 8
+minParticles <- max(ncores, 16)
+model_str <- "
+model covidou {
+  obs y
+  
+  state S
+  state E
+  state I
+  state R
+  state x
+
+  input Forcing
+  input N
+  
+  const k = 5
+  const gamma = 9
+  const sigma = sqrt(0.004)/10
+  const theta = 0.2
+  const a = -0.02
+  const b = -0.2
+  const tau = 0.05
+
+  sub initial {
+    S <- N-1
+    E <- 1
+    I <- 0
+    R <- 0
+    x ~ gaussian(-0.02, sqrt(0.0001))
+  }
+
+  sub transition(delta = 1) {
+    noise e
+    e ~ wiener()
+    inline mu = a+b*Forcing
+    ode{
+      dx/dt = theta*(mu-x)+sigma*e
+      dS/dt = -exp(x)*S*(0.1*I+E)/N
+      dE/dt = exp(x)*S*(0.1*I+E)/N - E*(1/k+1/gamma)
+      dI/dt = E/k-I*(1/gamma+0.0087)
+      dR/dt = (I+E)/gamma+0.0087*I
+    }
+  }
+
+  sub observation {
+    y ~ log_normal(log(max((E/k)/5, 0)), tau)
+  }
+
+}"
+covid <- bi_model(lines = stringi::stri_split_lines(model_str)[[1]])
+
+T <- 365
+nObs <- 365
+input_lst <- list(N = 52196381,Forcing=Forcing)
+synthetic_dataset <- generate_dataset(model=covid, end_time=T,
+                                         noutputs = nObs, input=input_lst, seed="92")
+synthetic_data <- bi_read(synthetic_dataset)
+
+synthetic_df <- as.data.frame(synthetic_data)
+
+
+write.csv(synthetic_df$y.value,"covidoudg2_Y921.csv")
+write.csv(synthetic_df$x.value,"covidoudg2_x921.csv")
+write.csv(exp(synthetic_df$x.value),"covidoudg2_beta921.csv")
+write.csv(synthetic_df,"covidoudg2_model921.csv")
+
+ggplot(synthetic_df, aes(y.time)) +
+  geom_path(aes(y = y.value, colour="y.value")) +
+  theme(legend.position="bottom") +
+  ggtitle("Covid_OU model generated observation with Lognormal distribution") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  xlab("Time") +
+  ylab("Daily incidence Y")
+
+ggplot(synthetic_df, aes(y.time)) +
+  geom_path(aes(y = S.value, colour="S.value")) +
+  geom_path(aes(y = E.value, colour="E.value")) +
+  geom_path(aes(y = I.value, colour="I.value")) +
+  geom_path(aes(y = R.value, colour="R.value")) +
+  theme(legend.position="bottom") +
+  ggtitle("Generated COVID_OU Model Trajectories") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  xlab("Time") +
+  ylab("Counts")
+
+x <- read.csv("covidoudg2_x921.csv", header=TRUE, stringsAsFactors=FALSE)
+plot(x,type='p',ylab=TeX(r"(OU process $X_{t}$)"),xlab="Time",col="darkred",main=TeX(r"(Generated OU process: $\theta=0.05$, $sigma=sqrt(0.004)$, $x_{0} \sim N(-0.02,0.2)$)"))
+  lines(x,col="darkblue")
+  abline(v=31, col="red")
+axis(1, at=31,labels=31, col.axis="red", las=2)
+
+beta <- read.csv("covidoudg2_beta921.csv", header=TRUE, stringsAsFactors=FALSE)
+plot(beta,type='p',ylab=TeX(r"(Transmission rate $\beta$)"),xlab="time",col="darkred",main="COVIDOU model generated transmission rate")
+lines(beta,col="darkblue")
+abline(v=31, col="red")
+axis(1, at=31,labels=31, col.axis="red", las=2)
+tt1 <-expression('lockdown policy start')
+text(80,0.6,tt1,col="red")
+```
+
+```{r}
+#regenerate log normal-with x0 corrections+earlier lockdown policy: 30th day
+#test for weekly structure
+rm(list=ls())
+library(tidyverse)
+library(ggplot2)
+library(ggpubr)
+library(pander)
+library(lubridate)
+library(latex2exp)
+library(rbi)
+library(rbi.helpers)
+
+L <- read.csv("forcing30.csv", header=FALSE, stringsAsFactors=FALSE)
+Forcing <- data.frame(value = L) %>%
+  mutate(time = seq(1, by = 1, length.out = n())) %>%
+  dplyr::select(time,V1 )
+colnames(Forcing) <- c("time","value")
+ncores <- 8
+minParticles <- max(ncores, 16)
+model_str <- "
+model covidou {
+  obs y
+  
+  state S
+  state E
+  state I
+  state R
+  state mu
+  state x
+
+  input Forcing
+  input N
+  
+  const k = 5
+  const gamma = 9
+  const sigma = sqrt(0.004)/10
+  const theta = 0.2
+  const a = -0.02
+  const b = -0.2
+  const tau = 0.1
+
+  sub initial {
+    S <- N-1
+    E <- 1
+    I <- 0
+    R <- 0
+    x ~ gaussian(-0.02, sqrt(0.0001))
+  }
+
+  sub transition(delta = 1) {
+    noise e
+    e ~ wiener()
+    mu <- a+b*Forcing
+    ode{
+      dx/dt = theta*(mu-x)+sigma*e
+      dS/dt = -exp(x)*S*(0.1*I+E)/N
+      dE/dt = exp(x)*S*(0.1*I+E)/N - E*(1/k+1/gamma)
+      dI/dt = E/k-I*(1/gamma+0.0087)
+      dR/dt = (I+E)/gamma+0.0087*I
+    }
+  }
+
+  sub observation {
+    y ~ log_normal(log(max((E/k)/5, 0)), tau)
+  }
+
+}"
+covid <- bi_model(lines = stringi::stri_split_lines(model_str)[[1]])
+
+T <- 365
+nObs <- 365
+input_lst <- list(N = 52196381,Forcing=Forcing)
+synthetic_dataset <- generate_dataset(model=covid, end_time=T,
+                                         noutputs = nObs, input=input_lst, seed="92")
+synthetic_data <- bi_read(synthetic_dataset)
+
+synthetic_df <- as.data.frame(synthetic_data)
+
+
+write.csv(synthetic_df$y.value,"covidoudg2_Y1211.csv")
+write.csv(synthetic_df$x.value,"covidoudg2_x1211.csv")
+write.csv(exp(synthetic_df$x.value),"covidoudg2_beta1211.csv")
+write.csv(synthetic_df,"covidoudg2_model1211.csv")
+
+ggplot(synthetic_df, aes(y.time)) +
+  geom_path(aes(y = y.value, colour="y.value")) +
+  theme(legend.position="bottom") +
+  ggtitle("Covid_OU model generated observation with Lognormal distribution") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  xlab("Time") +
+  ylab("Daily incidence Y")
+
+ggplot(synthetic_df, aes(y.time)) +
+  geom_path(aes(y = S.value, colour="S.value")) +
+  geom_path(aes(y = E.value, colour="E.value")) +
+  geom_path(aes(y = I.value, colour="I.value")) +
+  geom_path(aes(y = R.value, colour="R.value")) +
+  theme(legend.position="bottom") +
+  ggtitle("Generated COVID_OU Model Trajectories") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  xlab("Time") +
+  ylab("Counts")
+
+x <- read.csv("covidoudg2_x1211.csv", header=TRUE, stringsAsFactors=FALSE)
+plot(x,type='p',ylab=TeX(r"(OU process $X_{t}$)"),xlab="Time",col="darkred",main=TeX(r"(Generated OU process: $\theta=0.05$, $sigma=sqrt(0.004)$, $x_{0} \sim N(-0.02,0.2)$)"))
+  lines(x,col="darkblue")
+  abline(v=31, col="red")
+axis(1, at=31,labels=31, col.axis="red", las=2)
+
+beta <- read.csv("covidoudg2_beta1211.csv", header=TRUE, stringsAsFactors=FALSE)
+plot(beta,type='p',ylab=TeX(r"(Transmission rate $\beta$)"),xlab="time",col="darkred",main="COVIDOU model generated transmission rate")
+lines(beta,col="darkblue")
+abline(v=31, col="red")
+axis(1, at=31,labels=31, col.axis="red", las=2)
+tt1 <-expression('lockdown policy start')
+text(80,0.6,tt1,col="red")
+```
+
+```{r}
+#regenerate log normal-with x0 corrections+earlier lockdown policy: 30th day
+#test for weekly structure
+rm(list=ls())
+library(tidyverse)
+library(ggplot2)
+library(ggpubr)
+library(pander)
+library(lubridate)
+library(latex2exp)
+library(rbi)
+library(rbi.helpers)
+
+L <- read.csv("forcing30.csv", header=FALSE, stringsAsFactors=FALSE)
+Forcing <- data.frame(value = L) %>%
+  mutate(time = seq(1, by = 1, length.out = n())) %>%
+  dplyr::select(time,V1 )
+colnames(Forcing) <- c("time","value")
+ncores <- 8
+minParticles <- max(ncores, 16)
+model_str <- "
+model covidou {
+  obs y
+  
+  state S
+  state E
+  state I
+  state R
+  state mu
+  state x
+
+  input Forcing
+  input N
+  
+  const k = 5
+  const gamma = 9
+  const sigma = sqrt(0.004)
+  const theta = 0.4
+  const a = -0.02
+  const b = -0.2
+  const tau = 0.1
+
+  sub initial {
+    S <- N-1
+    E <- 1
+    I <- 0
+    R <- 0
+    x ~ gaussian(a, sigma/sqrt(2*theta))
+  }
+
+  sub transition(delta = 1) {
+    noise e
+    e ~ wiener()
+    mu <- a+b*Forcing
+    ode{
+      dx/dt = theta*(mu-x)+sigma*e
+      dS/dt = -exp(x)*S*(0.1*I+E)/N
+      dE/dt = exp(x)*S*(0.1*I+E)/N - E*(1/k+1/gamma)
+      dI/dt = E/k-I*(1/gamma+0.0087)
+      dR/dt = (I+E)/gamma+0.0087*I
+    }
+  }
+
+  sub observation {
+    y ~ log_normal(log(max((E/k)/5, 0)), tau)
+  }
+
+}"
+covid <- bi_model(lines = stringi::stri_split_lines(model_str)[[1]])
+
+T <- 365
+nObs <- 365
+input_lst <- list(N = 52196381,Forcing=Forcing)
+synthetic_dataset <- generate_dataset(model=covid, end_time=T,
+                                         noutputs = nObs, input=input_lst, seed="92")
+synthetic_data <- bi_read(synthetic_dataset)
+
+synthetic_df <- as.data.frame(synthetic_data)
+
+
+write.csv(synthetic_df$y.value,"covidoudg2_Y1212.csv")
+write.csv(synthetic_df$x.value,"covidoudg2_x1212.csv")
+write.csv(exp(synthetic_df$x.value),"covidoudg2_beta1212.csv")
+write.csv(synthetic_df,"covidoudg2_model1212.csv")
+
+ggplot(synthetic_df, aes(y.time)) +
+  geom_path(aes(y = y.value, colour="y.value")) +
+  theme(legend.position="bottom") +
+  ggtitle("Covid_OU model generated observation with Lognormal distribution") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  xlab("Time") +
+  ylab("Daily incidence Y")
+
+ggplot(synthetic_df, aes(y.time)) +
+  geom_path(aes(y = S.value, colour="S.value")) +
+  geom_path(aes(y = E.value, colour="E.value")) +
+  geom_path(aes(y = I.value, colour="I.value")) +
+  geom_path(aes(y = R.value, colour="R.value")) +
+  theme(legend.position="bottom") +
+  ggtitle("Generated COVID_OU Model Trajectories") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  xlab("Time") +
+  ylab("Counts")
+
+x <- read.csv("covidoudg2_x1212.csv", header=TRUE, stringsAsFactors=FALSE)
+plot(x,type='p',ylab=TeX(r"(OU process $X_{t}$)"),xlab="Time",col="darkred",main=TeX(r"(Generated OU process: $\theta=0.05$, $sigma=sqrt(0.004)$, $x_{0} \sim N(-0.02,0.2)$)"))
+  lines(x,col="darkblue")
+  abline(v=31, col="red")
+axis(1, at=31,labels=31, col.axis="red", las=2)
+
+beta <- read.csv("covidoudg2_beta1212.csv", header=TRUE, stringsAsFactors=FALSE)
+plot(beta,type='p',ylab=TeX(r"(Transmission rate $\beta$)"),xlab="time",col="darkred",main="COVIDOU model generated transmission rate")
+lines(beta,col="darkblue")
+abline(v=31, col="red")
+axis(1, at=31,labels=31, col.axis="red", las=2)
+tt1 <-expression('lockdown policy start')
+text(80,0.6,tt1,col="red")
+```
+
+```{r}
+#regenerate log normal-with x0 corrections+earlier lockdown policy: 30th day-theta=0.05 slow convergence+sigma=1/10*sqrt(0.004)
+rm(list=ls())
+library(tidyverse)
+library(ggplot2)
+library(ggpubr)
+library(pander)
+library(lubridate)
+library(latex2exp)
+library(rbi)
+library(rbi.helpers)
+
+L <- read.csv("forcing30.csv", header=FALSE, stringsAsFactors=FALSE)
+Forcing <- data.frame(value = L) %>%
+  mutate(time = seq(1, by = 1, length.out = n())) %>%
+  dplyr::select(time,V1 )
+colnames(Forcing) <- c("time","value")
+ncores <- 8
+minParticles <- max(ncores, 16)
+model_str <- "
+model covidou {
+  obs y
+  
+  state S
+  state E
+  state I
+  state R
+  state mu
+  state x
+
+  input Forcing
+  input N
+  
+  const k = 5
+  const gamma = 9
+  const sigma = sqrt(0.004)/10
+  const theta = 0.05
+  const a = -0.02
+  const b = -0.2
+  const tau = 0.1
+
+  sub initial {
+    S <- N-1
+    E <- 1
+    I <- 0
+    R <- 0
+    x ~ gaussian(-0.02, 0.2)
+  }
+
+  sub transition(delta = 1) {
+    noise e
+    e ~ wiener()
+    mu <- a+b*Forcing
+    ode{
+      dx/dt = theta*(mu-x)+sigma*e
+      dS/dt = -exp(x)*S*(0.1*I+E)/N
+      dE/dt = exp(x)*S*(0.1*I+E)/N - E*(1/k+1/gamma)
+      dI/dt = E/k-I*(1/gamma+0.0087)
+      dR/dt = (I+E)/gamma+0.0087*I
+    }
+  }
+
+  sub observation {
+    y ~ log_normal(log(max((E/k)/5, 0)), tau)
+  }
+
+}"
+covid <- bi_model(lines = stringi::stri_split_lines(model_str)[[1]])
+
+T <- 365
+nObs <- 365
+input_lst <- list(N = 52196381,Forcing=Forcing)
+synthetic_dataset <- generate_dataset(model=covid, end_time=T,
+                                         noutputs = nObs, input=input_lst, seed="92")
+synthetic_data <- bi_read(synthetic_dataset)
+
+synthetic_df <- as.data.frame(synthetic_data)
+
+
+write.csv(synthetic_df$y.value,"covidoudg2_Y12110.csv")
+write.csv(synthetic_df$x.value,"covidoudg2_x12110.csv")
+write.csv(exp(synthetic_df$x.value),"covidoudg2_beta12110.csv")
+write.csv(synthetic_df,"covidoudg2_model12110.csv")
+
+ggplot(synthetic_df, aes(y.time)) +
+  geom_path(aes(y = y.value, colour="y.value")) +
+  theme(legend.position="bottom") +
+  ggtitle("Covid_OU model generated observation with Lognormal distribution") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  xlab("Time") +
+  ylab("Daily incidence Y")
+
+ggplot(synthetic_df, aes(y.time)) +
+  geom_path(aes(y = S.value, colour="S.value")) +
+  geom_path(aes(y = E.value, colour="E.value")) +
+  geom_path(aes(y = I.value, colour="I.value")) +
+  geom_path(aes(y = R.value, colour="R.value")) +
+  theme(legend.position="bottom") +
+  ggtitle("Generated COVID_OU Model Trajectories") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  xlab("Time") +
+  ylab("Counts")
+
+x <- read.csv("covidoudg2_x12110.csv", header=TRUE, stringsAsFactors=FALSE)
+plot(x,type='p',ylab=TeX(r"(OU process $X_{t}$)"),xlab="Time",col="darkred",main=TeX(r"(Generated OU process: $\theta=0.05$, $sigma=sqrt(0.004)$, $x_{0} \sim N(-0.02,0.2)$)"))
+  lines(x,col="darkblue")
+  abline(v=31, col="red")
+axis(1, at=31,labels=31, col.axis="red", las=2)
+
+beta <- read.csv("covidoudg2_beta12110.csv", header=TRUE, stringsAsFactors=FALSE)
+plot(beta,type='p',ylab=TeX(r"(Transmission rate $\beta$)"),xlab="time",col="darkred",main="COVIDOU model generated transmission rate")
+lines(beta,col="darkblue")
+abline(v=31, col="red")
+axis(1, at=31,labels=31, col.axis="red", las=2)
+tt1 <-expression('lockdown policy start')
+text(80,0.6,tt1,col="red")
+```
+
+```{r}
+#regenerate log normal-with x0 corrections+earlier lockdown policy: 30th day-theta=0.2 quick convergence+sigma=sqrt(0.004)
+rm(list=ls())
+library(tidyverse)
+library(ggplot2)
+library(ggpubr)
+library(pander)
+library(lubridate)
+library(latex2exp)
+library(rbi)
+library(rbi.helpers)
+
+L <- read.csv("forcing30.csv", header=FALSE, stringsAsFactors=FALSE)
+Forcing <- data.frame(value = L) %>%
+  mutate(time = seq(1, by = 1, length.out = n())) %>%
+  dplyr::select(time,V1 )
+colnames(Forcing) <- c("time","value")
+ncores <- 8
+minParticles <- max(ncores, 16)
+model_str <- "
+model covidou {
+  obs y
+  
+  state S
+  state E
+  state I
+  state R
+  state mu
+  state x
+
+  input Forcing
+  input N
+  
+  const k = 5
+  const gamma = 9
+  const sigma = sqrt(0.004)
+  const theta = 0.2
+  const a = -0.02
+  const b = -0.2
+  const tau = 0.1
+
+  sub initial {
+    S <- N-1
+    E <- 1
+    I <- 0
+    R <- 0
+    x ~ gaussian(a, sigma/sqrt(2*theta) ) 
+  }
+
+  sub transition(delta = 1) {
+    noise e
+    e ~ wiener()
+    mu <- a+b*Forcing
+    ode{
+      dx/dt = theta*(mu-x)+sigma*e
+      dS/dt = -exp(x)*S*(0.1*I+E)/N
+      dE/dt = exp(x)*S*(0.1*I+E)/N - E*(1/k+1/gamma)
+      dI/dt = E/k-I*(1/gamma+0.0087)
+      dR/dt = (I+E)/gamma+0.0087*I
+    }
+  }
+
+  sub observation {
+    y ~ log_normal(log(max((E/k)/5, 0)), tau)
+  }
+
+}"
+covid <- bi_model(lines = stringi::stri_split_lines(model_str)[[1]])
+
+T <- 365
+nObs <- 365
+input_lst <- list(N = 52196381,Forcing=Forcing)
+synthetic_dataset <- generate_dataset(model=covid, end_time=T,
+                                         noutputs = nObs, input=input_lst, seed="92")
+synthetic_data <- bi_read(synthetic_dataset)
+
+synthetic_df <- as.data.frame(synthetic_data)
+
+
+write.csv(synthetic_df$y.value,"covidoudg2_Y12111.csv")
+write.csv(synthetic_df$x.value,"covidoudg2_x12111.csv")
+write.csv(exp(synthetic_df$x.value),"covidoudg2_beta12111.csv")
+write.csv(synthetic_df,"covidoudg2_model12111.csv")
+
+ggplot(synthetic_df, aes(y.time)) +
+  geom_path(aes(y = y.value, colour="y.value")) +
+  theme(legend.position="bottom") +
+  ggtitle("Covid_OU model generated observation with Lognormal distribution") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  xlab("Time") +
+  ylab("Daily incidence Y")
+
+ggplot(synthetic_df, aes(y.time)) +
+  geom_path(aes(y = S.value, colour="S.value")) +
+  geom_path(aes(y = E.value, colour="E.value")) +
+  geom_path(aes(y = I.value, colour="I.value")) +
+  geom_path(aes(y = R.value, colour="R.value")) +
+  theme(legend.position="bottom") +
+  ggtitle("Generated COVID_OU Model Trajectories") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  xlab("Time") +
+  ylab("Counts")
+
+x <- read.csv("covidoudg2_x12111.csv", header=TRUE, stringsAsFactors=FALSE)
+plot(x,type='p',ylab=TeX(r"(OU process $X_{t}$)"),xlab="Time",col="darkred",main=TeX(r"(Generated OU process: $\theta=0.05$, $sigma=sqrt(0.004)$, $x_{0} \sim N(-0.02,0.2)$)"))
+  lines(x,col="darkblue")
+  abline(v=31, col="red")
+axis(1, at=31,labels=31, col.axis="red", las=2)
+
+beta <- read.csv("covidoudg2_beta12111.csv", header=TRUE, stringsAsFactors=FALSE)
+plot(beta,type='p',ylab=TeX(r"(Transmission rate $\beta$)"),xlab="time",col="darkred",main="COVIDOU model generated transmission rate")
+lines(beta,col="darkblue")
+abline(v=31, col="red")
+axis(1, at=31,labels=31, col.axis="red", las=2)
+tt1 <-expression('lockdown policy start')
+text(80,0.6,tt1,col="red")
+```
+
+```{r}
+#regenerate log normal-with x0 corrections+earlier lockdown policy: 30th day-theta=0.1 mid convergence+sigma=sqrt(0.004)
+rm(list=ls())
+library(tidyverse)
+library(ggplot2)
+library(ggpubr)
+library(pander)
+library(lubridate)
+library(latex2exp)
+library(rbi)
+library(rbi.helpers)
+
+L <- read.csv("forcing30.csv", header=FALSE, stringsAsFactors=FALSE)
+Forcing <- data.frame(value = L) %>%
+  mutate(time = seq(1, by = 1, length.out = n())) %>%
+  dplyr::select(time,V1 )
+colnames(Forcing) <- c("time","value")
+ncores <- 8
+minParticles <- max(ncores, 16)
+model_str <- "
+model covidou {
+  obs y
+  
+  state S
+  state E
+  state I
+  state R
+  state mu
+  state x
+
+  input Forcing
+  input N
+  
+  const k = 5
+  const gamma = 9
+  const sigma = sqrt(0.004)
+  const theta = 0.1
+  const a = -0.02
+  const b = -0.2
+  const tau = 0.1
+
+  sub initial {
+    S <- N-1
+    E <- 1
+    I <- 0
+    R <- 0
+    x ~ gaussian(a, sigma/sqrt(2*theta) ) 
+  }
+
+  sub transition(delta = 1) {
+    noise e
+    e ~ wiener()
+    mu <- a+b*Forcing
+    ode{
+      dx/dt = theta*(mu-x)+sigma*e
+      dS/dt = -exp(x)*S*(0.1*I+E)/N
+      dE/dt = exp(x)*S*(0.1*I+E)/N - E*(1/k+1/gamma)
+      dI/dt = E/k-I*(1/gamma+0.0087)
+      dR/dt = (I+E)/gamma+0.0087*I
+    }
+  }
+
+  sub observation {
+    y ~ log_normal(log(max((E/k)/5, 0)), tau)
+  }
+
+}"
+covid <- bi_model(lines = stringi::stri_split_lines(model_str)[[1]])
+
+T <- 365
+nObs <- 365
+input_lst <- list(N = 52196381,Forcing=Forcing)
+synthetic_dataset <- generate_dataset(model=covid, end_time=T,
+                                         noutputs = nObs, input=input_lst, seed="92")
+synthetic_data <- bi_read(synthetic_dataset)
+
+synthetic_df <- as.data.frame(synthetic_data)
+
+
+write.csv(synthetic_df$y.value,"covidoudg2_Y12112.csv")
+write.csv(synthetic_df$x.value,"covidoudg2_x12112.csv")
+write.csv(exp(synthetic_df$x.value),"covidoudg2_beta12112.csv")
+write.csv(synthetic_df,"covidoudg2_model12112.csv")
+
+ggplot(synthetic_df, aes(y.time)) +
+  geom_path(aes(y = y.value, colour="y.value")) +
+  theme(legend.position="bottom") +
+  ggtitle("Covid_OU model generated observation with Lognormal distribution") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  xlab("Time") +
+  ylab("Daily incidence Y")
+
+ggplot(synthetic_df, aes(y.time)) +
+  geom_path(aes(y = S.value, colour="S.value")) +
+  geom_path(aes(y = E.value, colour="E.value")) +
+  geom_path(aes(y = I.value, colour="I.value")) +
+  geom_path(aes(y = R.value, colour="R.value")) +
+  theme(legend.position="bottom") +
+  ggtitle("Generated COVID_OU Model Trajectories") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  xlab("Time") +
+  ylab("Counts")
+
+x <- read.csv("covidoudg2_x12112.csv", header=TRUE, stringsAsFactors=FALSE)
+plot(x,type='p',ylab=TeX(r"(OU process $X_{t}$)"),xlab="Time",col="darkred",main=TeX(r"(Generated OU process: $\theta=0.05$, $sigma=sqrt(0.004)$, $x_{0} \sim N(-0.02,0.2)$)"))
+  lines(x,col="darkblue")
+  abline(v=31, col="red")
+axis(1, at=31,labels=31, col.axis="red", las=2)
+
+beta <- read.csv("covidoudg2_beta12112.csv", header=TRUE, stringsAsFactors=FALSE)
+plot(beta,type='p',ylab=TeX(r"(Transmission rate $\beta$)"),xlab="time",col="darkred",main="COVIDOU model generated transmission rate")
+lines(beta,col="darkblue")
+abline(v=31, col="red")
+axis(1, at=31,labels=31, col.axis="red", las=2)
+tt1 <-expression('lockdown policy start')
+text(80,0.6,tt1,col="red")
+```
+
+```{r}
+#regenerate log normal-with x0 corrections+earlier lockdown policy: 30th day-theta=0.1 mid convergence+sigma=sqrt(0.004)/10
+rm(list=ls())
+library(tidyverse)
+library(ggplot2)
+library(ggpubr)
+library(pander)
+library(lubridate)
+library(latex2exp)
+library(rbi)
+library(rbi.helpers)
+
+L <- read.csv("forcing30.csv", header=FALSE, stringsAsFactors=FALSE)
+Forcing <- data.frame(value = L) %>%
+  mutate(time = seq(1, by = 1, length.out = n())) %>%
+  dplyr::select(time,V1 )
+colnames(Forcing) <- c("time","value")
+ncores <- 8
+minParticles <- max(ncores, 16)
+model_str <- "
+model covidou {
+  obs y
+  
+  state S
+  state E
+  state I
+  state R
+  state mu
+  state x
+
+  input Forcing
+  input N
+  
+  const k = 5
+  const gamma = 9
+  const sigma = sqrt(0.004)/10
+  const theta = 0.1
+  const a = -0.02
+  const b = -0.2
+  const tau = 0.1
+
+  sub initial {
+    S <- N-1
+    E <- 1
+    I <- 0
+    R <- 0
+    x ~ gaussian(a, sigma/sqrt(2*theta) ) 
+  }
+
+  sub transition(delta = 1) {
+    noise e
+    e ~ wiener()
+    mu <- a+b*Forcing
+    ode{
+      dx/dt = theta*(mu-x)+sigma*e
+      dS/dt = -exp(x)*S*(0.1*I+E)/N
+      dE/dt = exp(x)*S*(0.1*I+E)/N - E*(1/k+1/gamma)
+      dI/dt = E/k-I*(1/gamma+0.0087)
+      dR/dt = (I+E)/gamma+0.0087*I
+    }
+  }
+
+  sub observation {
+    y ~ log_normal(log(max((E/k)/5, 0)), tau)
+  }
+
+}"
+covid <- bi_model(lines = stringi::stri_split_lines(model_str)[[1]])
+
+T <- 365
+nObs <- 365
+input_lst <- list(N = 52196381,Forcing=Forcing)
+synthetic_dataset <- generate_dataset(model=covid, end_time=T,
+                                         noutputs = nObs, input=input_lst, seed="92")
+synthetic_data <- bi_read(synthetic_dataset)
+
+synthetic_df <- as.data.frame(synthetic_data)
+
+
+write.csv(synthetic_df$y.value,"covidoudg2_Y12113.csv")
+write.csv(synthetic_df$x.value,"covidoudg2_x12113.csv")
+write.csv(exp(synthetic_df$x.value),"covidoudg2_beta12113.csv")
+write.csv(synthetic_df,"covidoudg2_model12113.csv")
+
+ggplot(synthetic_df, aes(y.time)) +
+  geom_path(aes(y = y.value, colour="y.value")) +
+  theme(legend.position="bottom") +
+  ggtitle("Covid_OU model generated observation with Lognormal distribution") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  xlab("Time") +
+  ylab("Daily incidence Y")
+
+ggplot(synthetic_df, aes(y.time)) +
+  geom_path(aes(y = S.value, colour="S.value")) +
+  geom_path(aes(y = E.value, colour="E.value")) +
+  geom_path(aes(y = I.value, colour="I.value")) +
+  geom_path(aes(y = R.value, colour="R.value")) +
+  theme(legend.position="bottom") +
+  ggtitle("Generated COVID_OU Model Trajectories") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  xlab("Time") +
+  ylab("Counts")
+
+x <- read.csv("covidoudg2_x12113.csv", header=TRUE, stringsAsFactors=FALSE)
+plot(x,type='p',ylab=TeX(r"(OU process $X_{t}$)"),xlab="Time",col="darkred",main=TeX(r"(Generated OU process: $\theta=0.05$, $sigma=sqrt(0.004)$, $x_{0} \sim N(-0.02,0.2)$)"))
+  lines(x,col="darkblue")
+  abline(v=31, col="red")
+axis(1, at=31,labels=31, col.axis="red", las=2)
+
+beta <- read.csv("covidoudg2_beta12113.csv", header=TRUE, stringsAsFactors=FALSE)
+plot(beta,type='p',ylab=TeX(r"(Transmission rate $\beta$)"),xlab="time",col="darkred",main="COVIDOU model generated transmission rate")
+lines(beta,col="darkblue")
+abline(v=31, col="red")
+axis(1, at=31,labels=31, col.axis="red", las=2)
+tt1 <-expression('lockdown policy start')
+text(80,0.6,tt1,col="red")
+```
