@@ -48,7 +48,7 @@ model dureau {
 
   
   sub parameter {
-    k ~ truncated_gaussian(3, 1, lower = 0) // k is the period here, not the rate, i.e. 1/k is the rate
+    k ~ truncated_gaussian(3, 2, lower = 0) // k is the period here, not the rate, i.e. 1/k is the rate
     gamma ~ truncated_gaussian(9, 2, lower = 0) // gamma is the period, not the rate
     sigma ~ truncated_gaussian(sqrt(0.004), 0.1, lower = 0)
     theta ~ truncated_gaussian(0.05, 0.2, lower = 0)
@@ -58,13 +58,13 @@ model dureau {
   }
   
   sub proposal_parameter {
-    k ~ truncated_gaussian(k, 0.001, lower = 0) 
-    gamma ~ truncated_gaussian(gamma, 0.001, lower = 0) 
-    sigma ~ truncated_gaussian(sigma, 0.0001, lower = 0)
-    theta ~ truncated_gaussian(theta, 0.0001, lower = 0)
-    tau ~ gaussian(tau, 0.0001)
-    a ~ gaussian(a, 0.0001)
-    b ~ gaussian(b, 0.0001)
+    k ~ truncated_gaussian(k, 0.0001, lower = 0) 
+    gamma ~ truncated_gaussian(gamma, 0.0001, lower = 0) 
+    sigma ~ truncated_gaussian(sigma, 0.00001, lower = 0)
+    theta ~ truncated_gaussian(theta, 0.00001, lower = 0)
+    tau ~ gaussian(tau, 0.00001)
+    a ~ gaussian(a, 0.00001)
+    b ~ gaussian(b, 0.00001)
   }
   
   sub initial {
@@ -101,7 +101,7 @@ model <- bi_model(lines = stringi::stri_split_lines(model_str)[[1]])
 input_lst <- list(N = 52196381,Forcing=Forcing)
 end_time <- max(y$time)
 obs_lst <- list(y = y %>% dplyr::filter(time <= end_time))
-init_list <- list(k=3, gamma=9, sigma=sqrt(0.004), theta=0.05, tau=0.1, a=-0.02, b=-0.2)
+init_list <- list(k=5, gamma=9, sigma=sqrt(0.004), theta=0.05, tau=0.1, a=-0.02, b=-0.2)
 #LibBi wrapper 
 #run launches LibBi with a particular set of command line arguments
 bi_model <- libbi(model,end_time = end_time, input = input_lst, 
@@ -120,7 +120,7 @@ proposal_adapted <- particles_adapted %>%
 
 #Running pMCMC with burn-in
 bi <- proposal_adapted %>%
-  sample(nsamples = 5000, thin = 1, init=init_list)
+  sample(nsamples = 8000, thin = 1, init=init_list)
 
 bi_lst <- bi_read(bi %>% sample_obs)
 
