@@ -120,12 +120,12 @@ fitY <- bi_lst$y %>%
     q975 = quantile(value, 0.975)
   ) %>% ungroup() %>%
   left_join(y %>% rename(Y = value))
-write.csv(fitY,"svm_y2.csv")
-fitY <- read.csv("svm_y2.csv", header=TRUE, stringsAsFactors=FALSE)
+write.csv(fitY,"svminf_y2.csv")
+fitY <- read.csv("svminf_y2.csv", header=TRUE, stringsAsFactors=FALSE)
 g1 <- ggplot(data = fitY) +
   geom_ribbon(aes(x = time, ymin = q25, ymax = q75), alpha = 0.3) +
   geom_ribbon(aes(x = time, ymin = q025, ymax = q975), alpha = 0.3) +
-  geom_line(aes(x = time, y = q50)) +
+  geom_line(aes(x = time, y = value)) +
   geom_line(aes(x = time, y = Y), colour = "Red") +
   ylab("Daily return Y") +
   xlab("Time-Day")
@@ -145,8 +145,8 @@ fitalpha <- bi_lst$alpha %>%
     q975 = quantile(value, 0.975)
   ) %>% ungroup() %>%
   left_join(alpha %>% rename(Alpha = value))
-write.csv(fitalpha,"svm_alphainf1.csv")
-fitalpha <- read.csv("svm_alphainf1.csv", header=TRUE, stringsAsFactors=FALSE)
+write.csv(fitalpha,"svminf_x2.csv")
+fitalpha <- read.csv("svminf_x2.csv", header=TRUE, stringsAsFactors=FALSE)
 g2 <- ggplot(data = fitalpha) +
   geom_ribbon(aes(x = time, ymin = q25, ymax = q75), alpha = 0.3) +
   geom_ribbon(aes(x = time, ymin = q025, ymax = q975), alpha = 0.3) +
@@ -154,5 +154,22 @@ g2 <- ggplot(data = fitalpha) +
   geom_point(aes(x = time, y = Alpha), colour = "Red") +
   ylab("Volatilities alpha") +
   xlab("Time-Day")
+
+write.csv(bi_lst$beta$value,"svminf_beta2.csv")
+write.csv(bi_lst$phi$value,"svminf_phi2.csv")
+write.csv(bi_lst$sigma_eta$value,"svminf_sigma2.csv")
+sigma<-read.csv("svminf_sigma2.csv", header=TRUE, stringsAsFactors=FALSE)
+phi<-read.csv("svminf_phi2.csv", header=TRUE, stringsAsFactors=FALSE)
+beta<-read.csv("svminf_beta2.csv", header=TRUE, stringsAsFactors=FALSE)
+par(mfrow=c(3,1))
+plot(sigma,type='l',main=TeX("Trace plot of ($\\sigma$)"),xlab="PMCMC iterations after first 5000 burn-in and following 10000 thinning by 5",ylab="sigma")
+abline(h=sqrt(0.04), col="red")
+abline(h=mean(sigma[,2]),col="blue")
+plot(phi,type='l',main=TeX("Trace plot of ($\\phi$)"),xlab="PMCMC iterations after first 5000 burn-in and following 10000 thinning by 5",ylab="phi")
+abline(h=0.975, col="red")
+abline(h=mean(phi[,2]),col="blue")
+plot(beta,type='l',main=TeX("Trace plot of ($\\beta$)"),xlab="PMCMC iterations after first 5000 burn-in and following 10000 thinning by 5",ylab="beta")
+abline(h=0.6, col="red")
+abline(h=mean(beta[,2]),col="blue")
 ```
 
