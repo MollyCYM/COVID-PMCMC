@@ -49,8 +49,8 @@ model h1n1bm {
 
   sub initial {
     S <- N-1
-    E <- 0
-    I <- 1
+    E <- 1
+    I <- 0
     R <- 0
   }
 
