@@ -34,7 +34,7 @@ model h1n1bm {
   param tau
 
   sub parameter {
-    k ~ truncated_gaussian(2, 3, lower = 0) // k is the period here, not the rate, i.e. 1/k is the rate
+    k ~ truncated_gaussian(3, 3, lower = 0) // k is the period here, not the rate, i.e. 1/k is the rate
     gamma ~ truncated_gaussian(5, 5, lower = 0) // gamma is the period, not the rate
     sigma ~ truncated_gaussian(0.1, 0.1, lower = 0)
     tau ~ truncated_gaussian(0.5, 0.1, lower = 0)
@@ -75,7 +75,7 @@ bi_model <- libbi(model)
 input_lst <- list(N = 52196381)
 end_time <- max(y$time)
 obs_lst <- list(y = y %>% dplyr::filter(time <= end_time))
-init_list <- list(k=2, gamma=8, sigma=0.07, tau=0.1)
+init_list <- list(k=4, gamma=5, sigma=0.1, tau=0.3)
 #LibBi wrapper 
 #run launches LibBi with a particular set of command line arguments
 bi_model <- libbi(model,end_time = end_time, input = input_lst, 
