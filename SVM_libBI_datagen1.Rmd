@@ -6,6 +6,86 @@ output: html_document
 ---
 
 ```{r}
+rm(list=ls())
+library(tidyverse)
+library(ggplot2)
+library(ggpubr)
+library(pander)
+library(lubridate)
+library(latex2exp)
+library(rbi)
+library(rbi.helpers)
+model_str <- "
+model StochasticVolatility {
+
+  obs y
+  
+  state alpha
+  
+  noise epsilon
+  
+  const beta = 0.6
+  const phi = 0.975
+  const sigma_eta = sqrt(0.02)
+  
+  sub initial {
+    /* stationary distribution for alpha */
+    alpha ~ normal(0.0, sqrt(sigma_eta**2/(1.0 - phi**2)));
+  }
+
+  sub transition {
+    epsilon ~ normal(0,1);
+    alpha <- phi*alpha + sigma_eta*epsilon;
+  }
+
+  sub observation {
+    y ~ normal(0, beta*exp(0.5*alpha));
+  }
+}"
+
+svm <- bi_model(lines = stringi::stri_split_lines(model_str)[[1]])
+T <- 2000
+nObs <- 2000
+synthetic_dataset <- generate_dataset(model=svm, end_time=T,
+                                         noutputs = nObs,seed="1001")
+synthetic_data <- bi_read(synthetic_dataset)
+synthetic_df <- as.data.frame(synthetic_data)
+
+write.csv(synthetic_df$y.value,"svm_y1.csv")
+write.csv(synthetic_df$alpha.value,"svm_alpha1.csv")
+write.csv(synthetic_df$epsilon.value,"svm_epsilon1.csv")
+write.csv(synthetic_df,"svm_model1.csv")
+
+ggplot(synthetic_df, aes(y.time),colour="black") +
+  geom_path(aes(y = y.value, colour="black")) +
+  theme(legend.position="bottom") +
+  ggtitle("SVM generated observation") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  xlab("Time") +
+  ylab("Daily return Y")
+ggplot(synthetic_df, aes(y.time)) +
+  geom_path(aes(y = alpha.value, colour="darkblue")) +
+  theme(legend.position="bottom") +
+  ggtitle("SVM generated latent volatilities") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  xlab("Time") +
+  ylab("Volatilities alpha")
+
+ggplot(synthetic_df,aes(x=y.time,y=y.value))+
+  geom_line(colour='black')+
+  theme(legend.position="bottom") +
+  ggtitle("SVM generated observation") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  xlab("Time") +
+  ylab("Daily return Y")
+
+ggplot(synthetic_df,aes(x=alpha.time,y=alpha.value))+
+  geom_line(colour='darkblue')+
+  theme(legend.position="bottom") +
+  ggtitle("SVM generated latent volatilities") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  xlab("Time") +
+  ylab("Volatilities alpha")
 
 ```
 

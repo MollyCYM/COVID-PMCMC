@@ -864,12 +864,11 @@ model h1n1bm {
   state R
   state x
   
-  const k = 5
-  const gamma = 9
-  const sigma = sqrt(0.004)
-  const theta = 0.05
-  const a = -0.02
-  const b = -0.2
+  input N
+  
+  const k = 2
+  const gamma = 8
+  const sigma = 0.07
   const tau = 0.1
 
   sub initial {
@@ -877,48 +876,47 @@ model h1n1bm {
     E <- 1
     I <- 0
     R <- 0
-    x ~ gaussian(-0.02, 0.2)
   }
 
   sub transition(delta = 1) {
     noise e
     e ~ wiener()
-    mu <- a+b*Forcing
     ode{
-      dx/dt = theta*(mu-x)+sigma*e
-      dS/dt = -exp(x)*S*(0.1*I+E)/N
-      dE/dt = exp(x)*S*(0.1*I+E)/N - E*(1/k+1/gamma)
-      dI/dt = E/k-I*(1/gamma+0.0087)
-      dR/dt = (I+E)/gamma+0.0087*I
+      dx/dt = sigma*e
+      dS/dt = -exp(x)*S*I/N
+      dE/dt = exp(x)*S*I/N - E/k
+      dI/dt = E/k-I/gamma
+      dR/dt = I/gamma
     }
   }
 
   sub observation {
-    y ~ log_normal(log(max((E/k)/5, 0)), tau)
+    y ~ log_normal(log(max((E/k)/10, 0)), tau)
   }
 
 }"
-covid <- bi_model(lines = stringi::stri_split_lines(model_str)[[1]])
+h1n1bm <- bi_model(lines = stringi::stri_split_lines(model_str)[[1]])
 
 T <- 365
 nObs <- 365
-input_lst <- list(N = 52196381,Forcing=Forcing)
-synthetic_dataset <- generate_dataset(model=covid, end_time=T,
-                                         noutputs = nObs, input=input_lst, seed="92")
+input_lst <- list(N = 52196381)
+synthetic_dataset <- generate_dataset(model=h1n1bm, end_time=T,
+                                         noutputs = nObs, input=input_lst, seed="1197")
+#1193 1195 1197
 synthetic_data <- bi_read(synthetic_dataset)
 
 synthetic_df <- as.data.frame(synthetic_data)
 
 
-write.csv(synthetic_df$y.value,"covidoudg2_Y121.csv")
-write.csv(synthetic_df$x.value,"covidoudg2_x121.csv")
-write.csv(exp(synthetic_df$x.value),"covidoudg2_beta121.csv")
-write.csv(synthetic_df,"covidoudg2_model121.csv")
+# write.csv(synthetic_df$y.value,"h1n1bm_Y1.csv")
+# write.csv(synthetic_df$x.value,"h1n1bm_x1.csv")
+# write.csv(exp(synthetic_df$x.value),"h1n1bm_beta1.csv")
+# write.csv(synthetic_df,"h1n1bm_model1.csv")
 
 ggplot(synthetic_df, aes(y.time)) +
   geom_path(aes(y = y.value, colour="y.value")) +
   theme(legend.position="bottom") +
-  ggtitle("Covid_OU model generated observation with Lognormal distribution") +
+  ggtitle("SEIR_BM model generated observation with Lognormal distribution") +
   theme(plot.title = element_text(hjust = 0.5)) +
   xlab("Time") +
   ylab("Daily incidence Y")
@@ -929,22 +927,22 @@ ggplot(synthetic_df, aes(y.time)) +
   geom_path(aes(y = I.value, colour="I.value")) +
   geom_path(aes(y = R.value, colour="R.value")) +
   theme(legend.position="bottom") +
-  ggtitle("Generated COVID_OU Model Trajectories") +
+  ggtitle("Generated SEIR_BM Model Trajectories") +
   theme(plot.title = element_text(hjust = 0.5)) +
   xlab("Time") +
   ylab("Counts")
 
-x <- read.csv("covidoudg2_x121.csv", header=TRUE, stringsAsFactors=FALSE)
-plot(x,type='p',ylab=TeX(r"(OU process $X_{t}$)"),xlab="Time",col="darkred",main=TeX(r"(Generated OU process: $\theta=0.05$, $sigma=sqrt(0.004)$, $x_{0} \sim N(-0.02,0.2)$)"))
+x <- read.csv("h1n1bm_x1.csv", header=TRUE, stringsAsFactors=FALSE)
+plot(x,type='p',ylab=TeX(r"(BM process $X_{t}$)"),xlab="Time",col="darkred",main=TeX(r"(Generated BM process)"))
   lines(x,col="darkblue")
-  abline(v=31, col="red")
-axis(1, at=31,labels=31, col.axis="red", las=2)
+#   abline(v=31, col="red")
+# axis(1, at=31,labels=31, col.axis="red", las=2)
 
-beta <- read.csv("covidoudg2_beta121.csv", header=TRUE, stringsAsFactors=FALSE)
-plot(beta,type='p',ylab=TeX(r"(Transmission rate $\beta$)"),xlab="time",col="darkred",main="COVIDOU model generated transmission rate")
+beta <- read.csv("h1n1bm_beta1.csv", header=TRUE, stringsAsFactors=FALSE)
+plot(beta,type='p',ylab=TeX(r"(Transmission rate $\beta$)"),xlab="time",col="darkred",main="SEIR_BM model generated transmission rate")
 lines(beta,col="darkblue")
-abline(v=31, col="red")
-axis(1, at=31,labels=31, col.axis="red", las=2)
-tt1 <-expression('lockdown policy start')
-text(80,0.6,tt1,col="red")
+# abline(v=31, col="red")
+# axis(1, at=31,labels=31, col.axis="red", las=2)
+# tt1 <-expression('lockdown policy start')
+# text(80,0.6,tt1,col="red")
 ```

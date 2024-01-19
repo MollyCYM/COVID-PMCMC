@@ -29,44 +29,95 @@ y=ts(beta*exp(x[-1]/2)*rnorm(num,0,sqrt(1)))
 #   return(list(particles = particles, weights = weights))
 # }
 
-SIRPF<-function(y,N,beta,Phi,cQ){
-  partcilesSIR0<-matrix(0,N,1)
-  weightsSIR0<-matrix(0,N,1)
-  particlesSIR <- matrix(0,N,T)
-  resampleSIR<-matrix(0,N,T)
-  weightsSIR <- matrix(0,N,T)
-  WeightsSIR <- matrix(0,N,T)
-  totalweight<-vector(length=T)
-  likelihood<-vector(length=T)
-  hSIRPF <- vector(length=T) 
-  hSIRvar<- vector(length=T)
+# SIRPF<-function(y,N,beta,Phi,cQ){
+#   particlesSIR0<-matrix(0,N,1)
+#   weightsSIR0<-matrix(0,N,1)
+#   particlesSIR <- matrix(0,N,T)
+#   resampleSIR<-matrix(0,N,T)
+#   weightsSIR <- matrix(0,N,T)
+#   WeightsSIR <- matrix(0,N,T)
+#   totalweight<-vector(length=T)
+#   likelihood<-vector(length=T)
+#   hSIRPF <- vector(length=T) 
+#   hSIRvar<- vector(length=T)
+#   for (i in 1:N) {
+#     particlesSIR0[i,1]=rnorm(1, 0 , sd=sqrt((cQ^2)/(1 - Phi^2)))
+#     weightsSIR0[i,1]=1/N
+#   }
+#   for (t in 1:T){
+#     for (i in 1:N){
+#       if(t==1){particlesSIR[i,t] = Phi*(particlesSIR0[i,1]) + rnorm(1,0,cQ) 
+#       weightsSIR[i,t]= dnorm(y[t],mean=0,sd=sqrt(exp(particlesSIR[i,t])*beta^2))
+#       }
+#       if(t>1){particlesSIR[i,t]=Phi*(resampleSIR[i,(t-1)]) + rnorm(1,0,cQ) 
+#       weightsSIR[i,t]=dnorm(y[t],mean=0,sd=sqrt(exp(particlesSIR[i,t])*beta^2))
+#       
+#       }}
+#     
+#     likelihood[t]=mean(weightsSIR[,t])
+#     totalweight = sum(weightsSIR[,t])
+#     for(i in 1:N){ 
+#       WeightsSIR[i,t]=weightsSIR[i,t]/totalweight[t]}
+#     
+#     #Resampling step:
+#     resampleSIR[,t] = sample(particlesSIR[,t], size=N, replace=TRUE, prob =WeightsSIR[,t])
+#     hSIRPF[t] = mean(resampleSIR[,t])
+#     hSIRvar[t]= var(resampleSIR[,t])
+#   }
+#   loglikelihood=sum(log(likelihood))
+#   return(loglikelihood)}
+SIRPF <- function(y, N, beta, Phi, cQ) {
+  particlesSIR0 <- matrix(0, N, 1)
+  weightsSIR0 <- matrix(0, N, 1)
+  particlesSIR <- matrix(0, N, length(y))
+  resampleSIR <- matrix(0, N, length(y))
+  weightsSIR <- matrix(0, N, length(y))
+  WeightsSIR <- matrix(0, N, length(y))
+  totalweight <- vector(length = length(y))
+  likelihood <- vector(length = length(y))
+  hSIRPF <- vector(length = length(y))
+  hSIRvar <- vector(length = length(y))
+  
   for (i in 1:N) {
-    partcilesSIR0[i,1]=rnorm(1, 0 , sd=sqrt((cQ^2)/(1 - Phi^2)))
-    weightsSIR0[i,1]=1/N
+    particlesSIR0[i, 1] = rnorm(1, 0, sd = sqrt((cQ^2) / (1 - Phi^2)))
+    weightsSIR0[i, 1] = 1 / N
   }
-  for (t in 1:T){
-    for (i in 1:N){
-      if(t==1){particlesSIR[i,t] = Phi*(partcilesSIR0[i,1]) + rnorm(1,0,cQ) 
-      weightsSIR[i,t]= dnorm(y[t],mean=0,sd=sqrt(exp(particlesSIR[i,t])*beta^2))
+  
+  for (t in 1:length(y)) {
+    for (i in 1:N) {
+      if (t == 1) {
+        particlesSIR[i, t] = Phi * (particlesSIR0[i, 1]) + rnorm(1, 0, cQ)
+        weightsSIR[i, t] = dnorm(y[t], mean = 0, sd = sqrt(exp(particlesSIR[i, t]) * beta^2))
       }
-      if(t>1){particlesSIR[i,t]=Phi*(resampleSIR[i,(t-1)]) + rnorm(1,0,cQ) 
-      weightsSIR[i,t]=dnorm(y[t],mean=0,sd=sqrt(exp(particlesSIR[i,t])*beta^2))
-      
-      }}
+      if (t > 1) {
+        particlesSIR[i, t] = Phi * (resampleSIR[i, (t - 1)]) + rnorm(1, 0, cQ)
+        weightsSIR[i, t] = dnorm(y[t], mean = 0, sd = sqrt(exp(particlesSIR[i, t]) * beta^2))
+      }
+    }
     
-    likelihood[t]=mean(weightsSIR[,t])
-    totalweight = sum(weightsSIR[,t])
-    for(i in 1:N){ 
-      WeightsSIR[i,t]=weightsSIR[i,t]/totalweight[t]}
+    likelihood[t] = mean(weightsSIR[, t])
+    totalweight[t] = sum(weightsSIR[, t])
     
-    #Resampling step:
-    resampleSIR[,t] = sample(particlesSIR[,t], size=N, replace=TRUE, prob =WeightsSIR[,t])
-    hSIRPF[t] = mean(resampleSIR[,t])
-    hSIRvar[t]= var(resampleSIR[,t])
+    if (is.finite(totalweight[t]) && totalweight[t] > 0) {
+      WeightsSIR[, t] = weightsSIR[, t] / totalweight[t]
+    } else {
+      # Handle the case where totalweight is zero or NA
+      WeightsSIR[, t] = 1 / N
+    }
+    
+    # Resampling step:
+    resampleSIR[, t] = sample(particlesSIR[, t], size = N, replace = TRUE, prob = WeightsSIR[, t])
+    hSIRPF[t] = mean(resampleSIR[, t])
+    hSIRvar[t] = var(resampleSIR[, t])
   }
-  loglikelihood=sum(log(likelihood))
-  return(loglikelihood)}
-SIRPF(y,N=200,beta=0.6,Phi=0.975,cQ=sqrt(0.02))
+  
+  loglikelihood = sum(log(likelihood))
+  return(loglikelihood)
+}
+set.seed(93)
+log_likelihood <- SIRPF(y, N = 200, beta = 0.6, Phi = 0.975, cQ = sqrt(0.02))
+print(log_likelihood)
+
 # PMMH algorithm for SV model
 pmmh_sv <- function(data, n_iterations) {
   # Initialize parameters
@@ -112,7 +163,7 @@ pmmh_sv <- function(data, n_iterations) {
 }
 
 # Run the PMMH algorithm for SV model
-result <- pmmh_sv(y,n_iterations = 1000)
+result <- pmmh_sv(y,n_iterations = 10)
 
 
 
