@@ -1,5 +1,5 @@
 rm(list=ls())
-set.seed(0066661)
+# set.seed(0066661)
 library(tidyverse)
 library(ggplot2)
 library(ggpubr)
@@ -89,29 +89,29 @@ model dureau {
 }"
 model <- bi_model(lines = stringi::stri_split_lines(model_str)[[1]])
 
-input_lst <- list(N = 56536000,Forcing=Forcing)
+input_lst <- list(N = 52196381,Forcing=Forcing)
 end_time <- max(y$time)
 obs_lst <- list(y = y %>% dplyr::filter(time <= end_time))
-init_list <- list(k=5, gamma=9, sigma=sqrt(0.004),theta=0.05,a=-0.02,b=-0.2)
+init_list <- list(k=5, gamma=9, sigma=sqrt(0.004), theta=0.05, a=-0.02, b=-0.2)
 #LibBi wrapper 
 #run launches LibBi with a particular set of command line arguments
 bi_model <- libbi(model,end_time = end_time, input = input_lst, 
-                  init=init_list, obs = obs_lst)
+                  init=init_list,obs = obs_lst)
 #RBi.helpers adapt_particle
 particles_adapted <- bi_model %>%
-  sample(nsamples = 1000, nparticles = minParticles, 
+  sample(nsamples = 2000, nparticles = minParticles, 
          nthreads = ncores, proposal = 'prior') %>%
   adapt_particles(min = minParticles, max = minParticles*500)
 
 #RBi.helpers adapt_proposal
 proposal_adapted <- particles_adapted %>%
-  sample(target = "posterior", nsamples = 1000, 
+  sample(target = "posterior", nsamples = 2000, 
          nthreads = ncores, proposal = 'model') %>%
   adapt_proposal(min = 0.1, max = 0.4)
 
 #Running pMCMC with burn-in
 bi <- proposal_adapted %>%
-  sample(nsamples = 5000, thin = 1, init=init_list)
+  sample(nsamples = 10000, thin = 1)
 
 bi_lst <- bi_read(bi %>% sample_obs)
 
@@ -187,7 +187,6 @@ write.csv(fitR,"../data/para10_R2.csv")
 write.csv(bi_lst$k$value,"../data/para10_alpha2.csv")
 write.csv(bi_lst$gamma$value,"../data/para10_gamma2.csv")
 write.csv(bi_lst$sigma$value,"../data/para10_sigma2.csv")
-write.csv(bi_lst$tau$value,"../data/para10_tau2.csv")
 write.csv(bi_lst$theta$value,"../data/para10_theta2.csv")
 write.csv(bi_lst$a$value,"../data/para10_a2.csv")
 write.csv(bi_lst$b$value,"../data/para10_b2.csv")
