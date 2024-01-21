@@ -1,5 +1,4 @@
 rm(list=ls())
-# set.seed(0066661)
 library(tidyverse)
 library(ggplot2)
 library(ggpubr)
@@ -54,12 +53,12 @@ model dureau {
   }
   
  sub proposal_parameter {
-    k ~ truncated_gaussian(k, 0.01, lower = 0) 
-    gamma ~ truncated_gaussian(gamma, 0.01, lower = 0) 
-    sigma ~ truncated_gaussian(sigma, 0.001, lower = 0)
-    theta ~ truncated_gaussian(theta, 0.001, lower = 0)
-    a ~ gaussian(a, 0.001)
-    b ~ gaussian(b, 0.001)
+    k ~ truncated_gaussian(k, 0.001, lower = 0) 
+    gamma ~ truncated_gaussian(gamma, 0.001, lower = 0) 
+    sigma ~ truncated_gaussian(sigma, 0.0001, lower = 0)
+    theta ~ truncated_gaussian(theta, 0.0001, lower = 0)
+    a ~ gaussian(a, 0.0001)
+    b ~ gaussian(b, 0.0001)
  }
   
   sub initial {
@@ -89,7 +88,7 @@ model dureau {
 }"
 model <- bi_model(lines = stringi::stri_split_lines(model_str)[[1]])
 
-input_lst <- list(N = 52196381,Forcing=Forcing)
+input_lst <- list(N = 52196380,Forcing=Forcing)
 end_time <- max(y$time)
 obs_lst <- list(y = y %>% dplyr::filter(time <= end_time))
 init_list <- list(k=5, gamma=9, sigma=sqrt(0.004), theta=0.05, a=-0.02, b=-0.2)
@@ -111,7 +110,7 @@ proposal_adapted <- particles_adapted %>%
 
 #Running pMCMC with burn-in
 bi <- proposal_adapted %>%
-  sample(nsamples = 10000, thin = 1)
+  sample(nsamples = 8000, thin = 1)
 
 bi_lst <- bi_read(bi %>% sample_obs)
 
