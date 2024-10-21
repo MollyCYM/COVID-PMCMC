@@ -76,7 +76,8 @@ proposal_adapted <- particles_adapted %>%
 
 #Running pMCMC with burn-in
 bi <- proposal_adapted %>%
-  sample(nsamples = 50000, thin = 1, init=init_list)
+  sample(nsamples = 2000, thin = 1,init=init_list) %>%
+  sample(nsamples = 50000, thin = 1)
 bi_lst <- bi_read(bi %>% sample_obs)
 
 write.csv(bi_lst,"../data/svminf_model1.csv")
