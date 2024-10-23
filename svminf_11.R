@@ -1,5 +1,5 @@
 rm(list=ls())
-set.seed(000088997766)
+set.seed(0000889977)
 library(tidyverse)
 library(ggplot2)
 library(ggpubr)
@@ -76,8 +76,8 @@ proposal_adapted <- particles_adapted %>%
 
 #Running pMCMC with burn-in
 bi <- proposal_adapted %>%
-  sample(nsamples = 10000, thin = 1,init=init_list) %>%
-  sample(nsamples = 15000, thin = 1)
+  sample(nsamples = 5000, thin = 1,init=init_list) %>%
+  sample(nsamples = 5000, thin = 1)
 bi_lst <- bi_read(bi %>% sample_obs)
 
 write.csv(bi_lst,"../data/svminf_model11.csv")
