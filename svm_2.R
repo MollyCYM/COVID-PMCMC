@@ -1,6 +1,6 @@
 rm(list = ls())
 # Load necessary packages
-library(mcmcse)        # For MCMC diagnostics
+# library(mcmcse)        # For MCMC diagnostics
 library(astsa)         # For time series data simulation
 library(pomp)          # Particle filtering
 library(mvtnorm)       # Multivariate normal distribution
