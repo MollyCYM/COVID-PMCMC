@@ -5,7 +5,7 @@ library(pomp)          # Particle filtering
 library(mvtnorm)       # Multivariate normal distribution
 library(truncnorm)
 # Model Parameters
-n_iter <- 100000      # Number of MCMC iterations
+n_iter <- 1000000      # Number of MCMC iterations
 n_particles <- 100   # Number of particles for the bootstrap particle filter
 # Load your data and clean it
 y_data <- read.csv('svmgen_y1.csv', header = FALSE, skip = 1)  # Skip first row
@@ -122,8 +122,8 @@ pmmh <- function(y, n_iter, n_particles) {
   return(list(theta_chain = theta_chain, log_likelihood_chain = log_likelihood_chain, final_alpha = res_proposal$alpha_particles))
 }
 result <- pmmh(y, n_iter, n_particles)
-write.csv(result$final_alpha, "../data/svm_alpha1.csv")
-write.csv(result$log_likelihood_chain, "../data/svm_likelihood1.csv")
-write.csv(result$theta_chain[, 1],"../data/svm_beta1.csv")
-write.csv(result$theta_chain[, 2],"../data/svm_phi1.csv")
-write.csv(result$theta_chain[, 3],"../data/svm_sigma1.csv")
+write.csv(result$final_alpha, "../data/svm_alpha2.csv")
+write.csv(result$log_likelihood_chain, "../data/svm_likelihood2.csv")
+write.csv(result$theta_chain[, 1],"../data/svm_beta2.csv")
+write.csv(result$theta_chain[, 2],"../data/svm_phi2.csv")
+write.csv(result$theta_chain[, 3],"../data/svm_sigma2.csv")

@@ -23,7 +23,7 @@ set.seed(123)
 T <- 2000                # Number of time steps
 beta_true <- 0.6         # True value of beta
 phi_true <- 0.975        # True value of phi
-sigma_eta_true <- sqrt(0.04) # True value of sigma_eta
+sigma_eta_true <- sqrt(0.02) # True value of sigma_eta
 
 # Simulate latent states (AR(1) process)
 alpha <- numeric(T)
@@ -31,16 +31,17 @@ alpha[1] <- rnorm(1, mean = 0, sd = sigma_eta_true / sqrt(1 - phi_true^2))
 for (t in 2:T) {
   alpha[t] <- phi_true * alpha[t-1] + rnorm(1, 0, sigma_eta_true)
 }
-
+y <- numeric(T)
+for (t in 1:T) {
 # Simulate observations
-y <- beta_true * exp(alpha / 2) * rnorm(T)
+y <- beta_true * exp(alpha / 2) * rnorm(1,0,1)}
 
 # Log-likelihood of the observations given states
 log_likelihood <- function(y, alpha, beta) {
   sum(dnorm(y, mean = beta * exp(alpha / 2), sd = 1, log = TRUE))
 }
 
-write.csv(alpha, "svmgen_alpha1.csv")
+write.csv(x, "svmgen_alpha1.csv")
 write.csv(y, "svmgen_y1.csv")
 y_data <- read.csv('svmgen_y1.csv', header = FALSE)  # Assuming your observations are in the first column
 # Remove the first two rows
