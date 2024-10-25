@@ -36,6 +36,7 @@ bootstrap_filter <- function(y, theta, n_particles) {
   
   alpha_particles <- matrix(0, n_particles, T)
   weights <- matrix(0, n_particles, T)
+  unnormalized_weights <- matrix(0, n_particles, T)  # To store unnormalized weights
   
   # Initial state distribution
   alpha_particles[, 1] <- rnorm(n_particles, mean = 0, sd = sigma_eta / sqrt(1 - phi^2))
@@ -44,15 +45,20 @@ bootstrap_filter <- function(y, theta, n_particles) {
     if (t > 1) {
       alpha_particles[, t] <- phi * alpha_particles[, t-1] + rnorm(n_particles, 0, sigma_eta)
     }
-    weights[, t] <- dnorm(y[t], mean =0, sd=beta * exp(alpha_particles[, t] / 2))
-    weights[, t] <- weights[, t] / sum(weights[, t]) # Normalize weights
     
-    # Resampling
+    # Calculate the unnormalized weights (without dividing by sum)
+    unnormalized_weights[, t] <- dnorm(y[t], mean = 0, sd = beta * exp(alpha_particles[, t] / 2))
+    
+    # Normalize weights for resampling (but don't use this for log-likelihood)
+    weights[, t] <- unnormalized_weights[, t] / sum(unnormalized_weights[, t]) # Normalizing for resampling only
+    
+    # Resampling step
     indices <- sample(1:n_particles, size = n_particles, prob = weights[, t], replace = TRUE)
     alpha_particles[, t] <- alpha_particles[indices, t]
   }
   
-  log_likelihood <- sum(log(colMeans(weights)))
+  # Compute the log-likelihood using unnormalized weights
+  log_likelihood <- sum(log(colMeans(unnormalized_weights)))
   
   return(list(alpha_particles = alpha_particles, log_likelihood = log_likelihood))
 }
