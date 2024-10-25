@@ -5,7 +5,7 @@ library(pomp)          # Particle filtering
 library(mvtnorm)       # Multivariate normal distribution
 library(truncnorm)
 # Model Parameters
-n_iter <- 100000      # Number of MCMC iterations
+n_iter <- 10000      # Number of MCMC iterations
 n_particles <- 100   # Number of particles for the bootstrap particle filter
 # Load your data and clean it
 y_data <- read.csv('svmgen_y1.csv', header = FALSE, skip = 1)  # Skip first row
