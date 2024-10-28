@@ -77,33 +77,19 @@ proposal_adapted <- particles_adapted %>%
 #Running pMCMC with burn-in
 bi <- proposal_adapted %>%
   sample(nsamples = 5000, thin = 1,init=init_list) %>%
-  sample(nsamples = 5000, thin = 1)
+  sample(nsamples = 20000, thin = 1)
 bi_lst <- bi_read(bi %>% sample_obs)
-
-write.csv(bi_lst,"../data/svminf_model111.csv")
 fitY <- bi_lst$y %>%
-  group_by(time) %>%
-  mutate(
-    q025 = quantile(value, 0.025),
-    q25 = quantile(value, 0.25),
-    q50 = quantile(value, 0.5),
-    q75 = quantile(value, 0.75),
-    q975 = quantile(value, 0.975)
-  ) %>% ungroup() %>%
+  group_by(time) %>% 
+  ungroup() %>%
   left_join(y %>% rename(Y = value))
 write.csv(fitY,"../data/svminf_y111.csv")
 
 fitalpha <- bi_lst$alpha %>%
   group_by(time) %>%
-  mutate(
-    q025 = quantile(value, 0.025),
-    q25 = quantile(value, 0.25),
-    q50 = quantile(value, 0.5),
-    q75 = quantile(value, 0.75),
-    q975 = quantile(value, 0.975)
-  ) %>% ungroup()
+  ungroup()
 write.csv(fitalpha,"../data/svminf_alpha111.csv")
-
+write.csv(bi_lst$loglikelihood$value,"svminf_loglik111.csv")
 write.csv(bi_lst$beta$value,"../data/svminf_beta111.csv")
 write.csv(bi_lst$phi$value,"../data/svminf_phi111.csv")
 write.csv(bi_lst$sigma_eta$value,"../data/svminf_sigma111.csv")

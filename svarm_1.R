@@ -5,7 +5,7 @@ library(pomp)          # Particle filtering
 library(mvtnorm)       # Multivariate normal distribution
 library(truncnorm)
 # Model Parameters
-n_iter <- 10000      # Number of MCMC iterations
+n_iter <- 2000      # Number of MCMC iterations
 n_particles <- 100   # Number of particles for the bootstrap particle filter
 # Load your data and clean it
 y_data <- read.csv('svmgen_y1.csv', header = FALSE, skip = 1)  # Skip first row
@@ -13,9 +13,9 @@ y <- as.numeric(y_data[, 2])
 
 # Proposal distribution for PMMH (Random walk Metropolis-Hastings) with truncated normals
 propose_params <- function(theta) {
-  beta_proposal <- rtruncnorm(1, a = 0, b = Inf, mean = theta[1], sd = 0.1)      # Truncated at 0 for beta
+  beta_proposal <- rtruncnorm(1, a = 0, b = Inf, mean = theta[1], sd = 0.01)      # Truncated at 0 for beta
   phi_proposal <- rtruncnorm(1, a = -1, b = 1, mean = theta[2], sd = 0.1)        # Truncated between -1 and 1 for phi
-  sigma_eta_proposal <- rtruncnorm(1, a = 0, b = Inf, mean = theta[3], sd = 0.1) # Truncated at 0 for sigma_eta
+  sigma_eta_proposal <- rtruncnorm(1, a = 0, b = Inf, mean = theta[3], sd = 0.001) # Truncated at 0 for sigma_eta
   
   return(c(beta_proposal, phi_proposal, sigma_eta_proposal))
 }
@@ -72,7 +72,7 @@ pmmh <- function(y, n_iter, n_particles) {
   
   res <- bootstrap_filter(y, theta_chain[1, ], n_particles)
   log_likelihood_chain[1] <- res$log_likelihood
-  
+  accepted <- 0  # Counter for accepted proposals
   for (iter in 2:n_iter) {
     theta_proposal <- propose_params(theta_chain[iter - 1, ])
     
@@ -102,13 +102,13 @@ pmmh <- function(y, n_iter, n_particles) {
     log_likelihood_ratio <- log_likelihood_proposal - log_likelihood_chain[iter - 1]
     
     # Calculate the log-proposal density for theta_proposed given theta_current
-    log_proposal_current_to_proposed <- log(dtruncnorm(theta_proposal[1], a = 0, b = Inf, mean = theta_chain[iter - 1, 1], sd = 0.1)) +
+    log_proposal_current_to_proposed <- log(dtruncnorm(theta_proposal[1], a = 0, b = Inf, mean = theta_chain[iter - 1, 1], sd = 0.01)) +
       log(dtruncnorm(theta_proposal[2], a = -1, b = 1, mean = theta_chain[iter - 1, 2], sd = 0.1)) +
-      log(dtruncnorm(theta_proposal[3], a = 0, b = Inf, mean = theta_chain[iter - 1, 3], sd = 0.1))
+      log(dtruncnorm(theta_proposal[3], a = 0, b = Inf, mean = theta_chain[iter - 1, 3], sd = 0.001))
     # Calculate the log-proposal density for theta_current given theta_proposed (reverse move)
-    log_proposal_proposed_to_current <- log(dtruncnorm(theta_chain[iter - 1, 1], a = 0, b = Inf, mean = theta_proposal[1], sd = 0.1)) +
+    log_proposal_proposed_to_current <- log(dtruncnorm(theta_chain[iter - 1, 1], a = 0, b = Inf, mean = theta_proposal[1], sd = 0.01)) +
       log(dtruncnorm(theta_chain[iter - 1, 2], a = -1, b = 1, mean = theta_proposal[2], sd = 0.1)) +
-      log(dtruncnorm(theta_chain[iter - 1, 3], a = 0, b = Inf, mean = theta_proposal[3], sd = 0.1))
+      log(dtruncnorm(theta_chain[iter - 1, 3], a = 0, b = Inf, mean = theta_proposal[3], sd = 0.001))
     log_proposal_ratio <- log_proposal_proposed_to_current - log_proposal_current_to_proposed
     
     # Calculate the final log acceptance ratio
@@ -118,14 +118,22 @@ pmmh <- function(y, n_iter, n_particles) {
     if (log(runif(1)) < log_accept_ratio) {
       theta_chain[iter, ] <- theta_proposal
       log_likelihood_chain[iter] <- log_likelihood_proposal
+      accepted <- accepted + 1  # Increment the acceptance counter
     } else {
       theta_chain[iter, ] <- theta_chain[iter - 1, ]
       log_likelihood_chain[iter] <- log_likelihood_chain[iter - 1]
     }
   }
   
+  # Calculate acceptance rate
+  acceptance_rate <- accepted / (n_iter - 1)
   
-  return(list(theta_chain = theta_chain, log_likelihood_chain = log_likelihood_chain, final_alpha = res_proposal$alpha_particles))
+  return(list(
+    theta_chain = theta_chain, 
+    log_likelihood_chain = log_likelihood_chain, 
+    final_alpha = res_proposal$alpha_particles,
+    acceptance_rate = acceptance_rate  # Return acceptance rate
+  ))
 }
 result <- pmmh(y, n_iter, n_particles)
 write.csv(result$final_alpha, "../data/svm_alpha1.csv")
