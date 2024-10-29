@@ -89,7 +89,7 @@ fitalpha <- bi_lst$alpha %>%
   group_by(time) %>%
   ungroup()
 write.csv(fitalpha,"../data/svminf_alpha1111.csv")
-write.csv(bi_lst$loglikelihood$value,"svminf_loglik1111.csv")
+write.csv(bi_lst$loglikelihood$value,"../data/svminf_loglik1111.csv")
 write.csv(bi_lst$beta$value,"../data/svminf_beta1111.csv")
 write.csv(bi_lst$phi$value,"../data/svminf_phi1111.csv")
 write.csv(bi_lst$sigma_eta$value,"../data/svminf_sigma1111.csv")
