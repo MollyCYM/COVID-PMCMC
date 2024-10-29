@@ -1,5 +1,5 @@
 rm(list=ls())
-set.seed(0067889977)
+set.seed(0000889977)
 library(tidyverse)
 library(ggplot2)
 library(ggpubr)
