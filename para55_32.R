@@ -50,7 +50,7 @@ model dureau {
   }
   
   sub initial {
-    x ~ gaussian(a, sigma/sqrt(2*theta) ) 
+    x ~ gaussian(0, 0.3) 
     S <- N-1
     E <- 1
     I <- 0
@@ -134,7 +134,7 @@ fitE <-bi_lst$E %>%
   group_by(time) %>%
   ungroup() %>%
   left_join(E %>% rename(E = value))
-write.csv(fitE,"../data/para55_E11314362.csv")
+write.csv(fitE,"../data/para55_E32.csv")
 
 I <- data.frame(value = I) %>%
   mutate(time = seq(1, by = 1, length.out = n())) %>%
