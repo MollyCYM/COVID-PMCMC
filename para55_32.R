@@ -76,7 +76,7 @@ model dureau {
 
 model <- bi_model(lines = stringi::stri_split_lines(model_str)[[1]])
 
-input_lst <- list(N = 52196381,Forcing=Forcing)
+input_lst <- list(N = 52196381)
 end_time <- max(y$time)
 obs_lst <- list(y = y %>% dplyr::filter(time <= end_time))
 init_list <- list(k=5, gamma=9, sigma=sqrt(0.004),tau=0.1)
