@@ -9,7 +9,7 @@ library(latex2exp)
 library(rbi)
 library(rbi.helpers)
 # Load the data
-v <- read.csv("seirou_y_day1.csv", header=FALSE, stringsAsFactors=FALSE) 
+v <- read.csv("seirou_y_day2.csv", header=FALSE, stringsAsFactors=FALSE) 
 y <- data.frame(value = v) %>%
   mutate(time = seq(1, by = 1, length.out = n())) %>%
   dplyr::select(time, V1)
