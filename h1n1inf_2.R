@@ -1,4 +1,5 @@
 rm(list=ls())
+set.seed(0066666661)
 library(tidyverse)
 library(ggplot2)
 library(ggpubr)
@@ -34,17 +35,17 @@ model h1n1bm {
   param tau
 
   sub parameter {
-    k ~ truncated_gaussian(3, 3, lower = 0) // k is the period here, not the rate, i.e. 1/k is the rate
-    gamma ~ truncated_gaussian(5, 5, lower = 0) // gamma is the period, not the rate
+    k ~ truncated_gaussian(2, 1, lower = 0) // k is the period here, not the rate, i.e. 1/k is the rate
+    gamma ~ truncated_gaussian(8, 1, lower = 0) // gamma is the period, not the rate
     sigma ~ truncated_gaussian(0.1, 0.1, lower = 0)
-    tau ~ truncated_gaussian(0.5, 0.1, lower = 0)
+    tau ~ truncated_gaussian(0.1, 0.01, lower = 0)
   }
   
   sub proposal_parameter {
-    k ~ truncated_gaussian(k, 0.01, lower = 0) 
-    gamma ~ truncated_gaussian(gamma, 0.01, lower = 0) 
+    k ~ truncated_gaussian(k, 0.1, lower = 0) 
+    gamma ~ truncated_gaussian(gamma, 0.1, lower = 0) 
     sigma ~ truncated_gaussian(sigma, 0.001, lower = 0)
-    tau ~ gaussian(tau, 0.001)
+    tau ~ gaussian(tau, 0.01)
   }
 
   sub initial {
@@ -80,7 +81,7 @@ init_list <- list(k=2, gamma=8, sigma=0.07, tau=0.1)
 #LibBi wrapper 
 #run launches LibBi with a particular set of command line arguments
 bi_model <- libbi(model,end_time = end_time, input = input_lst, 
-                  init=init_list,obs = obs_lst)
+                  init=init_list, obs = obs_lst)
 #RBi.helpers adapt_particle
 particles_adapted <- bi_model %>%
   sample(nsamples = 2000, nparticles = minParticles, 
@@ -95,33 +96,18 @@ proposal_adapted <- particles_adapted %>%
 
 #Running pMCMC with burn-in
 bi <- proposal_adapted %>%
-  sample(nsamples = 5000, thin = 1,init=init_list)
-
+  sample(nsamples = 5000, thin = 1,init=init_list) %>%
+  sample(nsamples = 50000, thin = 1)
 bi_lst <- bi_read(bi %>% sample_obs)
 
-#Data save command
-write.csv(bi_lst,"../data/h1n1inf_model2.csv")
 fitY <- bi_lst$y %>%
-  group_by(time) %>%
-  mutate(
-    q025 = quantile(value, 0.025),
-    q25 = quantile(value, 0.25),
-    q50 = quantile(value, 0.5),
-    q75 = quantile(value, 0.75),
-    q975 = quantile(value, 0.975)
-  ) %>% ungroup() %>%
+  group_by(time) %>% 
+  ungroup() %>%
   left_join(y %>% rename(Y = value))
 write.csv(fitY,"../data/h1n1inf_y2.csv")
 
-plot_df <- bi_lst$x %>% mutate(value = exp(value)) %>%
-  group_by(time) %>%
-  mutate(
-    q025 = quantile(value, 0.025),
-    q25 = quantile(value, 0.25),
-    q50 = quantile(value, 0.5),
-    q75 = quantile(value, 0.75),
-    q975 = quantile(value, 0.975)
-  ) %>% ungroup()
+plot_df <- bi_lst$x  %>%
+  group_by(time) 
 write.csv(plot_df,"../data/h1n1inf_beta2.csv")
 
 Mmodel <- read.csv("h1n1bm_model1.csv", header=TRUE, stringsAsFactors=FALSE)
@@ -135,13 +121,7 @@ S <- data.frame(value = S) %>%
   dplyr::select(time, value)
 fitS <-bi_lst$S %>%
   group_by(time) %>%
-  mutate(
-    q025 = quantile(value, 0.025),
-    q25 = quantile(value, 0.25),
-    q50 = quantile(value, 0.5),
-    q75 = quantile(value, 0.75),
-    q975 = quantile(value, 0.975)
-  ) %>% ungroup() %>%
+  ungroup() %>%
   left_join(S %>% rename(S = value))
 write.csv(fitS,"../data/h1n1inf_S2.csv")
 
@@ -150,13 +130,7 @@ E <- data.frame(value = E) %>%
   dplyr::select(time, value)
 fitE <-bi_lst$E %>%
   group_by(time) %>%
-  mutate(
-    q025 = quantile(value, 0.025),
-    q25 = quantile(value, 0.25),
-    q50 = quantile(value, 0.5),
-    q75 = quantile(value, 0.75),
-    q975 = quantile(value, 0.975)
-  ) %>% ungroup() %>%
+  ungroup() %>%
   left_join(E %>% rename(E = value))
 write.csv(fitE,"../data/h1n1inf_E2.csv")
 
@@ -165,13 +139,7 @@ I <- data.frame(value = I) %>%
   dplyr::select(time, value)
 fitI <-bi_lst$I %>%
   group_by(time) %>%
-  mutate(
-    q025 = quantile(value, 0.025),
-    q25 = quantile(value, 0.25),
-    q50 = quantile(value, 0.5),
-    q75 = quantile(value, 0.75),
-    q975 = quantile(value, 0.975)
-  ) %>% ungroup() %>%
+  ungroup() %>%
   left_join(I %>% rename(I = value))
 write.csv(fitI,"../data/h1n1inf_I2.csv")
 
@@ -180,17 +148,11 @@ R <- data.frame(value = R) %>%
   dplyr::select(time, value)
 fitR <-bi_lst$R %>%
   group_by(time) %>%
-  mutate(
-    q025 = quantile(value, 0.025),
-    q25 = quantile(value, 0.25),
-    q50 = quantile(value, 0.5),
-    q75 = quantile(value, 0.75),
-    q975 = quantile(value, 0.975)
-  ) %>% ungroup() %>%
+  ungroup() %>%
   left_join(R %>% rename(R = value))
 write.csv(fitR,"../data/h1n1inf_R2.csv")
 
-
+write.csv(bi_lst$loglikelihood$value,"../data/h1n1inf_loglik2.csv")
 write.csv(bi_lst$k$value,"../data/h1n1inf_alpha2.csv")
 write.csv(bi_lst$gamma$value,"../data/h1n1inf_gamma2.csv")
 write.csv(bi_lst$sigma$value,"../data/h1n1inf_sigma2.csv")
