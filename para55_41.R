@@ -1,5 +1,5 @@
 rm(list=ls())
-set.seed(0066987661)
+set.seed(00669888661)
 library(tidyverse)
 library(ggplot2)
 library(ggpubr)
@@ -9,7 +9,7 @@ library(latex2exp)
 library(rbi)
 library(rbi.helpers)
 # Load the data
-v <- read.csv("h1n1bm_ydaily1.csv", header=FALSE, stringsAsFactors=FALSE) 
+v <- read.csv("seirbm_y_day1.csv", header=FALSE, stringsAsFactors=FALSE) 
 y <- data.frame(value = v) %>%
   mutate(time = seq(1, by = 1, length.out = n())) %>%
   dplyr::select(time, V1)
@@ -112,7 +112,7 @@ plot_df <- bi_lst$x  %>%
   group_by(time) 
 write.csv(plot_df,"../data/para55_x41.csv")
 
-Mmodel <- read.csv("h1n1bm_model1.csv", header=TRUE, stringsAsFactors=FALSE)
+Mmodel <- read.csv("seirbm_model1.csv", header=TRUE, stringsAsFactors=FALSE)
 S<-Mmodel[-1,7]
 E<-Mmodel[-1,9]
 I<-Mmodel[-1,11]
