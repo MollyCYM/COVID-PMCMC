@@ -1,5 +1,5 @@
 rm(list=ls())
-set.seed(0066661)
+set.seed(006666661)
 library(tidyverse)
 library(ggplot2)
 library(ggpubr)
@@ -111,33 +111,19 @@ proposal_adapted <- particles_adapted %>%
 
 #Running pMCMC with burn-in
 bi <- proposal_adapted %>%
-  sample(nsamples = 10000, thin = 1, init=init_list)
-
+  sample(nsamples = 5000, thin = 1,init=init_list) %>%
+  sample(nsamples = 50000, thin = 1)
 bi_lst <- bi_read(bi %>% sample_obs)
 
-write.csv(bi_lst,"../data/para5_model3121531.csv")
 fitY <- bi_lst$y %>%
-  group_by(time) %>%
-  mutate(
-    q025 = quantile(value, 0.025),
-    q25 = quantile(value, 0.25),
-    q50 = quantile(value, 0.5),
-    q75 = quantile(value, 0.75),
-    q975 = quantile(value, 0.975)
-  ) %>% ungroup() %>%
+  group_by(time) %>% 
+  ungroup() %>%
   left_join(y %>% rename(Y = value))
 write.csv(fitY,"../data/para5_y3121531.csv")
 
-plot_df <- bi_lst$x %>% mutate(value = exp(value)) %>%
-  group_by(time) %>%
-  mutate(
-    q025 = quantile(value, 0.025),
-    q25 = quantile(value, 0.25),
-    q50 = quantile(value, 0.5),
-    q75 = quantile(value, 0.75),
-    q975 = quantile(value, 0.975)
-  ) %>% ungroup()
-write.csv(plot_df,"../data/para5_beta3121531.csv")
+plot_df <- bi_lst$x  %>%
+  group_by(time) 
+write.csv(plot_df,"../data/para5_x3121531.csv")
 
 Mmodel <- read.csv("covidoudg2_model221.csv", header=TRUE, stringsAsFactors=FALSE)
 S<-Mmodel[-1,7]
@@ -150,13 +136,7 @@ S <- data.frame(value = S) %>%
   dplyr::select(time, value)
 fitS <-bi_lst$S %>%
   group_by(time) %>%
-  mutate(
-    q025 = quantile(value, 0.025),
-    q25 = quantile(value, 0.25),
-    q50 = quantile(value, 0.5),
-    q75 = quantile(value, 0.75),
-    q975 = quantile(value, 0.975)
-  ) %>% ungroup() %>%
+  ungroup() %>%
   left_join(S %>% rename(S = value))
 write.csv(fitS,"../data/para5_S3121531.csv")
 
@@ -165,13 +145,7 @@ E <- data.frame(value = E) %>%
   dplyr::select(time, value)
 fitE <-bi_lst$E %>%
   group_by(time) %>%
-  mutate(
-    q025 = quantile(value, 0.025),
-    q25 = quantile(value, 0.25),
-    q50 = quantile(value, 0.5),
-    q75 = quantile(value, 0.75),
-    q975 = quantile(value, 0.975)
-  ) %>% ungroup() %>%
+  ungroup() %>%
   left_join(E %>% rename(E = value))
 write.csv(fitE,"../data/para5_E3121531.csv")
 
@@ -180,13 +154,7 @@ I <- data.frame(value = I) %>%
   dplyr::select(time, value)
 fitI <-bi_lst$I %>%
   group_by(time) %>%
-  mutate(
-    q025 = quantile(value, 0.025),
-    q25 = quantile(value, 0.25),
-    q50 = quantile(value, 0.5),
-    q75 = quantile(value, 0.75),
-    q975 = quantile(value, 0.975)
-  ) %>% ungroup() %>%
+  ungroup() %>%
   left_join(I %>% rename(I = value))
 write.csv(fitI,"../data/para5_I3121531.csv")
 
@@ -195,17 +163,11 @@ R <- data.frame(value = R) %>%
   dplyr::select(time, value)
 fitR <-bi_lst$R %>%
   group_by(time) %>%
-  mutate(
-    q025 = quantile(value, 0.025),
-    q25 = quantile(value, 0.25),
-    q50 = quantile(value, 0.5),
-    q75 = quantile(value, 0.75),
-    q975 = quantile(value, 0.975)
-  ) %>% ungroup() %>%
+  ungroup() %>%
   left_join(R %>% rename(R = value))
 write.csv(fitR,"../data/para5_R3121531.csv")
 
-
+write.csv(bi_lst$loglikelihood$value,"../data/para5_loglik3121531.csv")
 write.csv(bi_lst$k$value,"../data/para5_alpha3121531.csv")
 write.csv(bi_lst$gamma$value,"../data/para5_gamma3121531.csv")
 write.csv(bi_lst$sigma$value,"../data/para5_sigma3121531.csv")
