@@ -49,7 +49,6 @@ model dureau {
     gamma ~ truncated_gaussian(9, 1, lower = 0) // gamma is the period, not the rate
     sigma ~ truncated_gaussian(sqrt(0.004), 0.1, lower = 0)
     theta ~ truncated_gaussian(0.05, 0.01, lower = 0)
-    tau ~ truncated_gaussian(0.1, 0.01, lower = 0)
     a ~ truncated_gaussian(-0.02, 0.01, upper = 0)
     b ~ truncated_gaussian(-0.2, 0.1, upper = 0)
   }
@@ -59,7 +58,6 @@ model dureau {
     gamma ~ truncated_gaussian(gamma, 0.1, lower = 0) 
     sigma ~ truncated_gaussian(sigma, 0.001, lower = 0)
     theta ~ truncated_gaussian(theta, 0.005, lower = 0)
-    tau ~ gaussian(tau, 0.01)
     a ~ gaussian(a, 0.001)
     b ~ gaussian(b, 0.01)
   }
