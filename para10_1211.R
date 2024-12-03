@@ -51,20 +51,20 @@ model dureau {
     k ~ truncated_gaussian(5, 1, lower = 0) // k is the period here, not the rate, i.e. 1/k is the rate
     gamma ~ truncated_gaussian(9, 1, lower = 0) // gamma is the period, not the rate
     sigma ~ truncated_gaussian(sqrt(0.004), 0.1, lower = 0)
-    theta ~ truncated_gaussian(0.05, 0.2, lower = 0)
-    tau ~ truncated_gaussian(0.1, 0.1, lower = 0)
-    a ~ truncated_gaussian(-0.02, 0.2, upper = 0)
-    b ~ truncated_gaussian(-0.2, 0.5, upper = 0)
+    theta ~ truncated_gaussian(0.05, 0.01, lower = 0)
+    tau ~ truncated_gaussian(0.1, 0.01, lower = 0)
+    a ~ truncated_gaussian(-0.02, 0.01, upper = 0)
+    b ~ truncated_gaussian(-0.2, 0.1, upper = 0)
   }
   
   sub proposal_parameter {
-    k ~ truncated_gaussian(k, 0.000001, lower = 0) 
-    gamma ~ truncated_gaussian(gamma, 0.000001, lower = 0) 
-    sigma ~ truncated_gaussian(sigma, 0.0000001, lower = 0)
-    theta ~ truncated_gaussian(theta, 0.0000001, lower = 0)
-    tau ~ gaussian(tau, 0.0000001)
-    a ~ gaussian(a, 0.0000001)
-    b ~ gaussian(b, 0.0000001)
+    k ~ truncated_gaussian(k, 0.1, lower = 0) 
+    gamma ~ truncated_gaussian(gamma, 0.1, lower = 0) 
+    sigma ~ truncated_gaussian(sigma, 0.001, lower = 0)
+    theta ~ truncated_gaussian(theta, 0.005, lower = 0)
+    tau ~ gaussian(tau, 0.01)
+    a ~ gaussian(a, 0.001)
+    b ~ gaussian(b, 0.01)
   }
   
   sub initial {
@@ -101,11 +101,11 @@ model <- bi_model(lines = stringi::stri_split_lines(model_str)[[1]])
 input_lst <- list(N = 52196381,Forcing=Forcing)
 end_time <- max(y$time)
 obs_lst <- list(y = y %>% dplyr::filter(time <= end_time))
-init_list <- list(k=5, gamma=9, sigma=sqrt(0.004), theta=0.05, tau=0.1, a=-0.02, b=-0.2)
+init_list <- list(k=5, gamma=9, sigma=sqrt(0.004),theta=0.05,tau=0.1,a=-0.02,b=-0.2)
 #LibBi wrapper 
 #run launches LibBi with a particular set of command line arguments
 bi_model <- libbi(model,end_time = end_time, input = input_lst, 
-                  init=init_list,obs = obs_lst)
+                  init=init_list, obs = obs_lst)
 #RBi.helpers adapt_particle
 particles_adapted <- bi_model %>%
   sample(nsamples = 2000, nparticles = minParticles, 
@@ -120,82 +120,41 @@ proposal_adapted <- particles_adapted %>%
 
 #Running pMCMC with burn-in
 bi <- proposal_adapted %>%
-  sample(nsamples = 10000, thin = 1)
-
+  sample(nsamples = 5000, thin = 1,init=init_list) %>%
+  sample(nsamples = 50000, thin = 1)
 bi_lst <- bi_read(bi %>% sample_obs)
 
-write.csv(bi_lst,"../data/para10_model1211.csv")
 fitY <- bi_lst$y %>%
-  group_by(time) %>%
-  mutate(
-    q025 = quantile(value, 0.025),
-    q25 = quantile(value, 0.25),
-    q50 = quantile(value, 0.5),
-    q75 = quantile(value, 0.75),
-    q975 = quantile(value, 0.975)
-  ) %>% ungroup() %>%
+  group_by(time) %>% 
+  ungroup() %>%
   left_join(y %>% rename(Y = value))
 write.csv(fitY,"../data/para10_y1211.csv")
 
-plot_df <- bi_lst$x |> mutate(value = exp(value)) %>%
-  group_by(time) %>%
-  mutate(
-    q025 = quantile(value, 0.025),
-    q25 = quantile(value, 0.25),
-    q50 = quantile(value, 0.5),
-    q75 = quantile(value, 0.75),
-    q975 = quantile(value, 0.975)
-  ) %>% ungroup()
-write.csv(plot_df,"../data/para10_beta1211.csv")
+plot_df <- bi_lst$x  %>%
+  group_by(time) 
+write.csv(plot_df,"../data/para10_x1211.csv")
 
 fitS <-bi_lst$S %>%
   group_by(time) %>%
-  mutate(
-    q025 = quantile(value, 0.025),
-    q25 = quantile(value, 0.25),
-    q50 = quantile(value, 0.5),
-    q75 = quantile(value, 0.75),
-    q975 = quantile(value, 0.975)
-  ) %>% ungroup() 
+  ungroup()
 write.csv(fitS,"../data/para10_S1211.csv")
-
 
 fitE <-bi_lst$E %>%
   group_by(time) %>%
-  mutate(
-    q025 = quantile(value, 0.025),
-    q25 = quantile(value, 0.25),
-    q50 = quantile(value, 0.5),
-    q75 = quantile(value, 0.75),
-    q975 = quantile(value, 0.975)
-  ) %>% ungroup() 
+  ungroup()
 write.csv(fitE,"../data/para10_E1211.csv")
-
 
 fitI <-bi_lst$I %>%
   group_by(time) %>%
-  mutate(
-    q025 = quantile(value, 0.025),
-    q25 = quantile(value, 0.25),
-    q50 = quantile(value, 0.5),
-    q75 = quantile(value, 0.75),
-    q975 = quantile(value, 0.975)
-  ) %>% ungroup()
+  ungroup()
 write.csv(fitI,"../data/para10_I1211.csv")
-
 
 fitR <-bi_lst$R %>%
   group_by(time) %>%
-  mutate(
-    q025 = quantile(value, 0.025),
-    q25 = quantile(value, 0.25),
-    q50 = quantile(value, 0.5),
-    q75 = quantile(value, 0.75),
-    q975 = quantile(value, 0.975)
-  ) %>% ungroup() 
+  ungroup() 
 write.csv(fitR,"../data/para10_R1211.csv")
 
-
+write.csv(bi_lst$loglikelihood$value,"../data/para10_loglik1211.csv")
 write.csv(bi_lst$k$value,"../data/para10_alpha1211.csv")
 write.csv(bi_lst$gamma$value,"../data/para10_gamma1211.csv")
 write.csv(bi_lst$sigma$value,"../data/para10_sigma1211.csv")
@@ -203,6 +162,3 @@ write.csv(bi_lst$tau$value,"../data/para10_tau1211.csv")
 write.csv(bi_lst$theta$value,"../data/para10_theta1211.csv")
 write.csv(bi_lst$a$value,"../data/para10_a1211.csv")
 write.csv(bi_lst$b$value,"../data/para10_b1211.csv")
-
-
-
