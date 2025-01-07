@@ -36,17 +36,17 @@ model dureau {
 
   
   sub parameter {
-    k ~ truncated_gaussian(5, 1, lower = 0) // k is the period here, not the rate, i.e. 1/k is the rate
-    gamma ~ truncated_gaussian(9, 1, lower = 0) // gamma is the period, not the rate
-    sigma ~ truncated_gaussian(sqrt(0.004), 0.1, lower = 0)
-    tau ~ truncated_gaussian(0.1, 0.01, lower = 0)
+    k ~ truncated_gaussian(5, 1, lower = 2) // k is the period here, not the rate, i.e. 1/k is the rate
+    gamma ~ truncated_gaussian(9, 2, lower = 4) // gamma is the period, not the rate
+    sigma ~ truncated_gaussian(0.05, 0.02, lower = 0)
+    tau ~ truncated_gaussian(0.1, 0.05, lower = 0)
   }
   
   sub proposal_parameter {
     k ~ truncated_gaussian(k, 0.2, lower = 0) 
     gamma ~ truncated_gaussian(gamma, 0.2, lower = 0) 
     sigma ~ truncated_gaussian(sigma, 0.005, lower = 0)
-    tau ~ gaussian(tau, 0.03)
+    tau ~ gaussian(tau, 0.02)
   }
   
   sub initial {
@@ -99,7 +99,7 @@ proposal_adapted <- particles_adapted %>%
 #Running pMCMC with burn-in
 bi <- proposal_adapted %>%
   sample(nsamples = 5000, thin = 1,init=init_list) %>%
-  sample(nsamples = 5000, thin = 1)
+  sample(nsamples = 50000, thin = 1)
 bi_lst <- bi_read(bi %>% sample_obs)
 
 fitY <- bi_lst$y %>%
