@@ -36,15 +36,15 @@ model dureau {
 
   
   sub parameter {
-    k ~ truncated_gaussian(5, 2, lower = 1,upper=10) // k is the period here, not the rate, i.e. 1/k is the rate
-    gamma ~ truncated_gaussian(9, 2, lower = 5,upper=15) // gamma is the period, not the rate
+    k ~ truncated_gaussian(5, 2, lower = 0) // k is the period here, not the rate, i.e. 1/k is the rate
+    gamma ~ truncated_gaussian(9, 2, lower = 0) // gamma is the period, not the rate
     sigma ~ truncated_gaussian(sqrt(0.004), 0.01, lower = 0, upper=0.1)
-    tau ~ truncated_gaussian(0.1, 0.05, lower = 0,upper=0.2)
+    tau ~ truncated_gaussian(0.1, 0.01, lower = 0,upper=0.2)
   }
   
   sub proposal_parameter {
-    k ~ truncated_gaussian(k, 0.5, lower = 1,upper=10) 
-    gamma ~ truncated_gaussian(gamma, 0.5, lower = 5,upper=15) 
+    k ~ truncated_gaussian(k, 0.1, lower = 0) 
+    gamma ~ truncated_gaussian(gamma, 0.1, lower = 0) 
     sigma ~ truncated_gaussian(sigma, 0.01, lower = 0,upper=0.1)
     tau ~ truncated_gaussian(tau, 0.01,lower = 0,upper=0.2)
   }
