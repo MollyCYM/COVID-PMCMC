@@ -48,8 +48,8 @@ model dureau {
 
   
   sub parameter {
-    k ~ truncated_gaussian(5, 1, lower = 0) // k is the period here, not the rate, i.e. 1/k is the rate
-    gamma ~ truncated_gaussian(9, 1, lower = 0) // gamma is the period, not the rate
+    k ~ truncated_gaussian(5, 2, lower = 0) // k is the period here, not the rate, i.e. 1/k is the rate
+    gamma ~ truncated_gaussian(9, 2, lower = 0) // gamma is the period, not the rate
     sigma ~ truncated_gaussian(sqrt(0.004), 0.1, lower = 0)
     theta ~ truncated_gaussian(0.05, 0.01, lower = 0)
     tau ~ truncated_gaussian(0.1, 0.01, lower = 0)
@@ -61,7 +61,7 @@ model dureau {
     k ~ truncated_gaussian(k, 0.1, lower = 0) 
     gamma ~ truncated_gaussian(gamma, 0.1, lower = 0) 
     sigma ~ truncated_gaussian(sigma, 0.001, lower = 0)
-    theta ~ truncated_gaussian(theta, 0.005, lower = 0)
+    theta ~ truncated_gaussian(theta, 0.001, lower = 0)
     tau ~ gaussian(tau, 0.01)
     a ~ gaussian(a, 0.001)
     b ~ gaussian(b, 0.01)
@@ -108,20 +108,20 @@ bi_model <- libbi(model,end_time = end_time, input = input_lst,
                   init=init_list, obs = obs_lst)
 #RBi.helpers adapt_particle
 particles_adapted <- bi_model %>%
-  sample(nsamples = 2000, nparticles = minParticles, 
+  sample(nsamples = 1000, nparticles = minParticles, 
          nthreads = ncores, proposal = 'prior') %>%
   adapt_particles(min = minParticles, max = minParticles*500)
 
 #RBi.helpers adapt_proposal
 proposal_adapted <- particles_adapted %>%
-  sample(target = "posterior", nsamples = 2000, 
+  sample(target = "posterior", nsamples = 1000, 
          nthreads = ncores, proposal = 'model') %>%
-  adapt_proposal(min = 0.1, max = 0.4)
+  adapt_proposal(min = 0.2, max = 0.4)
 
 #Running pMCMC with burn-in
 bi <- proposal_adapted %>%
   sample(nsamples = 5000, thin = 1,init=init_list) %>%
-  sample(nsamples = 50000, thin = 1)
+  sample(nsamples = 20000, thin = 1)
 bi_lst <- bi_read(bi %>% sample_obs)
 
 fitY <- bi_lst$y %>%
