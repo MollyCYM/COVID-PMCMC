@@ -48,8 +48,8 @@ model dureau {
 
   
   sub parameter {
-    k ~ truncated_gaussian(5, 2, lower = 0) // k is the period here, not the rate, i.e. 1/k is the rate
-    gamma ~ truncated_gaussian(9, 2, lower = 0) // gamma is the period, not the rate
+    k ~ truncated_gaussian(5, 3, lower = 0) // k is the period here, not the rate, i.e. 1/k is the rate
+    gamma ~ truncated_gaussian(9, 3, lower = 0) // gamma is the period, not the rate
     sigma ~ truncated_gaussian(sqrt(0.004), 0.1, lower = 0)
     theta ~ truncated_gaussian(0.05, 0.01, lower = 0)
     tau ~ truncated_gaussian(0.1, 0.01, lower = 0)
@@ -58,13 +58,13 @@ model dureau {
   }
   
   sub proposal_parameter {
-    k ~ truncated_gaussian(k, 0.05, lower = 0) 
-    gamma ~ truncated_gaussian(gamma, 0.05, lower = 0) 
-    sigma ~ truncated_gaussian(sigma, 0.0001, lower = 0)
-    theta ~ truncated_gaussian(theta, 0.0001, lower = 0)
-    tau ~ gaussian(tau, 0.001)
-    a ~ gaussian(a, 0.0001)
-    b ~ gaussian(b, 0.001)
+    k ~ truncated_gaussian(k, 0.1, lower = 0) 
+    gamma ~ truncated_gaussian(gamma, 0.1, lower = 0) 
+    sigma ~ truncated_gaussian(sigma, 0.01, lower = 0)
+    theta ~ truncated_gaussian(theta, 0.005, lower = 0)
+    tau ~ gaussian(tau, 0.005)
+    a ~ gaussian(a, 0.001)
+    b ~ gaussian(b, 0.005)
   }
   
   sub initial {
