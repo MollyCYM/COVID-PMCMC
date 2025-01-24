@@ -48,8 +48,8 @@ model dureau {
 
   
   sub parameter {
-    k ~ truncated_gaussian(5, 3, lower = 0) // k is the period here, not the rate, i.e. 1/k is the rate
-    gamma ~ truncated_gaussian(9, 3, lower = 0) // gamma is the period, not the rate
+    k ~ truncated_gaussian(5, 2, lower = 0) // k is the period here, not the rate, i.e. 1/k is the rate
+    gamma ~ truncated_gaussian(9, 2, lower = 0) // gamma is the period, not the rate
     sigma ~ truncated_gaussian(sqrt(0.004), 0.1, lower = 0)
     theta ~ truncated_gaussian(0.05, 0.01, lower = 0)
     tau ~ truncated_gaussian(0.1, 0.01, lower = 0)
@@ -116,12 +116,12 @@ particles_adapted <- bi_model %>%
 proposal_adapted <- particles_adapted %>%
   sample(target = "posterior", nsamples = 1000, 
          nthreads = ncores, proposal = 'model') %>%
-  adapt_proposal(min = 0.2, max = 0.4)
+  adapt_proposal(min = 0.15, max = 0.4)
 
 #Running pMCMC with burn-in
 bi <- proposal_adapted %>%
   sample(nsamples = 5000, thin = 1,init=init_list) %>%
-  sample(nsamples = 20000, thin = 1)
+  sample(nsamples = 10000, thin = 1)
 bi_lst <- bi_read(bi %>% sample_obs)
 
 fitY <- bi_lst$y %>%
