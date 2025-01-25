@@ -128,37 +128,37 @@ fitY <- bi_lst$y %>%
   group_by(time) %>% 
   ungroup() %>%
   left_join(y %>% rename(Y = value))
-write.csv(fitY,"../data/para10_y1212.csv")
+write.csv(fitY,"../data/para10_y1213.csv")
 
 plot_df <- bi_lst$x  %>%
   group_by(time) 
-write.csv(plot_df,"../data/para10_x1212.csv")
+write.csv(plot_df,"../data/para10_x1213.csv")
 
 fitS <-bi_lst$S %>%
   group_by(time) %>%
   ungroup()
-write.csv(fitS,"../data/para10_S1212.csv")
+write.csv(fitS,"../data/para10_S1213.csv")
 
 fitE <-bi_lst$E %>%
   group_by(time) %>%
   ungroup()
-write.csv(fitE,"../data/para10_E1212.csv")
+write.csv(fitE,"../data/para10_E1213.csv")
 
 fitI <-bi_lst$I %>%
   group_by(time) %>%
   ungroup()
-write.csv(fitI,"../data/para10_I1212.csv")
+write.csv(fitI,"../data/para10_I1213.csv")
 
 fitR <-bi_lst$R %>%
   group_by(time) %>%
   ungroup() 
-write.csv(fitR,"../data/para10_R1212.csv")
+write.csv(fitR,"../data/para10_R1213.csv")
 
-write.csv(bi_lst$loglikelihood$value,"../data/para10_loglik1212.csv")
-write.csv(bi_lst$k$value,"../data/para10_alpha1212.csv")
-write.csv(bi_lst$gamma$value,"../data/para10_gamma1212.csv")
-write.csv(bi_lst$sigma$value,"../data/para10_sigma1212.csv")
-write.csv(bi_lst$tau$value,"../data/para10_tau1212.csv")
-write.csv(bi_lst$theta$value,"../data/para10_theta1212.csv")
-write.csv(bi_lst$a$value,"../data/para10_a1212.csv")
-write.csv(bi_lst$b$value,"../data/para10_b1212.csv")
+write.csv(bi_lst$loglikelihood$value,"../data/para10_loglik1213.csv")
+write.csv(bi_lst$k$value,"../data/para10_alpha1213.csv")
+write.csv(bi_lst$gamma$value,"../data/para10_gamma1213.csv")
+write.csv(bi_lst$sigma$value,"../data/para10_sigma1213.csv")
+write.csv(bi_lst$tau$value,"../data/para10_tau1213.csv")
+write.csv(bi_lst$theta$value,"../data/para10_theta1213.csv")
+write.csv(bi_lst$a$value,"../data/para10_a1213.csv")
+write.csv(bi_lst$b$value,"../data/para10_b1213.csv")
